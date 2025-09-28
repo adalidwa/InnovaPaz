@@ -390,7 +390,7 @@ export const Services: React.FC = () => {
               >
                 <Button
                   as='anchor'
-                  href='https://innovapaz.bo'
+                  href='https://innovapaz-website-erp-marketing.vercel.app/'
                   target='_blank'
                   size='large'
                   variant='secondary'

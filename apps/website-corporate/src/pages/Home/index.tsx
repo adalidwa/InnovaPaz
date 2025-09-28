@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Users, Target, Eye, Building2 } from 'lucide-react';
+import { ArrowRight, Target, Eye, Building2 } from 'lucide-react';
 import { Button } from '../../components/UI/Button';
 import { SEO } from '../../components/UI/SEO';
 import { OptimizedImage } from '../../components/UI/OptimizedImage';
@@ -27,7 +27,7 @@ const teamMembers: TeamMember[] = [
     name: 'Edison Clever Checa Tito',
     position: 'Miembro del Equipo',
     description: 'SAGA: A28145-X - Miembro del equipo directivo de CorpsCode.',
-    image: '../../../public/images/team-photos/edison.jpg', // Imagen específica para Edison
+    image: '/images/team-photos/edison.jpg', // Imagen específica para Edison
     imageAlt: 'Edison Clever Checa Tito - Miembro del Equipo CorpsCode',
   },
   {
@@ -35,7 +35,7 @@ const teamMembers: TeamMember[] = [
     name: 'Adalid Jesús Condori Velasco',
     position: 'Miembro del Equipo',
     description: 'SAGA: A27351-1 - Miembro del equipo directivo de CorpsCode.',
-    image: '../../../public/images/team-photos/adalid.jpg', // Imagen específica para Adalid
+    image: '/images/team-photos/adalid.jpg', // Imagen específica para Adalid
     imageAlt: 'Adalid Jesús Condori Velasco - Miembro del Equipo CorpsCode',
   },
   {
@@ -43,7 +43,7 @@ const teamMembers: TeamMember[] = [
     name: 'Jesús Ario Soto Mercado',
     position: 'Miembro del Equipo',
     description: 'SAGA: A26805-4 - Miembro del equipo directivo de CorpsCode.',
-    image: '../../../public/images/team-photos/jesus.jpg', // Imagen específica para Jesús
+    image: '/images/team-photos/jesus.jpg', // Imagen específica para Jesús
     imageAlt: 'Jesús Ario Soto Mercado - Miembro del Equipo CorpsCode',
   },
   {
@@ -51,7 +51,7 @@ const teamMembers: TeamMember[] = [
     name: 'Izai Alejandro Zalles Merino',
     position: 'Miembro del Equipo',
     description: 'SAGA: A27006-7 - Miembro del equipo directivo de CorpsCode.',
-    image: '../../../public/images/team-photos/izai.jpg', // Imagen específica para Izai
+    image: '/images/team-photos/izai.jpg', // Imagen específica para Izai
     imageAlt: 'Izai Alejandro Zalles Merino - Miembro del Equipo CorpsCode',
   },
   {
@@ -59,7 +59,7 @@ const teamMembers: TeamMember[] = [
     name: 'José Ángel Mamani Pinto',
     position: 'Miembro del Equipo',
     description: 'SAGA: A28095-X - Miembro del equipo directivo de CorpsCode.',
-    image: '../../../public/images/team-photos/angel.jpg', // Imagen específica para José
+    image: '/images/team-photos/angel.jpg', // Imagen específica para José
     imageAlt: 'José Ángel Mamani Pinto - Miembro del Equipo CorpsCode',
   },
 ];

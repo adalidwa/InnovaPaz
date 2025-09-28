@@ -1,12 +1,15 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth } from '../configs/firebaseConfig';
+import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
+import { auth, db } from '../configs/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import avatarDefault from '../assets/images/avatarlogin.png';
 
 interface User {
   displayName: string;
   photoURL: string;
   email?: string;
+  uid?: string;
 }
 
 interface UserContextProps {
@@ -24,12 +27,30 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
+        let displayName = firebaseUser.displayName;
+        // Si no hay displayName, buscar en Firestore y actualizar el perfil
+        if (!displayName && firebaseUser.uid) {
+          try {
+            const docRef = doc(db, 'usuarios', firebaseUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              if (data.nombre) {
+                await updateProfile(firebaseUser, { displayName: data.nombre });
+                displayName = data.nombre;
+              }
+            }
+          } catch {
+            // Si falla, dejar displayName como null
+          }
+        }
         const userData = {
-          displayName: firebaseUser.displayName || 'Usuario Anónimo',
-          photoURL: firebaseUser.photoURL || '/default-avatar.png',
+          displayName: displayName || 'Usuario Anónimo',
+          photoURL: firebaseUser.photoURL || avatarDefault,
           email: firebaseUser.email || '',
+          uid: firebaseUser.uid,
         };
         setUser(userData);
       } else {

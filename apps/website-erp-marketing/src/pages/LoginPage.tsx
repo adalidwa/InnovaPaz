@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import Input from '../components/common/Input';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import Button from '../components/common/Button';
-import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
+import illustrationPicture from '../assets/icons/illustrationPicture.svg';
 import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './LoginPage.css';
 import { useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../services/auth/firebaseAuthService';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../configs/firebaseConfig';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,7 +24,7 @@ const LoginPage: React.FC = () => {
     try {
       const { user, error } = await signInWithGoogle();
       if (user) {
-        console.log('¡Usuario logueado con Google!', user);
+        // Usuario logueado con Google
         navigate('/');
       } else {
         setError('Error al iniciar sesión con Google');
@@ -30,6 +32,29 @@ const LoginPage: React.FC = () => {
       }
     } catch (err) {
       setError('Error inesperado. Inténtalo más tarde.');
+      console.error(err);
+    }
+    setLoading(false);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Usuario logueado
+      navigate('/');
+    } catch (err: any) {
+      if (err.code === 'auth/user-not-found') {
+        setError('No existe una cuenta con ese correo.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Contraseña incorrecta.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Correo inválido.');
+      } else {
+        setError('Error al iniciar sesión. ' + (err.message || 'Inténtalo de nuevo.'));
+      }
       console.error(err);
     }
     setLoading(false);
@@ -51,13 +76,14 @@ const LoginPage: React.FC = () => {
       <div className='login-box'>
         <h1 className='login-title'>Iniciar Sesión</h1>
         <p className='login-subtitle'>Bienvenido a InnovaPaz ¡Qué bueno verte de nuevo!</p>
-        <form className='login-form'>
+        <form className='login-form' onSubmit={handleLogin}>
           <Input
             id='loginEmail'
             name='email'
             label='Correo electrónico'
             placeholder='ejemplo@email.com'
             type='email'
+            validate='email'
             containerWidth='full'
             size='medium'
             value={email}
@@ -87,7 +113,7 @@ const LoginPage: React.FC = () => {
 
           <div>
             <Button
-              title='Iniciar Sesión'
+              title={loading ? 'Iniciando...' : 'Iniciar Sesión'}
               backgroundColor='var(--bg-100)'
               textColor='var(--pri-900)'
               hasBackground={true}
@@ -95,6 +121,7 @@ const LoginPage: React.FC = () => {
               titleFontWeight='normal'
               containerWidth='full'
               height='small'
+              disabled={loading}
             />
           </div>
 

@@ -13,7 +13,7 @@ interface MobileMenuProps {
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onNavigate }) => {
-  const { user } = useUser();
+  const { user, logout } = useUser();
 
   return (
     <div className={`mobile-menu ${isOpen ? 'mobile-menu--open' : ''}`}>
@@ -44,8 +44,8 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose, onNavigate }) 
             <Button
               variant='outline'
               size='medium'
-              onClick={() => {
-                console.log('Cerrar sesión');
+              onClick={async () => {
+                await logout();
                 onClose();
               }}
             >

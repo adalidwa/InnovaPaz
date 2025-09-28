@@ -1,7 +1,7 @@
 {
   "apps/**/*.{js,jsx,ts,tsx}": [
     "prettier --config .prettierc --write",
-    "eslint --fix"
+    "eslint --fix --ignore-pattern '**/.vite/**' --ignore-pattern '**/dist/**' --ignore-pattern '**/node_modules/**'"
   ],
   "apps/**/*.{json,css}": [
     "prettier --config .prettierc --write"

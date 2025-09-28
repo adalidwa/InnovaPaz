@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../../configs/firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import Button from '../common/ButtonExtra';
 import Logo from '../ui/Logo';
 import NavLink from '../ui/NavLink';
-import Avatar from '../ui/Avatar';
+import avatarDefault from '../../assets/images/avatarlogin.png';
 import MobileMenu from './MobileMenu';
 import './Header.css';
 
@@ -14,6 +16,7 @@ const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const navigate = useNavigate();
   const { user, logout } = useUser();
+  const [nombreFirestore, setNombreFirestore] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const handleNavigationClick = (section: string) => {
@@ -33,10 +36,10 @@ const Header: React.FC = () => {
         navigate('/contacto');
         break;
       case 'login':
-        window.open('/login', '_blank');
+        navigate('/login');
         break;
       case 'register':
-        window.open('/register', '_blank');
+        navigate('/register');
         break;
       default:
         break;
@@ -78,6 +81,27 @@ const Header: React.FC = () => {
     };
   }, []);
 
+  // Consultar Firestore si el usuario está logueado y no tiene displayName
+  useEffect(() => {
+    const fetchNombre = async () => {
+      if (user && !user.displayName && 'uid' in user && user.uid) {
+        try {
+          const docRef = doc(db, 'usuarios', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setNombreFirestore(data.nombre || null);
+          }
+        } catch (err) {
+          setNombreFirestore(null);
+        }
+      } else {
+        setNombreFirestore(null);
+      }
+    };
+    fetchNombre();
+  }, [user]);
+
   return (
     <>
       <header className='header'>
@@ -117,8 +141,14 @@ const Header: React.FC = () => {
             {user ? (
               <div className='header__user-container' ref={userMenuRef}>
                 <div className='header__user-info' onClick={toggleUserMenu}>
-                  <Avatar user={user} />
-                  <span className='header__user-name'>{user.displayName}</span>
+                  <img
+                    src={user.photoURL ? user.photoURL : avatarDefault}
+                    alt='Avatar'
+                    className='header__user-avatar'
+                  />
+                  <span className='header__user-name'>
+                    {user.displayName || nombreFirestore || user.email}
+                  </span>
                 </div>
                 {isUserMenuOpen && (
                   <div className='header__user-menu'>

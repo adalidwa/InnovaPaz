@@ -1,0 +1,58 @@
+{
+  "hash": "33fc6601",
+  "configHash": "f6a4be24",
+  "lockfileHash": "36e44458",
+  "browserHash": "ce7cdc71",
+  "optimized": {
+    "react/jsx-dev-runtime": {
+      "src": "../../../../node_modules/.pnpm/react@19.1.1/node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "7f7b7a19",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../../../node_modules/.pnpm/react@19.1.1/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "7951c7c2",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../../node_modules/.pnpm/react-dom@19.1.1_react@19.1.1/node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "6f88b600",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../../../node_modules/.pnpm/react-router-dom@7.8.2_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "7a49dc8f",
+      "needsInterop": false
+    },
+    "react-helmet-async": {
+      "src": "../../../../node_modules/.pnpm/react-helmet-async@2.0.5_react@19.1.1/node_modules/react-helmet-async/lib/index.esm.js",
+      "file": "react-helmet-async.js",
+      "fileHash": "4430477e",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../../../node_modules/.pnpm/lucide-react@0.542.0_react@19.1.1/node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "dc349954",
+      "needsInterop": false
+    },
+    "framer-motion": {
+      "src": "../../../../node_modules/.pnpm/framer-motion@12.23.12_react-dom@19.1.1_react@19.1.1__react@19.1.1/node_modules/framer-motion/dist/es/index.mjs",
+      "file": "framer-motion.js",
+      "fileHash": "e6f699cb",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-USCX5WQ6": {
+      "file": "chunk-USCX5WQ6.js"
+    },
+    "chunk-O63B6JNQ": {
+      "file": "chunk-O63B6JNQ.js"
+    }
+  }
+}

@@ -7,12 +7,41 @@ import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './RegisterPage.css';
 import { signInWithGoogle } from '../services/auth/firebaseAuthService';
+import { registerUser } from '../services/auth/registerService';
 import { useNavigate } from 'react-router-dom';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    if (!nombre || !email || !password || !confirmPassword) {
+      setError('Por favor, completa todos los campos.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+    setLoading(true);
+    const { user, error } = await registerUser(nombre, email, password);
+    if (user) {
+      setSuccess('¡Cuenta creada exitosamente!');
+      setTimeout(() => navigate('/'), 1500);
+    } else {
+      setError('Error al crear la cuenta. ' + ((error as any)?.message || 'Inténtalo de nuevo.'));
+    }
+    setLoading(false);
+  };
 
   const handleGoogleRegister = async () => {
     setLoading(true);
@@ -20,7 +49,7 @@ const RegisterPage: React.FC = () => {
     try {
       const { user, error } = await signInWithGoogle();
       if (user) {
-        console.log('¡Éxito en registro con Google!', user);
+        // Éxito en registro con Google
         navigate('/');
       } else {
         setError('Error al registrar con Google. Inténtalo de nuevo.');
@@ -28,7 +57,7 @@ const RegisterPage: React.FC = () => {
       }
     } catch (err) {
       setError('Error inesperado. Inténtalo más tarde.');
-      console.error(err);
+      // Error inesperado
     }
     setLoading(false);
   };
@@ -50,7 +79,7 @@ const RegisterPage: React.FC = () => {
         <p className='register-subtitle'>
           Comienza a simplificar la gestión de tu empresa en solo unos minutos
         </p>
-        <form className='register-form'>
+        <form className='register-form' onSubmit={handleRegister}>
           <Input
             id='registerFirstName'
             name='firstName'
@@ -59,6 +88,8 @@ const RegisterPage: React.FC = () => {
             type='text'
             containerWidth='full'
             size='medium'
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
           />
 
           <Input
@@ -67,8 +98,11 @@ const RegisterPage: React.FC = () => {
             label='Correo electrónico'
             placeholder='ejemplo@email.com'
             type='email'
+            validate='email'
             containerWidth='full'
             size='medium'
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
 
           <Input
@@ -82,6 +116,8 @@ const RegisterPage: React.FC = () => {
             hidePasswordIcon={FaEyeSlash}
             containerWidth='full'
             size='medium'
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
 
           <Input
@@ -95,11 +131,13 @@ const RegisterPage: React.FC = () => {
             hidePasswordIcon={FaEyeSlash}
             containerWidth='full'
             size='medium'
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
 
           <div>
             <Button
-              title='Crear cuenta'
+              title={loading ? 'Creando cuenta...' : 'Crear cuenta'}
               backgroundColor='var(--bg-100)'
               textColor='var(--pri-900)'
               hasBackground={true}
@@ -107,6 +145,7 @@ const RegisterPage: React.FC = () => {
               titleFontWeight='normal'
               containerWidth='full'
               height='large'
+              disabled={loading}
             />
           </div>
 
@@ -119,6 +158,7 @@ const RegisterPage: React.FC = () => {
           </div>
 
           {error && <p className='error-message'>{error}</p>}
+          {success && <p className='success-message'>{success}</p>}
 
           <div className='register-footer'>
             <span className='register-footer-text'>¿Ya tienes cuenta?</span>
