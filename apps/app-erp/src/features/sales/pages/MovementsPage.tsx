@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../../../assets/styles/theme.css';
-import { SalesNavigation, SalesCart } from '../components';
+import { SalesNavigation, PointOfSale } from '../components';
 
 function MovementsPage() {
   const [activeTab, setActiveTab] = useState('punto-venta');
@@ -12,10 +12,19 @@ function MovementsPage() {
   const renderContent = () => {
     switch (activeTab) {
       case 'punto-venta':
-        return <SalesCart />;
+        return <PointOfSale />;
       case 'clientes':
         return (
-          <div style={{ padding: '32px', textAlign: 'center' }}>
+          <div
+            style={{
+              padding: '32px',
+              textAlign: 'center',
+              background: 'var(--white)',
+              margin: '16px',
+              borderRadius: '8px',
+              border: '1px solid var(--pri-200)',
+            }}
+          >
             <h3 style={{ font: 'var(--font-20)', color: 'var(--pri-900)', marginBottom: '16px' }}>
               Gestión de Clientes
             </h3>
@@ -26,7 +35,16 @@ function MovementsPage() {
         );
       case 'historial':
         return (
-          <div style={{ padding: '32px', textAlign: 'center' }}>
+          <div
+            style={{
+              padding: '32px',
+              textAlign: 'center',
+              background: 'var(--white)',
+              margin: '16px',
+              borderRadius: '8px',
+              border: '1px solid var(--pri-200)',
+            }}
+          >
             <h3 style={{ font: 'var(--font-20)', color: 'var(--pri-900)', marginBottom: '16px' }}>
               Historial de Ventas
             </h3>
@@ -37,7 +55,16 @@ function MovementsPage() {
         );
       case 'cotizaciones':
         return (
-          <div style={{ padding: '32px', textAlign: 'center' }}>
+          <div
+            style={{
+              padding: '32px',
+              textAlign: 'center',
+              background: 'var(--white)',
+              margin: '16px',
+              borderRadius: '8px',
+              border: '1px solid var(--pri-200)',
+            }}
+          >
             <h3 style={{ font: 'var(--font-20)', color: 'var(--pri-900)', marginBottom: '16px' }}>
               Cotizaciones
             </h3>
@@ -48,7 +75,16 @@ function MovementsPage() {
         );
       case 'pedidos':
         return (
-          <div style={{ padding: '32px', textAlign: 'center' }}>
+          <div
+            style={{
+              padding: '32px',
+              textAlign: 'center',
+              background: 'var(--white)',
+              margin: '16px',
+              borderRadius: '8px',
+              border: '1px solid var(--pri-200)',
+            }}
+          >
             <h3 style={{ font: 'var(--font-20)', color: 'var(--pri-900)', marginBottom: '16px' }}>
               Gestión de Pedidos
             </h3>
@@ -58,12 +94,12 @@ function MovementsPage() {
           </div>
         );
       default:
-        return <SalesCart />;
+        return <PointOfSale />;
     }
   };
 
   return (
-    <main>
+    <main style={{ background: 'var(--bg-50)', minHeight: '100vh' }}>
       <SalesNavigation defaultTab={activeTab} onTabChange={handleTabChange} />
       <div>{renderContent()}</div>
     </main>

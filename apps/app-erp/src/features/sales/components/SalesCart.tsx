@@ -14,11 +14,14 @@ interface CartItemData {
 }
 
 interface SalesCartProps {
+  cartItems?: CartItemData[];
+  onQuantityChange?: (itemId: string, newQuantity: number) => void;
+  onRemoveItem?: (itemId: string) => void;
   onProcessSale?: (saleData: any) => void;
   onCancel?: () => void;
 }
 
-// Mock data para demostración
+// Mock data para demostración cuando no se pasan props
 const mockCartItems: CartItemData[] = [
   {
     id: '1',
@@ -28,16 +31,25 @@ const mockCartItems: CartItemData[] = [
   },
 ];
 
-function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
-  const [cartItems, setCartItems] = useState<CartItemData[]>(mockCartItems);
+function SalesCart({
+  cartItems = mockCartItems,
+  onQuantityChange,
+  onRemoveItem,
+  onProcessSale,
+  onCancel,
+}: SalesCartProps) {
+  const [internalCartItems, setInternalCartItems] = useState<CartItemData[]>(mockCartItems);
   const [customerName, setCustomerName] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('efectivo');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const taxRate = 0.13; // 13% tax
 
+  // Usar cartItems externos o internos
+  const currentCartItems = cartItems || internalCartItems;
+
   const calculateSubtotal = () => {
-    return cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return currentCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   };
 
   const calculateTaxAmount = () => {
@@ -49,13 +61,21 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
   };
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
-    setCartItems((items) =>
-      items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
-    );
+    if (onQuantityChange) {
+      onQuantityChange(itemId, newQuantity);
+    } else {
+      setInternalCartItems((items) =>
+        items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item))
+      );
+    }
   };
 
   const handleRemoveItem = (itemId: string) => {
-    setCartItems((items) => items.filter((item) => item.id !== itemId));
+    if (onRemoveItem) {
+      onRemoveItem(itemId);
+    } else {
+      setInternalCartItems((items) => items.filter((item) => item.id !== itemId));
+    }
   };
 
   const handleProcessSale = async () => {
@@ -65,7 +85,7 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const saleData = {
-      items: cartItems,
+      items: currentCartItems,
       customer: customerName,
       paymentMethod,
       subtotal: calculateSubtotal(),
@@ -74,15 +94,24 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
       timestamp: new Date().toISOString(),
     };
 
-    onProcessSale?.(saleData);
+    if (onProcessSale) {
+      onProcessSale(saleData);
+    } else {
+      console.log('Venta procesada:', saleData);
+      setInternalCartItems([]);
+    }
+
     setIsProcessing(false);
   };
 
   const handleCancel = () => {
-    setCartItems([]);
-    setCustomerName('');
-    setPaymentMethod('efectivo');
-    onCancel?.();
+    if (onCancel) {
+      onCancel();
+    } else {
+      setInternalCartItems([]);
+      setCustomerName('');
+      setPaymentMethod('efectivo');
+    }
   };
 
   const subtotal = calculateSubtotal();
@@ -116,7 +145,7 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
 
           <div className='sales-cart__section'>
             <div className='sales-cart__items'>
-              {cartItems.length === 0 ? (
+              {currentCartItems.length === 0 ? (
                 <div className='sales-cart__empty'>
                   <div className='sales-cart__empty-icon'>
                     <svg width='48' height='48' viewBox='0 0 24 24' fill='currentColor'>
@@ -126,7 +155,7 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
                   <p className='sales-cart__empty-text'>No hay productos en el carrito</p>
                 </div>
               ) : (
-                cartItems.map((item) => (
+                currentCartItems.map((item) => (
                   <CartItem
                     key={item.id}
                     id={item.id}
@@ -140,7 +169,7 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
               )}
             </div>
 
-            {cartItems.length > 0 && (
+            {currentCartItems.length > 0 && (
               <>
                 <CartSummary
                   subtotal={subtotal}
@@ -158,7 +187,7 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
             )}
           </div>
 
-          {cartItems.length > 0 && (
+          {currentCartItems.length > 0 && (
             <div className='sales-cart__actions'>
               <Button
                 variant='secondary'
@@ -174,7 +203,7 @@ function SalesCart({ onProcessSale, onCancel }: SalesCartProps) {
                 fullWidth
                 onClick={handleProcessSale}
                 loading={isProcessing}
-                disabled={cartItems.length === 0}
+                disabled={currentCartItems.length === 0}
                 className='sales-cart__process-btn'
               >
                 {isProcessing ? 'Procesando...' : 'Procesar Venta'}
