@@ -15,15 +15,16 @@ function App() {
 
   const currentModule = getCurrentModule();
   const sidebarConfig = getSidebarConfig(currentModule);
+  const subtitle = 'Ferretería'; // This could come from user settings, API, etc.
 
   return (
     <Layout
-      subtitle='Ferretería'
+      subtitle={subtitle}
       sidebarTitle={sidebarConfig.title}
       sidebarTitleIcon={sidebarConfig.titleIcon}
       sidebarMenuItems={sidebarConfig.menuItems}
     >
-      <AppRoutes />
+      <AppRoutes subtitle={subtitle} />
     </Layout>
   );
 }
