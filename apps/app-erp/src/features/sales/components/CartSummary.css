@@ -1,0 +1,147 @@
+/* Mobile-first styles for CartSummary */
+.cart-summary {
+  background-color: var(--bg-100);
+  border: 1px solid var(--pri-200);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.cart-summary__title {
+  font: var(--font-16);
+  font-weight: 700;
+  color: var(--pri-900);
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+.cart-summary__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-summary__line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--pri-100);
+}
+
+.cart-summary__line:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.cart-summary__line--total {
+  border-top: 2px solid var(--pri-300);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+.cart-summary__label {
+  font: var(--font-14);
+  color: var(--pri-700);
+  font-weight: 500;
+}
+
+.cart-summary__value {
+  font: var(--font-14);
+  color: var(--pri-900);
+  font-weight: 600;
+  text-align: right;
+}
+
+.cart-summary__value--total {
+  font: var(--font-16);
+  font-weight: 700;
+  color: var(--sec-700);
+}
+
+/* Tablet styles - 768px and up */
+@media (min-width: 768px) {
+  .cart-summary {
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  .cart-summary__title {
+    font: var(--font-18);
+    margin-bottom: 20px;
+  }
+
+  .cart-summary__lines {
+    gap: 16px;
+  }
+
+  .cart-summary__line {
+    padding-bottom: 12px;
+  }
+
+  .cart-summary__line--total {
+    padding-top: 16px;
+    margin-top: 12px;
+  }
+
+  .cart-summary__label {
+    font: var(--font-16);
+  }
+
+  .cart-summary__value {
+    font: var(--font-16);
+  }
+
+  .cart-summary__value--total {
+    font: var(--font-18);
+  }
+}
+
+/* Desktop styles - 1024px and up */
+@media (min-width: 1024px) {
+  .cart-summary {
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(36, 34, 49, 0.05);
+  }
+
+  .cart-summary__title {
+    font: var(--font-20);
+    margin-bottom: 24px;
+  }
+
+  .cart-summary__lines {
+    gap: 20px;
+  }
+
+  .cart-summary__line {
+    padding-bottom: 16px;
+  }
+
+  .cart-summary__line--total {
+    padding-top: 20px;
+    margin-top: 16px;
+  }
+
+  .cart-summary__label {
+    font: var(--font-16);
+  }
+
+  .cart-summary__value {
+    font: var(--font-16);
+  }
+
+  .cart-summary__value--total {
+    font: var(--font-20);
+  }
+}
+
+/* Animation for value changes */
+.cart-summary__value {
+  transition: all 0.3s ease;
+}
+
+.cart-summary__value--updating {
+  transform: scale(1.05);
+  color: var(--sec-600);
+}

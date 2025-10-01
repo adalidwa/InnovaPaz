@@ -1,0 +1,255 @@
+/* Mobile-first styles for PointOfSale */
+.point-of-sale {
+  width: 100%;
+  background-color: var(--white);
+  min-height: calc(100vh - 200px);
+}
+
+.point-of-sale__container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.point-of-sale__header {
+  margin-bottom: 24px;
+}
+
+.point-of-sale__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.point-of-sale__products {
+  flex: 1;
+  background-color: var(--white);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--pri-200);
+  width: 100%;
+  min-width: 0; /* Allow shrinking */
+  overflow: hidden;
+}
+
+.point-of-sale__cart {
+  display: none; /* Hidden on mobile, shown via modal */
+}
+
+/* Mobile Cart Toggle */
+.point-of-sale__mobile-cart-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.point-of-sale__cart-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--sec-700) 0%, var(--sec-600) 100%);
+  color: var(--white);
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  font: var(--font-14);
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(44, 168, 161, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.point-of-sale__cart-btn:hover {
+  background: linear-gradient(135deg, var(--sec-600) 0%, var(--sec-500) 100%);
+  box-shadow: 0 6px 20px rgba(44, 168, 161, 0.4);
+  transform: translateY(-2px);
+}
+
+.point-of-sale__cart-btn:active {
+  transform: translateY(0);
+}
+
+/* Mobile Cart Modal */
+.point-of-sale__mobile-cart {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background-color: var(--white);
+  overflow-y: auto;
+}
+
+/* Tablet styles - 768px and up */
+@media (min-width: 768px) {
+  .point-of-sale__container {
+    padding: 24px;
+  }
+
+  .point-of-sale__header {
+    margin-bottom: 32px;
+  }
+
+  .point-of-sale__content {
+    flex-direction: row;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .point-of-sale__products {
+    flex: 2;
+    padding: 24px;
+    border-radius: 10px;
+    min-width: 400px; /* Minimum width for products panel */
+  }
+
+  .point-of-sale__cart {
+    display: block;
+    flex: 0 0 350px; /* Fixed width for cart */
+    max-width: 350px;
+    min-width: 300px;
+  }
+
+  .point-of-sale__mobile-cart-toggle {
+    display: none;
+  }
+
+  .point-of-sale__mobile-cart {
+    display: none;
+  }
+}
+
+/* Desktop styles - 1024px and up */
+@media (min-width: 1024px) {
+  .point-of-sale__container {
+    padding: 32px;
+    max-width: 1600px;
+  }
+
+  .point-of-sale__header {
+    margin-bottom: 40px;
+  }
+
+  .point-of-sale__content {
+    gap: 32px;
+  }
+
+  .point-of-sale__products {
+    padding: 32px;
+    border-radius: 12px;
+    min-width: 500px;
+  }
+
+  .point-of-sale__cart {
+    flex: 0 0 400px;
+    max-width: 400px;
+    min-width: 350px;
+  }
+}
+
+/* Large desktop styles - 1200px and up */
+@media (min-width: 1200px) {
+  .point-of-sale__container {
+    max-width: 1800px;
+  }
+
+  .point-of-sale__content {
+    gap: 40px;
+  }
+
+  .point-of-sale__products {
+    min-width: 600px;
+  }
+
+  .point-of-sale__cart {
+    flex: 0 0 450px;
+    max-width: 450px;
+    min-width: 400px;
+  }
+}
+
+/* Extra large screens - 1600px and up */
+@media (min-width: 1600px) {
+  .point-of-sale__container {
+    max-width: 2000px;
+  }
+
+  .point-of-sale__content {
+    gap: 48px;
+  }
+
+  .point-of-sale__products {
+    min-width: 800px;
+  }
+
+  .point-of-sale__cart {
+    flex: 0 0 500px;
+    max-width: 500px;
+  }
+}
+
+/* Animation for cart button */
+.point-of-sale__cart-btn {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 16px rgba(44, 168, 161, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 20px rgba(44, 168, 161, 0.5);
+  }
+}
+
+/* Responsive adjustments for very small screens */
+@media (max-width: 480px) {
+  .point-of-sale__container {
+    padding: 12px;
+  }
+
+  .point-of-sale__content {
+    gap: 16px;
+  }
+
+  .point-of-sale__products {
+    padding: 12px;
+  }
+
+  .point-of-sale__cart-btn {
+    padding: 10px 16px;
+    font: var(--font-13);
+  }
+}
+
+/* Loading and transition states */
+.point-of-sale__content {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus improvements */
+.point-of-sale__cart-btn:focus-visible {
+  outline: 3px solid var(--sec-400);
+  outline-offset: 2px;
+}
+
+/* Ensure proper overflow handling */
+.point-of-sale__products,
+.point-of-sale__cart {
+  overflow: hidden;
+}
