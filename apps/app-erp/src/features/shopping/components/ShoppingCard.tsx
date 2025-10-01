@@ -15,7 +15,10 @@ interface ShoppingCardProps {
   type: string;
   quantity: number | string;
   buttonText?: string;
+  buttonVariant?: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent';
   onButtonClick?: () => void;
+  titleSize?: number | string;
+  descriptionSize?: number | string;
   width?: number | string;
   height?: number | string;
   radius?: number | string;
@@ -32,7 +35,10 @@ function ShoppingCard({
   type,
   quantity,
   buttonText = 'View',
+  buttonVariant = 'primary',
   onButtonClick,
+  titleSize = 25,
+  descriptionSize = 16,
   width = 340,
   height = 390,
   radius = 20,
@@ -59,14 +65,19 @@ function ShoppingCard({
         </div>
       </div>
       <div className='shopping-card-body'>
-        <TitleDescription title={title} description={description} />
+        <TitleDescription
+          title={title}
+          description={description}
+          titleSize={titleSize}
+          descriptionSize={descriptionSize}
+        />
         <div className='shopping-card-meta'>
           <div className='shopping-card-type'>{type}</div>
           <div className='shopping-card-quantity'>{quantity}</div>
         </div>
       </div>
       <div className='shopping-card-footer'>
-        <Button onClick={onButtonClick} fullWidth>
+        <Button onClick={onButtonClick} fullWidth variant={buttonVariant}>
           {buttonText}
         </Button>
       </div>

@@ -87,12 +87,14 @@ const statusStyle = (status: Status) => {
       tagBg: 'var(--sec-100)',
       tagText: 'var(--sec-800)',
       iconColor: 'var(--sec-700)',
+      buttonVariant: 'success' as const,
     };
   }
   return {
     tagBg: 'var(--acc-100)',
     tagText: 'var(--acc-800)',
     iconColor: 'var(--acc-700)',
+    buttonVariant: 'accent' as const,
   };
 };
 
@@ -134,6 +136,9 @@ function ShoppingPage() {
               type={item.type}
               quantity={item.quantity}
               buttonText='View'
+              buttonVariant={style.buttonVariant}
+              titleSize={25}
+              descriptionSize={16}
             />
           );
         })}
