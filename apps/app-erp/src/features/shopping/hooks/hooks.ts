@@ -22,6 +22,28 @@ export interface HistoryItem {
   status: 'completed' | 'pending' | 'cancelled';
 }
 
+export interface ProductItem {
+  id: number;
+  product: string;
+  supplierId: number;
+  supplierName: string;
+  currentStock: number;
+  minStock: number;
+  maxStock: number;
+  status: 'Normal' | 'Critico';
+}
+
+export interface ShoppingModule {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  icon: 'store' | 'people' | 'doc' | 'download' | 'tag' | 'contract' | 'analytics';
+  route: string;
+  isActive: boolean;
+  priority: 'high' | 'medium' | 'low';
+}
+
 // Constantes
 const ITEMS_PER_PAGE = 10;
 const HISTORY_ITEMS_PER_PAGE = 5;
@@ -118,6 +140,191 @@ export const useProviders = () => {
     handleSearchChange,
     handlePageChange,
     ITEMS_PER_PAGE,
+  };
+};
+
+// Hook para productos de provisioning
+export const useProducts = () => {
+  const [products, setProducts] = useState<ProductItem[]>(dbData.products as ProductItem[]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Filtrado de productos
+  const filteredProducts = useMemo(() => {
+    return products.filter(
+      (product) =>
+        product.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [products, searchTerm]);
+
+  // Paginación
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const generateNewProductId = (): number => {
+    return Math.max(...products.map((p) => p.id)) + 1;
+  };
+
+  // Obtener opciones de proveedores para select
+  const getSupplierOptions = () => {
+    return dbData.providers.map((provider) => ({
+      value: provider.id.toString(),
+      label: provider.title,
+    }));
+  };
+
+  const getSupplierName = (supplierId: number): string => {
+    const supplier = dbData.providers.find((p) => p.id === supplierId);
+    return supplier ? supplier.title : 'Proveedor desconocido';
+  };
+
+  const addProduct = (newProduct: {
+    product: string;
+    supplierId: number;
+    currentStock: number;
+    minStock: number;
+    maxStock: number;
+  }): void => {
+    const product: ProductItem = {
+      id: generateNewProductId(),
+      product: newProduct.product,
+      supplierId: newProduct.supplierId,
+      supplierName: getSupplierName(newProduct.supplierId),
+      currentStock: newProduct.currentStock,
+      minStock: newProduct.minStock,
+      maxStock: newProduct.maxStock,
+      status: newProduct.currentStock < newProduct.minStock ? 'Critico' : 'Normal',
+    };
+    setProducts((prev) => [...prev, product]);
+  };
+
+  const updateProduct = (
+    productId: number,
+    updates: {
+      product: string;
+      supplierId: number;
+      currentStock: number;
+      minStock: number;
+      maxStock: number;
+    }
+  ): void => {
+    setProducts((prev) =>
+      prev.map((product) =>
+        product.id === productId
+          ? {
+              ...product,
+              ...updates,
+              supplierName: getSupplierName(updates.supplierId),
+              status: updates.currentStock < updates.minStock ? 'Critico' : 'Normal',
+            }
+          : product
+      )
+    );
+  };
+
+  const deleteProduct = (productId: number): void => {
+    setProducts((prev) => prev.filter((product) => product.id !== productId));
+  };
+
+  const buyProduct = (productId: number, quantity: number = 50): void => {
+    setProducts((prev) =>
+      prev.map((product) =>
+        product.id === productId
+          ? {
+              ...product,
+              currentStock: product.currentStock + quantity,
+              status: product.currentStock + quantity < product.minStock ? 'Critico' : 'Normal',
+            }
+          : product
+      )
+    );
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
+  };
+
+  return {
+    products,
+    currentProducts,
+    filteredProducts,
+    searchTerm,
+    currentPage,
+    totalPages,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    buyProduct,
+    getSupplierOptions,
+    getSupplierName,
+    handleSearchChange,
+    handlePageChange,
+    ITEMS_PER_PAGE,
+  };
+};
+
+// Hook para módulos de shopping
+export const useShoppingModules = () => {
+  const [modules] = useState<ShoppingModule[]>(dbData.shoppingModules as ShoppingModule[]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filtrado de módulos
+  const filteredModules = useMemo(() => {
+    return modules.filter(
+      (module) =>
+        module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        module.type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [modules, searchTerm]);
+
+  // Calcular cantidades dinámicas basadas en datos reales
+  const getModuleQuantity = (moduleId: number): number => {
+    switch (moduleId) {
+      case 1: // Provisionamiento
+        return dbData.products.length;
+      case 2: // Proveedores
+        return dbData.providers.length;
+      case 3: // Órdenes de Compra
+        return 24; // Placeholder
+      case 4: // Recepciones
+        return 18; // Placeholder
+      case 5: // Cotizaciones
+        return 12; // Placeholder
+      case 6: // Contratos
+        return 8; // Placeholder
+      case 7: // Reportes
+        return 15; // Placeholder
+      default:
+        return 0;
+    }
+  };
+
+  // Determinar status basado en prioridad y estado activo
+  const getModuleStatus = (module: ShoppingModule): 'Normal' | 'Revisar' => {
+    if (!module.isActive && module.priority === 'medium') return 'Revisar';
+    if (module.priority === 'high' && module.isActive) return 'Normal';
+    return 'Normal';
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+  };
+
+  return {
+    modules: filteredModules,
+    searchTerm,
+    getModuleQuantity,
+    getModuleStatus,
+    handleSearchChange,
   };
 };
 
@@ -295,5 +502,53 @@ export const useProviderForm = () => {
     updateField,
     resetForm,
     handleFormInputChange,
+  };
+};
+
+// Hook para formulario de productos
+export const useProductForm = () => {
+  const initialForm = {
+    product: '',
+    supplierId: 0,
+    currentStock: 0,
+    minStock: 0,
+    maxStock: 0,
+  };
+
+  const [form, setForm] = useState(initialForm);
+
+  const updateField = (field: keyof typeof form, value: string | number): void => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const resetForm = (): void => {
+    setForm(initialForm);
+  };
+
+  const loadProduct = (product: ProductItem): void => {
+    setForm({
+      product: product.product,
+      supplierId: product.supplierId,
+      currentStock: product.currentStock,
+      minStock: product.minStock,
+      maxStock: product.maxStock,
+    });
+  };
+
+  const validateProduct = (): string | null => {
+    if (!form.product.trim()) return 'El nombre del producto es obligatorio';
+    if (!form.supplierId) return 'Debe seleccionar un proveedor';
+    if (form.minStock < 0) return 'El stock mínimo no puede ser negativo';
+    if (form.maxStock < form.minStock) return 'El stock máximo debe ser mayor al mínimo';
+    if (form.currentStock < 0) return 'El stock actual no puede ser negativo';
+    return null;
+  };
+
+  return {
+    form,
+    updateField,
+    resetForm,
+    loadProduct,
+    validateProduct,
   };
 };
