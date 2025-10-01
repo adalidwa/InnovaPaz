@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import './ShoppingPage.css';
 import ShoppingCard from '../components/ShoppingCard';
+import TitleDescription from '../../../components/common/TitleDescription';
+import Input from '../../../components/common/Input';
 import {
   IoStorefront,
   IoPeople,
@@ -8,6 +11,7 @@ import {
   IoPricetag,
   IoContract,
   IoAnalytics,
+  IoSearch,
 } from 'react-icons/io5';
 
 type Status = 'Normal' | 'Revisar';
@@ -20,6 +24,11 @@ interface ShoppingItem {
   quantity: number;
   icon: 'store' | 'people' | 'doc' | 'download' | 'tag' | 'contract' | 'analytics';
 }
+
+const pageInfo = {
+  title: 'Compras',
+  description: 'Administra el inventario de tu minimarket',
+};
 
 const data: ShoppingItem[] = [
   {
@@ -118,10 +127,36 @@ const resolveIcon = (name: ShoppingItem['icon'], color: string) => {
 };
 
 function ShoppingPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredData = data.filter(
+    (item) =>
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className='shopping-page'>
+      <div className='shopping-header'>
+        <TitleDescription
+          title={pageInfo.title}
+          description={pageInfo.description}
+          titleSize={32}
+          descriptionSize={16}
+        />
+        <div className='shopping-search'>
+          <Input
+            placeholder='Buscar en compras...'
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            leftIcon={<IoSearch color='var(--pri-500)' />}
+            className='search-input'
+          />
+        </div>
+      </div>
       <div className='shopping-grid'>
-        {data.map((item, idx) => {
+        {filteredData.map((item, idx) => {
           const style = statusStyle(item.status);
           return (
             <ShoppingCard
