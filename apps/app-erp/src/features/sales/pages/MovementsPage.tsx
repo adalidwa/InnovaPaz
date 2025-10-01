@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import '../../../assets/styles/theme.css';
 import { SalesNavigation, PointOfSale } from '../components';
+import TitleDescription from '../../../components/common/TitleDescription';
+import './MovementsPage.css';
 
 function MovementsPage() {
   const [activeTab, setActiveTab] = useState('punto-venta');
@@ -20,7 +22,7 @@ function MovementsPage() {
               padding: '32px',
               textAlign: 'center',
               background: 'var(--white)',
-              margin: '16px',
+              margin: '32px',
               borderRadius: '8px',
               border: '1px solid var(--pri-200)',
             }}
@@ -40,7 +42,7 @@ function MovementsPage() {
               padding: '32px',
               textAlign: 'center',
               background: 'var(--white)',
-              margin: '16px',
+              margin: '32px',
               borderRadius: '8px',
               border: '1px solid var(--pri-200)',
             }}
@@ -60,7 +62,7 @@ function MovementsPage() {
               padding: '32px',
               textAlign: 'center',
               background: 'var(--white)',
-              margin: '16px',
+              margin: '32px',
               borderRadius: '8px',
               border: '1px solid var(--pri-200)',
             }}
@@ -80,7 +82,7 @@ function MovementsPage() {
               padding: '32px',
               textAlign: 'center',
               background: 'var(--white)',
-              margin: '16px',
+              margin: '32px',
               borderRadius: '8px',
               border: '1px solid var(--pri-200)',
             }}
@@ -99,8 +101,19 @@ function MovementsPage() {
   };
 
   return (
-    <main style={{ background: 'var(--bg-50)', minHeight: '100vh' }}>
-      <SalesNavigation defaultTab={activeTab} onTabChange={handleTabChange} />
+    <main>
+      <div className='sales-navigation__title-container'>
+        <TitleDescription
+          title='Módulo de Ventas'
+          description='Gestión completa de ventas, clientes, cotizaciones y pedidos'
+          titleSize={31}
+          descriptionSize={16}
+          titleWeight='bold'
+          descriptionWeight='normal'
+          align='left'
+        />
+        <SalesNavigation defaultTab={activeTab} onTabChange={handleTabChange} />
+      </div>
       <div>{renderContent()}</div>
     </main>
   );

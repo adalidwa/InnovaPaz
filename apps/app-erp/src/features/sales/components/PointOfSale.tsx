@@ -62,7 +62,6 @@ function PointOfSale() {
 
   const handleProcessSale = (saleData: any) => {
     console.log('Procesando venta:', saleData);
-    // Aquí se procesaría la venta
     setCartItems([]);
     setShowCart(false);
     alert('¡Venta procesada exitosamente!');
@@ -75,20 +74,6 @@ function PointOfSale() {
   return (
     <div className='point-of-sale'>
       <div className='point-of-sale__container'>
-        {/* Header */}
-        <div className='point-of-sale__header'>
-          <TitleDescription
-            title='Módulo de Ventas'
-            description='Gestión completa de ventas, clientes, cotizaciones y pedidos'
-            titleSize={31}
-            descriptionSize={16}
-            titleWeight='bold'
-            descriptionWeight='normal'
-            align='left'
-            className='point-of-sale__title'
-          />
-        </div>
-
         {/* Main Content */}
         <div className='point-of-sale__content'>
           {/* Left Panel - Products */}
