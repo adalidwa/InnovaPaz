@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BiSearch } from 'react-icons/bi';
-import Input from './Input';
+import Input from '../../../components/common/Input';
 import './SearchProducts.css';
 
 interface SearchProductsProps {
