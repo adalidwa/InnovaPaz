@@ -283,3 +283,34 @@
     gap: 0.75rem;
   }
 }
+
+/* Product Cell Styling */
+.productCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.productName {
+  font-weight: 600;
+  color: var(--pri-800);
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.productSupplier {
+  font-size: 0.75rem;
+  color: var(--pri-500);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .productName {
+    font-size: 0.85rem;
+  }
+
+  .productSupplier {
+    font-size: 0.7rem;
+  }
+}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './ProvisioningPage.css';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
+import Select from '../../../components/common/Select';
 import Table from '../../../components/common/Table';
 import StatusTag from '../../../components/common/StatusTag';
 import Pagination from '../../../components/common/Pagination';
@@ -14,6 +15,7 @@ type ProductStatus = 'Normal' | 'Critico';
 interface ProductItem {
   id: number;
   product: string;
+  supplier: string;
   currentStock: number;
   minStock: number;
   maxStock: number;
@@ -25,10 +27,29 @@ const pageInfo = {
   description: 'Define umbrales de stock para reabastecimiento automático',
 };
 
+const supplierOptions = [
+  { value: 'embotelladora-boliviana', label: 'Embotelladora Boliviana S.A.' },
+  { value: 'embotelladora-oriente', label: 'Embotelladora del Oriente' },
+  { value: 'vital', label: 'Vital S.A.' },
+  { value: 'pil', label: 'PIL Andina S.A.' },
+  { value: 'ideal', label: 'Panadería Ideal' },
+  { value: 'carolina', label: 'Industrias Carolina' },
+  { value: 'fino', label: 'Aceites Fino Ltda.' },
+  { value: 'guabira', label: 'Ingenio Guabirá' },
+  { value: 'granja-local', label: 'Granja Local San Juan' },
+  { value: 'ace', label: 'Productos Ace Bolivia' },
+  { value: 'bolivar', label: 'Jabones Bolívar' },
+  { value: 'cayambe', label: 'Molinos Cayambe' },
+  { value: 'gloria', label: 'Gloria S.A.' },
+  { value: 'pacena', label: 'Cervecería Paceña' },
+  { value: 'ceibo', label: 'El Ceibo Ltda.' },
+];
+
 const productData: ProductItem[] = [
   {
     id: 1,
-    product: 'CocaCola 2L Embotelladora Boliviana',
+    product: 'CocaCola 2L',
+    supplier: 'Embotelladora Boliviana S.A.',
     currentStock: 15,
     minStock: 20,
     maxStock: 100,
@@ -36,7 +57,8 @@ const productData: ProductItem[] = [
   },
   {
     id: 2,
-    product: 'Pepsi 2L Embotelladora del Oriente',
+    product: 'Pepsi 2L',
+    supplier: 'Embotelladora del Oriente',
     currentStock: 8,
     minStock: 15,
     maxStock: 80,
@@ -45,6 +67,7 @@ const productData: ProductItem[] = [
   {
     id: 3,
     product: 'Agua Vital 2L sin Gas',
+    supplier: 'Vital S.A.',
     currentStock: 45,
     minStock: 30,
     maxStock: 150,
@@ -53,6 +76,7 @@ const productData: ProductItem[] = [
   {
     id: 4,
     product: 'Leche Pil Entera 1L',
+    supplier: 'PIL Andina S.A.',
     currentStock: 25,
     minStock: 20,
     maxStock: 100,
@@ -60,7 +84,8 @@ const productData: ProductItem[] = [
   },
   {
     id: 5,
-    product: 'Pan Blanco Grande Ideal',
+    product: 'Pan Blanco Grande',
+    supplier: 'Panadería Ideal',
     currentStock: 12,
     minStock: 25,
     maxStock: 80,
@@ -69,6 +94,7 @@ const productData: ProductItem[] = [
   {
     id: 6,
     product: 'Arroz Carolina Extra 1kg',
+    supplier: 'Industrias Carolina',
     currentStock: 60,
     minStock: 40,
     maxStock: 200,
@@ -77,6 +103,7 @@ const productData: ProductItem[] = [
   {
     id: 7,
     product: 'Aceite Fino 1L',
+    supplier: 'Aceites Fino Ltda.',
     currentStock: 18,
     minStock: 15,
     maxStock: 75,
@@ -85,6 +112,7 @@ const productData: ProductItem[] = [
   {
     id: 8,
     product: 'Azúcar Blanca Guabirá 1kg',
+    supplier: 'Ingenio Guabirá',
     currentStock: 5,
     minStock: 20,
     maxStock: 100,
@@ -93,6 +121,7 @@ const productData: ProductItem[] = [
   {
     id: 9,
     product: 'Huevos Frescos Docena',
+    supplier: 'Granja Local San Juan',
     currentStock: 35,
     minStock: 25,
     maxStock: 120,
@@ -101,6 +130,7 @@ const productData: ProductItem[] = [
   {
     id: 10,
     product: 'Detergente Ace Polvo 1kg',
+    supplier: 'Productos Ace Bolivia',
     currentStock: 22,
     minStock: 15,
     maxStock: 60,
@@ -109,6 +139,7 @@ const productData: ProductItem[] = [
   {
     id: 11,
     product: 'Jabón Bolivar Multiuso',
+    supplier: 'Jabones Bolívar',
     currentStock: 8,
     minStock: 12,
     maxStock: 50,
@@ -117,6 +148,7 @@ const productData: ProductItem[] = [
   {
     id: 12,
     product: 'Fideos Cayambe 500g',
+    supplier: 'Molinos Cayambe',
     currentStock: 40,
     minStock: 30,
     maxStock: 150,
@@ -125,6 +157,7 @@ const productData: ProductItem[] = [
   {
     id: 13,
     product: 'Yogurt Gloria Natural 1L',
+    supplier: 'Gloria S.A.',
     currentStock: 28,
     minStock: 20,
     maxStock: 90,
@@ -133,6 +166,7 @@ const productData: ProductItem[] = [
   {
     id: 14,
     product: 'Cerveza Paceña 620ml',
+    supplier: 'Cervecería Paceña',
     currentStock: 6,
     minStock: 24,
     maxStock: 120,
@@ -141,6 +175,7 @@ const productData: ProductItem[] = [
   {
     id: 15,
     product: 'Queso Fresco El Ceibo 500g',
+    supplier: 'El Ceibo Ltda.',
     currentStock: 18,
     minStock: 15,
     maxStock: 60,
@@ -159,6 +194,7 @@ function ProvisioningPage() {
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [editForm, setEditForm] = useState({
     product: '',
+    supplier: '',
     currentStock: 0,
     minStock: 0,
     maxStock: 0,
@@ -167,6 +203,7 @@ function ProvisioningPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [addForm, setAddForm] = useState({
     product: '',
+    supplier: '',
     currentStock: 0,
     minStock: 0,
     maxStock: 0,
@@ -181,6 +218,7 @@ function ProvisioningPage() {
   const filteredData = products.filter(
     (item) =>
       item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.status.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -193,9 +231,15 @@ function ProvisioningPage() {
     return Math.max(...products.map((p) => p.id)) + 1;
   };
 
+  const getSupplierLabel = (value: string) => {
+    const supplier = supplierOptions.find((option) => option.value === value);
+    return supplier ? supplier.label : value;
+  };
+
   const handleAddProduct = () => {
     setAddForm({
       product: '',
+      supplier: '',
       currentStock: 0,
       minStock: 0,
       maxStock: 0,
@@ -204,10 +248,11 @@ function ProvisioningPage() {
   };
 
   const handleSaveAdd = () => {
-    if (addForm.product.trim()) {
+    if (addForm.product.trim() && addForm.supplier) {
       const newProduct: ProductItem = {
         id: generateNewId(),
         product: addForm.product,
+        supplier: getSupplierLabel(addForm.supplier),
         currentStock: addForm.currentStock,
         minStock: addForm.minStock,
         maxStock: addForm.maxStock,
@@ -220,8 +265,11 @@ function ProvisioningPage() {
 
   const handleEditProduct = (product: ProductItem) => {
     setSelectedProduct(product);
+    const supplierValue =
+      supplierOptions.find((option) => option.label === product.supplier)?.value || '';
     setEditForm({
       product: product.product,
+      supplier: supplierValue,
       currentStock: product.currentStock,
       minStock: product.minStock,
       maxStock: product.maxStock,
@@ -230,12 +278,13 @@ function ProvisioningPage() {
   };
 
   const handleSaveEdit = () => {
-    if (selectedProduct && editForm.product.trim()) {
+    if (selectedProduct && editForm.product.trim() && editForm.supplier) {
       const updatedProducts = products.map((product) => {
         if (product.id === selectedProduct.id) {
           const updatedProduct = {
             ...product,
             product: editForm.product,
+            supplier: getSupplierLabel(editForm.supplier),
             currentStock: editForm.currentStock,
             minStock: editForm.minStock,
             maxStock: editForm.maxStock,
@@ -313,6 +362,12 @@ function ProvisioningPage() {
       key: 'product',
       header: 'Producto',
       width: '30%',
+      render: (value: string, row: ProductItem) => (
+        <div className='productCell'>
+          <div className='productName'>{value}</div>
+          <div className='productSupplier'>{row.supplier}</div>
+        </div>
+      ),
     },
     {
       key: 'currentStock',
@@ -386,7 +441,7 @@ function ProvisioningPage() {
         </div>
         <div className='provisioningSearch'>
           <Input
-            placeholder='Buscar en provisionamiento...'
+            placeholder='Buscar productos o proveedores...'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             leftIcon={<IoSearch color='var(--pri-500)' />}
@@ -444,6 +499,23 @@ function ProvisioningPage() {
                     }
                   }}
                   placeholder='Ingrese el nombre del producto'
+                  className='editModalInput'
+                />
+              </div>
+              <div className='editModalField'>
+                <label>Proveedor:</label>
+                <Select
+                  value={showEditModal ? editForm.supplier : addForm.supplier}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (showEditModal) {
+                      setEditForm({ ...editForm, supplier: value });
+                    } else {
+                      setAddForm({ ...addForm, supplier: value });
+                    }
+                  }}
+                  options={supplierOptions}
+                  placeholder='Seleccionar proveedor'
                   className='editModalInput'
                 />
               </div>
