@@ -49,6 +49,7 @@ const data: ShoppingItem[] = [
     type: 'Proveedores',
     quantity: 400,
     icon: 'people',
+    route: 'providers',
   },
   {
     status: 'Normal',
