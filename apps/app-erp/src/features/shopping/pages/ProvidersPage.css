@@ -360,6 +360,18 @@
   font-family: var(--font);
 }
 
+/* Nueva clase para la paginación interna en el área scrolleable */
+.historyModalPaginationInner {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--pri-200);
+  display: flex;
+  justify-content: center;
+  background: var(--pri-25);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
 .historyModalFooter {
   display: flex;
   justify-content: center;
@@ -423,7 +435,8 @@
   .providerModalBody,
   .historyModalBody,
   .historyModalSearch,
-  .historyModalPagination {
+  .historyModalPagination,
+  .historyModalPaginationInner {
     padding-left: var(--providers-gap);
     padding-right: var(--providers-gap);
   }

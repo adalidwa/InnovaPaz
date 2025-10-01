@@ -349,20 +349,21 @@ const ProvidersPage: React.FC = () => {
                   No se encontraron transacciones que coincidan con tu búsqueda.
                 </div>
               )}
-            </div>
 
-            {historyTotalPages > 1 && (
-              <div className='historyModalPagination'>
-                <Pagination
-                  currentPage={historyCurrentPage}
-                  totalPages={historyTotalPages}
-                  totalItems={historyData.length}
-                  itemsPerPage={HISTORY_ITEMS_PER_PAGE}
-                  itemName='transacciones'
-                  onPageChange={handleHistoryPageChange}
-                />
-              </div>
-            )}
+              {/* Paginación movida dentro del área scrolleable */}
+              {historyTotalPages > 1 && (
+                <div className='historyModalPaginationInner'>
+                  <Pagination
+                    currentPage={historyCurrentPage}
+                    totalPages={historyTotalPages}
+                    totalItems={historyData.length}
+                    itemsPerPage={HISTORY_ITEMS_PER_PAGE}
+                    itemName='transacciones'
+                    onPageChange={handleHistoryPageChange}
+                  />
+                </div>
+              )}
+            </div>
 
             <div className='historyModalFooter'>
               <Button
