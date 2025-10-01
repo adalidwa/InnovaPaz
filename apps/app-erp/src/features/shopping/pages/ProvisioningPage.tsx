@@ -364,9 +364,9 @@ function ProvisioningPage() {
       header: 'Producto',
       width: '30%',
       render: (value: string, row: ProductItem) => (
-        <div className='productCell'>
-          <div className='productName'>{value}</div>
-          <div className='productSupplier'>{row.supplier}</div>
+        <div className='product-cell'>
+          <div className='product-name'>{value}</div>
+          <div className='product-supplier'>{row.supplier}</div>
         </div>
       ),
     },
@@ -424,7 +424,7 @@ function ProvisioningPage() {
   return (
     <div className='provisioning-page'>
       <div className='provisioning-header'>
-        <div className='provisioningTitleSection'>
+        <div className='provisioning-titleSection'>
           <TitleDescription
             title={pageInfo.title}
             description={pageInfo.description}
@@ -435,7 +435,7 @@ function ProvisioningPage() {
             variant='primary'
             onClick={handleAddProduct}
             icon={<IoAdd />}
-            className='addProductButton'
+            className='add-product-button'
           >
             Agregar Producto
           </Button>
@@ -469,12 +469,12 @@ function ProvisioningPage() {
       </div>
 
       {(showEditModal || showAddModal) && (
-        <div className='modalOverlay'>
-          <div className='editModal'>
-            <div className='editModalHeader'>
+        <div className='modal-overlay'>
+          <div className='edit-modal'>
+            <div className='edit-modal-header'>
               <h3>{showEditModal ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h3>
               <button
-                className='editModalClose'
+                className='edit-modal-close'
                 onClick={() => {
                   setShowEditModal(false);
                   setShowAddModal(false);
@@ -485,8 +485,8 @@ function ProvisioningPage() {
                 <IoClose size={20} />
               </button>
             </div>
-            <div className='editModalBody'>
-              <div className='editModalField'>
+            <div className='edit-modal-body'>
+              <div className='edit-modal-field'>
                 <label>Nombre del Producto:</label>
                 <Input
                   type='text'
@@ -500,10 +500,10 @@ function ProvisioningPage() {
                     }
                   }}
                   placeholder='Ingrese el nombre del producto'
-                  className='editModalInput'
+                  className='edit-modal-input'
                 />
               </div>
-              <div className='editModalField'>
+              <div className='edit-modal-field'>
                 <label>Proveedor:</label>
                 <Select
                   value={showEditModal ? editForm.supplier : addForm.supplier}
@@ -517,10 +517,10 @@ function ProvisioningPage() {
                   }}
                   options={supplierOptions}
                   placeholder='Seleccionar proveedor'
-                  className='editModalInput'
+                  className='edit-modal-input'
                 />
               </div>
-              <div className='editModalField'>
+              <div className='edit-modal-field'>
                 <label>Stock Actual:</label>
                 <Input
                   type='number'
@@ -537,10 +537,10 @@ function ProvisioningPage() {
                       setAddForm({ ...addForm, currentStock: value });
                     }
                   }}
-                  className='editModalInput'
+                  className='edit-modal-input'
                 />
               </div>
-              <div className='editModalField'>
+              <div className='edit-modal-field'>
                 <label>Stock Mínimo:</label>
                 <Input
                   type='number'
@@ -553,10 +553,10 @@ function ProvisioningPage() {
                       setAddForm({ ...addForm, minStock: value });
                     }
                   }}
-                  className='editModalInput'
+                  className='edit-modal-input'
                 />
               </div>
-              <div className='editModalField'>
+              <div className='edit-modal-field'>
                 <label>Stock Máximo:</label>
                 <Input
                   type='number'
@@ -569,22 +569,22 @@ function ProvisioningPage() {
                       setAddForm({ ...addForm, maxStock: value });
                     }
                   }}
-                  className='editModalInput'
+                  className='edit-modal-input'
                 />
               </div>
             </div>
-            <div className='editModalFooter'>
+            <div className='edit-modal-footer'>
               {showEditModal && (
                 <Button
                   variant='accent'
                   onClick={handleDeleteClick}
                   icon={<IoTrash />}
-                  className='deleteButton'
+                  className='delete-button'
                 >
                   Eliminar
                 </Button>
               )}
-              <div className='editModalMainButtons'>
+              <div className='edit-modal-main-muttons'>
                 <Button
                   variant='secondary'
                   onClick={() => {
@@ -592,14 +592,14 @@ function ProvisioningPage() {
                     setShowAddModal(false);
                     setSelectedProduct(null);
                   }}
-                  className='editModalButton'
+                  className='edit-modal-button'
                 >
                   Cancelar
                 </Button>
                 <Button
                   variant='primary'
                   onClick={showEditModal ? handleSaveEdit : handleSaveAdd}
-                  className='editModalButton'
+                  className='edit-modal-button'
                 >
                   {showEditModal ? 'Guardar' : 'Agregar'}
                 </Button>

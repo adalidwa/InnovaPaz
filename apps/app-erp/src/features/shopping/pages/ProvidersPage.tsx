@@ -569,7 +569,7 @@ function ProvidersPage() {
                   value={addForm.nit}
                   onChange={handleNITChange}
                   placeholder='Ej: 1234567890'
-                  maxLength='13'
+                  maxLength={13}
                   pattern='[0-9]*'
                   className='providerModalInput'
                 />
@@ -591,7 +591,7 @@ function ProvidersPage() {
                   value={addForm.phone}
                   onChange={handlePhoneChange}
                   placeholder='Ej: 77999888'
-                  maxLength='8'
+                  maxLength={8}
                   pattern='[0-9]*'
                   className='providerModalInput'
                 />
