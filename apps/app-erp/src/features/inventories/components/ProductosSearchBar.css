@@ -1,0 +1,44 @@
+.productos-search-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--white);
+  border: 2px solid var(--pri-200);
+  margin: 20px;
+  border-radius: 10px;
+}
+
+.search-input-container {
+  flex: 1;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  height: 48px;
+  padding: 12px 16px 12px 44px;
+  border: 2px solid var(--pri-200);
+  border-radius: 10px;
+  font-size: var(--font-14);
+  background-color: var();
+  color: var(--pri-800);
+  font-family: var(--font);
+}
+
+.search-input::placeholder {
+  color: var(--pri-500);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--pri-800);
+  box-shadow: 0 0 0 3px var(--pri-100);
+}
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+}

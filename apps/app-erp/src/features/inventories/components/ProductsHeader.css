@@ -1,0 +1,20 @@
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px;
+}
+.products-header h1 {
+  font-family: var(--font);
+  margin: 3px 0px;
+  color: var(--pri-900);
+}
+.products-header p {
+  font-family: var(--font);
+  margin: 3px 0px;
+  color: var(--pri-400);
+}
+.icon-plus {
+  font-size: 16px;
+  font-weight: bold;
+}
