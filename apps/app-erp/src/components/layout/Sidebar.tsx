@@ -2,8 +2,11 @@ import React from 'react';
 import './Sidebar.css';
 import { sidebarConfig } from '../../config/sidebarConfig';
 import { FaBox } from 'react-icons/fa';
+import { useLocation } from 'react-router-dom';
 
 const Sidebar: React.FC = () => {
+  const location = useLocation();
+
   return (
     <div className='sidebar'>
       <div className='sidebar__header'>
@@ -16,8 +19,13 @@ const Sidebar: React.FC = () => {
       <nav className='sidebar__menu'>
         {sidebarConfig.map((item, index) => {
           const IconComponent = item.icon;
+          const isActive = location.pathname === item.href;
           return (
-            <a key={index} href={item.href} className='sidebar__item'>
+            <a
+              key={index}
+              href={item.href}
+              className={`sidebar__item${isActive ? ' sidebar__item--active' : ''}`}
+            >
               <IconComponent className='sidebar__item-icon' />
               <span className='sidebar__item-text'>{item.label}</span>
             </a>

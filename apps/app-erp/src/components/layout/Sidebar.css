@@ -9,6 +9,7 @@
   flex-direction: column;
   padding: 2rem;
   font-family: var(--font);
+  overflow-y: auto;
 }
 
 .sidebar__header {
@@ -67,7 +68,8 @@
 }
 
 .sidebar__item--active {
-  color: var(--pri-700);
+  background-color: var(--pri-700);
+  color: var(--white);
 }
 
 .sidebar__item--active .sidebar__item-icon {
@@ -102,20 +104,24 @@
 /* Layout adjustments */
 .layout {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .layout__main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .layout__content {
   flex: 1;
   padding: 1rem;
   background-color: var(--bg-50);
-  overflow-x: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Responsive - Tablet (744px) */
