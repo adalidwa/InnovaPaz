@@ -1,54 +1,59 @@
-import { auth } from '../../configs/firebaseConfig';
+import { auth, db } from '../../configs/firebaseConfig';
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
+  signInWithRedirect,
+  getRedirectResult,
+  browserPopupRedirectResolver,
 } from 'firebase/auth';
-import type { ConfirmationResult } from 'firebase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-export const signInWithGoogle = async () => {
+export const signInWithGoogle = async (planId?: string | null) => {
   const provider = new GoogleAuthProvider();
+  provider.addScope('email');
+  provider.addScope('profile');
+
   try {
-    const result = await signInWithPopup(auth, provider);
-    return { user: result.user, error: null };
-  } catch (error) {
-    return { user: null, error: error };
+    let result;
+    try {
+      result = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
+    } catch (popupError: any) {
+      console.log('Popup failed, trying redirect:', popupError);
+      await signInWithRedirect(auth, provider);
+      result = await getRedirectResult(auth);
+
+      if (!result) {
+        throw new Error('No result from redirect');
+      }
+    }
+
+    const user = result.user;
+    console.log('Usuario autenticado con Google:', user.email);
+
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+
+    let isNewUser = false;
+
+    if (!userSnap.exists()) {
+      console.log('Creando nuevo usuario en Firestore');
+      isNewUser = true;
+      await setDoc(userRef, {
+        nombre_completo: user.displayName || '',
+        email: user.email,
+        empresa_id: null,
+        setup_completed: false,
+        rol: null,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      });
+    } else {
+      console.log('Usuario ya existe en Firestore');
+    }
+
+    return { user, error: null, isNewUser, planId };
+  } catch (error: any) {
+    console.error('Error in signInWithGoogle:', error);
+    return { user: null, error: error, isNewUser: false, planId: null };
   }
 };
-
-export const setupRecaptcha = (containerId: string) => {
-  if (!window.recaptchaVerifier) {
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      size: 'invisible',
-    });
-  }
-};
-
-export const sendPhoneNumberVerificationCode = async (phoneNumber: string) => {
-  try {
-    const appVerifier = window.recaptchaVerifier;
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-    return { confirmationResult, error: null };
-  } catch (error) {
-    return { confirmationResult: null, error: error };
-  }
-};
-
-export const confirmVerificationCode = async (
-  confirmationResult: ConfirmationResult,
-  code: string
-) => {
-  try {
-    const result = await confirmationResult.confirm(code);
-    return { user: result.user, error: null };
-  } catch (error) {
-    return { user: null, error: error };
-  }
-};
-
-declare global {
-  interface Window {
-    recaptchaVerifier: RecaptchaVerifier;
-  }
-}

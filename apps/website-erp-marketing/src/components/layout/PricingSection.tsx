@@ -5,12 +5,23 @@ import basic from '../../assets/icons/basic_icon.png';
 import professional from '../../assets/icons/professional_icon.png';
 import bussines from '../../assets/icons/business_icon.png';
 import { useNavigate } from 'react-router-dom';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../../configs/firebaseConfig';
 
 const PricingSection = () => {
   const navigate = useNavigate();
+  const [user, loading] = useAuthState(auth);
 
-  const handleRedirect = () => {
-    navigate('/register');
+  const handleRedirect = (planId: string) => {
+    if (!loading) {
+      if (user) {
+        // Usuario logueado - ir directamente a completar empresa
+        navigate(`/company-setup?plan=${planId}`);
+      } else {
+        // Usuario no logueado - ir al registro completo
+        navigate(`/register?plan=${planId}`);
+      }
+    }
   };
 
   return (
@@ -38,7 +49,7 @@ const PricingSection = () => {
             ]}
             buttonText='Comenzar Ahora'
             icons={[<img src={basic} alt='Hand' />]}
-            onButtonClick={handleRedirect}
+            onButtonClick={() => handleRedirect('basico')}
           />
           <PricingCard
             title='Profesional'
@@ -54,7 +65,7 @@ const PricingSection = () => {
             ]}
             buttonText='Comenzar Ahora'
             icons={[<img src={professional} alt='Grid' />]}
-            onButtonClick={handleRedirect}
+            onButtonClick={() => handleRedirect('profesional')}
           />
           <PricingCard
             title='Empresarial'
@@ -70,7 +81,7 @@ const PricingSection = () => {
             ]}
             buttonText='Comenzar Ahora'
             icons={[<img src={bussines} alt='Bookmark' />]}
-            onButtonClick={handleRedirect}
+            onButtonClick={() => handleRedirect('empresarial')}
           />
         </div>
       </div>

@@ -10,6 +10,7 @@ import TermsPage from './pages/TermsPage';
 import ContactPage from './pages/ContactPage';
 import PrivacyPage from './pages/PrivacyPage';
 import DocumentsPage from './pages/DocumentsPage';
+import CompanySetupPage from './pages/CompanySetupPage';
 import { UserProvider } from './context/UserContext.tsx';
 import ScrollToTop from './components/common/ScrollToTop';
 
@@ -32,6 +33,7 @@ const AppContent: React.FC = () => {
           <Route path='/documentacion' element={<DocumentsPage />} />
           <Route path='/terms' element={<TermsPage />} />
           <Route path='/privacy' element={<PrivacyPage />} />
+          <Route path='/company-setup' element={<CompanySetupPage />} />
         </Routes>
       </div>
       <Footer />
