@@ -14,12 +14,6 @@
   font-family: var(--font);
 }
 
-.shopping-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border-color: var(--sec-300);
-}
-
 .shopping-card-header {
   display: flex;
   justify-content: space-between;
