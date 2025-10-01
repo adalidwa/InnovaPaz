@@ -1,0 +1,37 @@
+.report-filter-bar {
+  background: var(--white);
+  border: 1px solid var(--pri-100);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.report-filter-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.report-filter-bar label {
+  font: var(--font-10);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--pri-600);
+  text-transform: uppercase;
+}
+.report-filter-input,
+.report-filter-select {
+  font: var(--font-14);
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--pri-200);
+  border-radius: 6px;
+  background: var(--white);
+  min-width: 140px;
+  transition: var(--transition-fast);
+}
+.report-filter-input:focus,
+.report-filter-select:focus {
+  outline: 2px solid var(--sec-300);
+  border-color: var(--sec-600);
+}

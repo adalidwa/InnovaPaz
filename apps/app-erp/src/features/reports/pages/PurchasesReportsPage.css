@@ -1,0 +1,4 @@
+@import '../pages/SalesReportsPage.css'; /* reutiliza las mismas utilidades base */
+/* Podríamos sobreescribir colores/accentos específicos de compras aquí */
+
+/* Back link reutiliza estilos base; estilos específicos de compras podrían agregarse aquí si se necesita. */

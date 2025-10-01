@@ -13,16 +13,17 @@ import {
   FaTruck,
   FaUserTie,
 } from 'react-icons/fa';
+import type { IconType } from 'react-icons';
 
 interface SidebarItem {
   label: string;
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: IconType;
 }
 
 interface SidebarConfig {
   title: string;
-  titleIcon: React.ComponentType<{ className?: string }>;
+  titleIcon: IconType;
   menuItems: SidebarItem[];
 }
 
@@ -63,7 +64,7 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
       },
       {
         label: 'Configuración',
-        href: '/configuracion',
+        href: '/configuracion/equipo',
         icon: FaCog,
       },
     ],
@@ -109,7 +110,7 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
       },
       {
         label: 'Configuración',
-        href: '/ventas/configuracion',
+        href: '/ventas/configuracion/equipo',
         icon: FaCog,
       },
     ],
