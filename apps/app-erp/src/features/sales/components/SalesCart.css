@@ -6,12 +6,14 @@
   border-radius: 8px;
   border: 1px solid var(--pri-200);
   min-height: auto;
+  overflow: hidden;
 }
 
 .sales-cart__container {
   max-width: 100%;
   margin: 0 auto;
   padding: 0;
+  overflow: hidden;
 }
 
 .sales-cart__header {
@@ -49,6 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow: hidden;
 }
 
 .sales-cart__section {
@@ -57,6 +60,7 @@
   padding: 16px;
   border: none;
   border-bottom: 1px solid var(--pri-100);
+  overflow: hidden;
 }
 
 .sales-cart__section:last-child {
@@ -65,12 +69,14 @@
 
 .sales-cart__items {
   margin-bottom: 0;
+  overflow: hidden;
 }
 
 .sales-cart__items .cart-item {
-  margin-bottom: 16px;
-  border-radius: 8px;
+  margin-bottom: 12px;
+  border-radius: 6px;
   border: 1px solid var(--pri-100);
+  overflow: hidden;
 }
 
 .sales-cart__items .cart-item:last-child {
@@ -148,8 +154,8 @@
   }
 
   .sales-cart__items .cart-item {
-    margin-bottom: 20px;
-    border-radius: 10px;
+    margin-bottom: 16px;
+    border-radius: 8px;
   }
 
   .sales-cart__actions {
@@ -220,8 +226,8 @@
   }
 
   .sales-cart__items .cart-item {
-    margin-bottom: 24px;
-    border-radius: 12px;
+    margin-bottom: 20px;
+    border-radius: 10px;
   }
 }
 
@@ -233,6 +239,11 @@
     height: fit-content;
     max-height: calc(100vh - 40px);
     overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .point-of-sale__cart .sales-cart__container {
+    overflow-x: hidden;
   }
 }
 
@@ -246,6 +257,7 @@
     bottom: 0;
     z-index: 1000;
     overflow-y: auto;
+    overflow-x: hidden;
     background-color: var(--white);
     border-radius: 0;
     border: none;
@@ -257,10 +269,12 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
   }
 
   .point-of-sale__mobile-cart .sales-cart__content {
     flex: 1;
+    overflow-x: hidden;
   }
 
   .point-of-sale__mobile-cart .sales-cart__actions {
@@ -333,4 +347,20 @@
 
 .sales-cart__container::-webkit-scrollbar-thumb:hover {
   background: var(--pri-400);
+}
+
+/* Ensure all elements use border-box */
+.sales-cart,
+.sales-cart *,
+.sales-cart *::before,
+.sales-cart *::after {
+  box-sizing: border-box;
+}
+
+/* Prevent any horizontal overflow */
+.sales-cart__section,
+.sales-cart__items,
+.sales-cart__actions {
+  max-width: 100%;
+  overflow-x: hidden;
 }

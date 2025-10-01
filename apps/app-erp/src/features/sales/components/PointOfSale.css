@@ -19,6 +19,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  width: 100%;
 }
 
 .point-of-sale__products {
@@ -27,6 +28,9 @@
   border-radius: 8px;
   padding: 16px;
   border: 1px solid var(--pri-200);
+  width: 100%;
+  min-width: 0; /* Allow shrinking */
+  overflow: hidden;
 }
 
 .point-of-sale__cart {
@@ -91,19 +95,22 @@
 
   .point-of-sale__content {
     flex-direction: row;
-    gap: 32px;
+    gap: 24px;
+    align-items: flex-start;
   }
 
   .point-of-sale__products {
     flex: 2;
     padding: 24px;
     border-radius: 10px;
+    min-width: 400px; /* Minimum width for products panel */
   }
 
   .point-of-sale__cart {
     display: block;
-    flex: 1;
-    max-width: 400px;
+    flex: 0 0 350px; /* Fixed width for cart */
+    max-width: 350px;
+    min-width: 300px;
   }
 
   .point-of-sale__mobile-cart-toggle {
@@ -119,7 +126,7 @@
 @media (min-width: 1024px) {
   .point-of-sale__container {
     padding: 32px;
-    max-width: 1400px;
+    max-width: 1600px;
   }
 
   .point-of-sale__header {
@@ -127,30 +134,59 @@
   }
 
   .point-of-sale__content {
-    gap: 40px;
+    gap: 32px;
   }
 
   .point-of-sale__products {
     padding: 32px;
     border-radius: 12px;
+    min-width: 500px;
   }
 
   .point-of-sale__cart {
-    max-width: 450px;
+    flex: 0 0 400px;
+    max-width: 400px;
+    min-width: 350px;
   }
 }
 
 /* Large desktop styles - 1200px and up */
 @media (min-width: 1200px) {
   .point-of-sale__container {
-    max-width: 1600px;
+    max-width: 1800px;
+  }
+
+  .point-of-sale__content {
+    gap: 40px;
+  }
+
+  .point-of-sale__products {
+    min-width: 600px;
+  }
+
+  .point-of-sale__cart {
+    flex: 0 0 450px;
+    max-width: 450px;
+    min-width: 400px;
+  }
+}
+
+/* Extra large screens - 1600px and up */
+@media (min-width: 1600px) {
+  .point-of-sale__container {
+    max-width: 2000px;
   }
 
   .point-of-sale__content {
     gap: 48px;
   }
 
+  .point-of-sale__products {
+    min-width: 800px;
+  }
+
   .point-of-sale__cart {
+    flex: 0 0 500px;
     max-width: 500px;
   }
 }
@@ -210,6 +246,12 @@
 .point-of-sale__cart-btn:focus-visible {
   outline: 3px solid var(--sec-400);
   outline-offset: 2px;
+}
+
+/* Ensure proper overflow handling */
+.point-of-sale__products,
+.point-of-sale__cart {
+  overflow: hidden;
 }
 
 /* Dark mode support (future) */
