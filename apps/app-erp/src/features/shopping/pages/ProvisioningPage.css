@@ -1,4 +1,4 @@
-.Provisioning-page {
+.provisioningPage {
   width: 100%;
   min-height: 100vh;
   padding: 2rem;
@@ -6,7 +6,7 @@
   background-color: var(--pri-50);
 }
 
-.Provisioning-header {
+.provisioningHeader {
   margin-bottom: 2rem;
   max-width: 1400px;
   margin-left: auto;
@@ -16,66 +16,126 @@
   gap: 1.5rem;
 }
 
-.Provisioning-search {
+.provisioningSearch {
   width: 93%;
 }
 
-.Provisioning-search .search-input {
+.provisioningSearch .search-input {
   width: 100%;
 }
 
-.Provisioning-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 2rem;
-  width: 100%;
+.provisioningTable {
   max-width: 1400px;
   margin: 0 auto;
 }
 
-@media (max-width: 1200px) {
-  .Provisioning-grid {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 1.5rem;
-  }
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--white);
+  border-top: 1px solid var(--pri-100);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
 
-  .Provisioning-page {
+.paginationInfo {
+  font-size: 14px;
+  color: var(--pri-600);
+  font-weight: 500;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.paginationButton {
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.paginationButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginationText {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--pri-700);
+  min-width: 120px;
+  text-align: center;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .provisioningPage {
     padding: 1.5rem;
   }
 
-  .Provisioning-header {
+  .provisioningHeader {
     margin-bottom: 1.5rem;
     gap: 1.25rem;
   }
 }
 
 @media (max-width: 768px) {
-  .Provisioning-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .Provisioning-page {
+  .provisioningPage {
     padding: 1rem;
   }
 
-  .Provisioning-header {
+  .provisioningHeader {
     margin-bottom: 1rem;
     gap: 1rem;
+  }
+
+  .paginationContainer {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .paginationInfo {
+    text-align: center;
+    order: 2;
+  }
+
+  .paginationControls {
+    order: 1;
+  }
+
+  .paginationText {
+    min-width: auto;
   }
 }
 
 @media (max-width: 480px) {
-  .Provisioning-page {
+  .provisioningPage {
     padding: 0.75rem;
   }
 
-  .Provisioning-grid {
+  .provisioningHeader {
+    margin-bottom: 0.75rem;
     gap: 0.75rem;
   }
 
-  .Provisioning-header {
-    margin-bottom: 0.75rem;
-    gap: 0.75rem;
+  .paginationButton {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .paginationControls {
+    gap: 0.5rem;
   }
 }
