@@ -3,3 +3,10 @@
   max-width: 1200px;
   margin: 0 auto;
 }
+
+.dashboard-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}

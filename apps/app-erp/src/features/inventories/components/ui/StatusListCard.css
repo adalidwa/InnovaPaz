@@ -1,0 +1,117 @@
+.status-list-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 34.75rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-list-card__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 6px;
+}
+
+.status-list-card__icon {
+  font-size: 18px;
+  color: #f59e0b; /* Amarillo advertencia */
+}
+
+.status-list-card__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.status-list-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-list-card__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.status-list-card__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-list-card__item-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  color: #111827;
+}
+
+.status-list-card__item-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 2px 0 0 0;
+}
+
+.status-list-card__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-list-card__tag {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.status-list-card__tag--entrada {
+  background: #2563eb; /* Azul */
+}
+
+.status-list-card__tag--salida {
+  background: #6b7280; /* Gris */
+}
+
+.status-list-card__tag--critico {
+  background: #ef4444; /* Rojo */
+}
+
+.status-list-card__tag--bajo {
+  background: #facc15; /* Amarillo */
+  color: #111;
+}
+
+.status-list-card__value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.status-list-card__action {
+  background: transparent;
+  border: none;
+  color: #374151;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.status-list-card__button--blue-border {
+  border-color: #2563eb !important;
+}
+
+@media (max-width: 768px) {
+  .status-list-card {
+    width: 29rem;
+  }
+}
