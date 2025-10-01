@@ -344,70 +344,21 @@ function ProvidersPage() {
     setShowAddModal(true);
   };
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleNITChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); // Solo números
-    if (value.length <= 13) {
-      // NIT boliviano máximo 13 dígitos
-      setAddForm({ ...addForm, nit: value });
-    }
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); // Solo números
-    if (value.length <= 8) {
-      // Teléfono boliviano máximo 8 dígitos
-      setAddForm({ ...addForm, phone: value });
-    }
-  };
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase(); // Email en minúsculas
-    setAddForm({ ...addForm, email: value });
-  };
   const handleSaveAdd = () => {
-    // Validaciones
-    if (!addForm.title.trim()) {
-      alert('El nombre de la empresa es obligatorio');
-      return;
+    if (addForm.title.trim() && addForm.nit.trim() && addForm.contact.trim()) {
+      const newProvider: Provider = {
+        id: generateNewId(),
+        title: addForm.title,
+        description: addForm.description,
+        nit: addForm.nit,
+        contact: addForm.contact,
+        phone: addForm.phone,
+        email: addForm.email,
+        address: addForm.address,
+      };
+      setProviders([...providers, newProvider]);
+      setShowAddModal(false);
     }
-    if (!addForm.nit.trim()) {
-      alert('El NIT es obligatorio');
-      return;
-    }
-    if (addForm.nit.length < 7) {
-      alert('El NIT debe tener al menos 7 dígitos');
-      return;
-    }
-    if (!addForm.contact.trim()) {
-      alert('La persona de contacto es obligatoria');
-      return;
-    }
-    if (addForm.phone && addForm.phone.length < 7) {
-      alert('El teléfono debe tener al menos 7 dígitos');
-      return;
-    }
-    if (addForm.email && !validateEmail(addForm.email)) {
-      alert('Por favor ingrese un email válido');
-      return;
-    }
-
-    const newProvider: Provider = {
-      id: generateNewId(),
-      title: addForm.title.trim(),
-      description: addForm.description.trim(),
-      nit: addForm.nit,
-      contact: addForm.contact.trim(),
-      phone: addForm.phone,
-      email: addForm.email.trim(),
-      address: addForm.address.trim(),
-    };
-    setProviders([...providers, newProvider]);
-    setShowAddModal(false);
   };
 
   const getStatusColor = (status: HistoryItem['status']) => {
@@ -567,10 +518,8 @@ function ProvidersPage() {
                 <Input
                   type='text'
                   value={addForm.nit}
-                  onChange={handleNITChange}
-                  placeholder='Ej: 1234567890'
-                  maxLength='13'
-                  pattern='[0-9]*'
+                  onChange={(e) => setAddForm({ ...addForm, nit: e.target.value })}
+                  placeholder='Número de Identificación Tributaria'
                   className='providerModalInput'
                 />
               </div>
@@ -589,10 +538,8 @@ function ProvidersPage() {
                 <Input
                   type='text'
                   value={addForm.phone}
-                  onChange={handlePhoneChange}
-                  placeholder='Ej: 77999888'
-                  maxLength='8'
-                  pattern='[0-9]*'
+                  onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
+                  placeholder='Número de teléfono'
                   className='providerModalInput'
                 />
               </div>
@@ -601,9 +548,8 @@ function ProvidersPage() {
                 <Input
                   type='email'
                   value={addForm.email}
-                  onChange={handleEmailChange}
-                  placeholder='ejemplo@empresa.bo'
-                  pattern='[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,}$'
+                  onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                  placeholder='Correo electrónico (opcional)'
                   className='providerModalInput'
                 />
               </div>
