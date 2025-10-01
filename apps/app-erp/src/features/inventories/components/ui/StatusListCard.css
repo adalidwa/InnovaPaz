@@ -88,7 +88,7 @@
 }
 
 .status-list-card__tag--salida {
-  background: var(--pri-300); /* Gris */
+  background: var(--pri-200); /* Gris */
   color: var(--pri-600);
 }
 
