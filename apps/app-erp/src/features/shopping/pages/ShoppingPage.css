@@ -6,6 +6,13 @@
   background-color: var(--pri-50);
 }
 
+.shopping-header {
+  margin-bottom: 2rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .shopping-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -24,6 +31,10 @@
   .shopping-page {
     padding: 1.5rem;
   }
+
+  .shopping-header {
+    margin-bottom: 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -35,6 +46,10 @@
   .shopping-page {
     padding: 1rem;
   }
+
+  .shopping-header {
+    margin-bottom: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -44,5 +59,9 @@
 
   .shopping-grid {
     gap: 0.75rem;
+  }
+
+  .shopping-header {
+    margin-bottom: 0.75rem;
   }
 }

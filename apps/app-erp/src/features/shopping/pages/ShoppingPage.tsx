@@ -1,5 +1,6 @@
 import './ShoppingPage.css';
 import ShoppingCard from '../components/ShoppingCard';
+import TitleDescription from '../../../components/common/TitleDescription';
 import {
   IoStorefront,
   IoPeople,
@@ -20,6 +21,11 @@ interface ShoppingItem {
   quantity: number;
   icon: 'store' | 'people' | 'doc' | 'download' | 'tag' | 'contract' | 'analytics';
 }
+
+const pageInfo = {
+  title: 'Compras',
+  description: 'Administra el inventario de tu minimarket',
+};
 
 const data: ShoppingItem[] = [
   {
@@ -120,6 +126,14 @@ const resolveIcon = (name: ShoppingItem['icon'], color: string) => {
 function ShoppingPage() {
   return (
     <div className='shopping-page'>
+      <div className='shopping-header'>
+        <TitleDescription
+          title={pageInfo.title}
+          description={pageInfo.description}
+          titleSize={32}
+          descriptionSize={16}
+        />
+      </div>
       <div className='shopping-grid'>
         {data.map((item, idx) => {
           const style = statusStyle(item.status);
