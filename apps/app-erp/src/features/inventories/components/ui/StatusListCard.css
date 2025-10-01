@@ -1,5 +1,5 @@
 .status-list-card {
-  background: #fff;
+  background: var(--white);
   border-radius: 12px;
   padding: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -7,6 +7,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  font-family: var(--font);
 }
 
 .status-list-card__header {
@@ -17,14 +18,14 @@
 }
 
 .status-list-card__icon {
-  font-size: 18px;
-  color: #f59e0b; /* Amarillo advertencia */
+  font-size: 1.125rem; /* Equivalent to 18px */
+  color: var(--var-600); /* Amarillo advertencia */
 }
 
 .status-list-card__title {
-  font-size: 16px;
+  font: var(--font-20);
   font-weight: 600;
-  color: #111827;
+  color: var(--pri-900);
   margin: 0;
 }
 
@@ -38,7 +39,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--pri-200);
   border-radius: 8px;
   padding: 10px 12px;
 }
@@ -49,15 +50,15 @@
 }
 
 .status-list-card__item-title {
-  font-size: 14px;
+  font: var(--font-16);
   font-weight: 500;
   margin: 0;
-  color: #111827;
+  color: var(--pri-900);
 }
 
 .status-list-card__item-subtitle {
-  font-size: 12px;
-  color: #6b7280;
+  font: var(--font-13);
+  color: var(--pri-500);
   margin: 2px 0 0 0;
 }
 
@@ -68,46 +69,48 @@
 }
 
 .status-list-card__tag {
-  font-size: 12px;
+  font: var(--font-13);
   padding: 4px 8px;
   border-radius: 12px;
   font-weight: 600;
-  color: #fff;
 }
 
 .status-list-card__tag--entrada {
-  background: #2563eb; /* Azul */
+  background: var(--sec-800); /* Azul */
+  color: var(--white);
 }
 
 .status-list-card__tag--salida {
-  background: #6b7280; /* Gris */
+  background: var(--pri-300); /* Gris */
+  color: var(--pri-600);
 }
 
 .status-list-card__tag--critico {
-  background: #ef4444; /* Rojo */
+  background: var(--acc-700); /* Rojo */
+  color: var(--white);
 }
 
 .status-list-card__tag--bajo {
-  background: #facc15; /* Amarillo */
-  color: #111;
+  background: var(--var-500); /* Amarillo */
+  color: var(--pri-600);
 }
 
 .status-list-card__value {
-  font-size: 14px;
+  font: var(--font-14);
   font-weight: 600;
-  color: #111827;
+  color: var(--pri-900);
 }
 
 .status-list-card__action {
-  background: transparent;
+  background: var(--transparent);
   border: none;
-  color: #374151;
-  font-size: 16px;
+  color: var(--pri-600);
+  font: var(--font-16);
   cursor: pointer;
 }
 
 .status-list-card__button--blue-border {
-  border-color: #2563eb !important;
+  border-color: var(--sec-700) !important;
 }
 
 @media (max-width: 768px) {
