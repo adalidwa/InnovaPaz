@@ -5,8 +5,15 @@ import Eliminar from '../../../assets/images/Delete.png';
 import { Button, StatusTag } from '../../../components/common';
 import TitleDescription from '../../../components/common/TitleDescription';
 import './ProductsCardCrud.css';
+import { useNavigate } from 'react-router-dom';
 
 function ProductsCardCrud() {
+  const navigate = useNavigate();
+
+  const handleView = () => {
+    navigate('/productos/ver');
+  };
+
   return (
     <div className='product-card'>
       <div className='product-card-header'>
@@ -66,6 +73,7 @@ function ProductsCardCrud() {
           size='small'
           icon={<img src={Ojo} alt='Ver' />}
           iconPosition='left'
+          onClick={handleView}
         >
           Ver
         </Button>

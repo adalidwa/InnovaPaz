@@ -1,0 +1,106 @@
+.recent-movements-card {
+  background: var(--white);
+  border: 1px solid var(--pri-200);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px;
+  box-shadow: var(--card-shadow);
+  flex: 1;
+  min-width: 0;
+}
+
+.movements-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--pri-100);
+}
+
+.movements-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.movements-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.movements-title {
+  color: var(--pri-800);
+  font: var(--font-16);
+  font-weight: 600;
+  margin: 0;
+}
+
+.movements-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.movement-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  transition: var(--transition-smooth);
+}
+
+.movement-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.movement-item.entry .movement-indicator {
+  background-color: var(--sec-600);
+  color: var(--white);
+}
+
+.movement-item.exit .movement-indicator {
+  background-color: var(--acc-600);
+  color: var(--white);
+}
+
+.movement-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.movement-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.movement-type {
+  color: var(--pri-800);
+  font: var(--font-14);
+  font-weight: 500;
+  flex: 1;
+}
+
+.movement-info {
+  color: var(--pri-500);
+  font: var(--font-13);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.movements-footer {
+  display: flex;
+  justify-content: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--pri-100);
+}

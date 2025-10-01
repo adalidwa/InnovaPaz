@@ -1,0 +1,32 @@
+.info-stock-container {
+  display: flex;
+  width: 100%;
+  margin: 0px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.secondary-info-container {
+  display: flex;
+  gap: 16px;
+  margin: 0px;
+  align-items: flex-start;
+}
+
+.side-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: var(--breakpoint-mobile)) {
+  .info-stock-container,
+  .secondary-info-container {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .side-cards-container {
+    gap: 8px;
+  }
+}

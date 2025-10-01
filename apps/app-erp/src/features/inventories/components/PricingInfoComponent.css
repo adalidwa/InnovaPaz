@@ -1,0 +1,89 @@
+.pricing-info-card {
+  background: var(--white);
+  border: 1px solid var(--pri-200);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 16px;
+  box-shadow: var(--card-shadow);
+  max-width: 200px;
+  width: 100%;
+}
+
+.pricing-header {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+}
+
+.pricing-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pricing-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.pricing-title {
+  color: var(--pri-800);
+  font: var(--font-16);
+  font-weight: 600;
+  margin: 0;
+}
+
+.pricing-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pricing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pricing-item.total {
+  padding-top: 8px;
+}
+
+.pricing-label {
+  color: var(--pri-500);
+  font: var(--font-14);
+  font-weight: 400;
+}
+
+.pricing-value {
+  color: var(--pri-800);
+  font: var(--font-14);
+  font-weight: 600;
+  text-align: right;
+}
+
+.margin-value {
+  color: var(--sec-700);
+}
+
+.stock-value {
+  color: var(--sec-600);
+  font: var(--font-16);
+  font-weight: 700;
+}
+
+.pricing-divider {
+  height: 1px;
+  background-color: var(--pri-200);
+  margin: 8px 0;
+}
+
+@media (max-width: var(--breakpoint-mobile)) {
+  .pricing-info-card {
+    margin: 8px;
+    padding: 16px;
+  }
+
+  .pricing-content {
+    gap: 12px;
+  }
+}
