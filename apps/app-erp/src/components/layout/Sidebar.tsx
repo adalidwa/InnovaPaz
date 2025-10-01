@@ -1,23 +1,33 @@
 import React from 'react';
 import './Sidebar.css';
-import { sidebarConfig } from '../../config/sidebarConfig';
-import { FaBox } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
 
-const Sidebar: React.FC = () => {
+interface SidebarItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface SidebarProps {
+  title: string;
+  titleIcon: React.ComponentType<{ className?: string }>;
+  menuItems: SidebarItem[];
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ title, titleIcon: TitleIcon, menuItems }) => {
   const location = useLocation();
 
   return (
     <div className='sidebar'>
       <div className='sidebar__header'>
         <div className='sidebar__icon'>
-          <FaBox />
+          <TitleIcon />
         </div>
-        <h2 className='sidebar__title'>Inventario</h2>
+        <h2 className='sidebar__title'>{title}</h2>
       </div>
 
       <nav className='sidebar__menu'>
-        {sidebarConfig.map((item, index) => {
+        {menuItems.map((item, index) => {
           const IconComponent = item.icon;
           const isActive = location.pathname === item.href;
           return (

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { BsPlus } from 'react-icons/bs';
-import Input from './Input';
-import Button from './Button';
-import Modal from './Modal';
-import StatusTag from './StatusTag';
+import Input from '../../../components/common/Input';
+import Button from '../../../components/common/Button';
+import Modal from '../../../components/common/Modal';
+import StatusTag from '../../../components/common/StatusTag';
 import './ProductCard.css';
 
 export interface Product {

@@ -1,5 +1,10 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import '../../../assets/styles/theme.css';
 import './ShoppingPage.css';
 import ShoppingCard from '../components/ShoppingCard';
+import TitleDescription from '../../../components/common/TitleDescription';
+import Input from '../../../components/common/Input';
 import {
   IoStorefront,
   IoPeople,
@@ -8,6 +13,7 @@ import {
   IoPricetag,
   IoContract,
   IoAnalytics,
+  IoSearch,
 } from 'react-icons/io5';
 
 type Status = 'Normal' | 'Revisar';
@@ -19,7 +25,13 @@ interface ShoppingItem {
   type: string;
   quantity: number;
   icon: 'store' | 'people' | 'doc' | 'download' | 'tag' | 'contract' | 'analytics';
+  route?: string;
 }
+
+const pageInfo = {
+  title: 'Compras',
+  description: 'Administra el inventario de tu minimarket',
+};
 
 const data: ShoppingItem[] = [
   {
@@ -29,6 +41,7 @@ const data: ShoppingItem[] = [
     type: 'Productos',
     quantity: 400,
     icon: 'store',
+    route: 'provisioning',
   },
   {
     status: 'Revisar',
@@ -37,6 +50,7 @@ const data: ShoppingItem[] = [
     type: 'Proveedores',
     quantity: 400,
     icon: 'people',
+    route: 'providers',
   },
   {
     status: 'Normal',
@@ -118,10 +132,43 @@ const resolveIcon = (name: ShoppingItem['icon'], color: string) => {
 };
 
 function ShoppingPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+
+  const filteredData = data.filter(
+    (item) =>
+      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleCardClick = (item: ShoppingItem) => {
+    if (item.route) {
+      navigate(item.route);
+    }
+  };
+
   return (
     <div className='shopping-page'>
+      <div className='shopping-header'>
+        <TitleDescription
+          title={pageInfo.title}
+          description={pageInfo.description}
+          titleSize={32}
+          descriptionSize={16}
+        />
+        <div className='shopping-search'>
+          <Input
+            placeholder='Buscar en compras...'
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            leftIcon={<IoSearch color='var(--pri-500)' />}
+            className='search-input'
+          />
+        </div>
+      </div>
       <div className='shopping-grid'>
-        {data.map((item, idx) => {
+        {filteredData.map((item, idx) => {
           const style = statusStyle(item.status);
           return (
             <ShoppingCard
@@ -136,6 +183,7 @@ function ShoppingPage() {
               quantity={item.quantity}
               buttonText='Ver'
               buttonVariant={style.buttonVariant}
+              onButtonClick={() => handleCardClick(item)}
               titleSize={25}
               descriptionSize={16}
             />

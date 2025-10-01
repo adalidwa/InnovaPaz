@@ -1,0 +1,31 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  background: var(--card-bg, var(--white));
+  border-radius: 12px;
+  box-shadow: var(--card-shadow, 0 2px 12px 0 #0001);
+  min-height: 600px;
+  font-family: var(--font);
+}
+
+.navbar {
+  width: 100%;
+  background: var(--pri-100, #f3f4f6);
+  border-radius: 8px;
+  margin-bottom: 32px;
+  box-shadow: var(--card-shadow, 0 1px 4px 0 #0001);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+}
+
+.navbarInner {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  width: 100%;
+  justify-content: center;
+  font-family: var(--font);
+}
