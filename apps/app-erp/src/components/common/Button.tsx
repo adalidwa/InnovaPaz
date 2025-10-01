@@ -4,7 +4,17 @@ import './Button.css';
 
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent';
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'warning'
+    | 'success'
+    | 'outline'
+    | 'accent'
+    | 'table-primary'
+    | 'table-secondary'
+    | 'table-success'
+    | 'table-danger';
   size?: 'small' | 'medium' | 'large';
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';

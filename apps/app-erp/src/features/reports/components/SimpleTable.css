@@ -1,0 +1,87 @@
+.rtable-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+.rtable {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--font-14);
+}
+.rtable--dense {
+  font-size: 12px;
+}
+.rtable__caption {
+  text-align: left;
+  padding: 0.35rem 0;
+  font-weight: 600;
+  color: var(--pri-700);
+}
+.rtable__th {
+  position: relative;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid var(--pri-100);
+  background: var(--bg-50);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--pri-600);
+}
+.rtable__th--sortable {
+  cursor: pointer;
+}
+.rtable__th--active {
+  color: var(--pri-800);
+}
+.rtable__sort-indicator {
+  margin-left: 0.35rem;
+  font-size: 10px;
+}
+.rtable__tr {
+  border-bottom: 1px solid var(--pri-100);
+}
+.rtable__td {
+  padding: 0.5rem 0.65rem;
+  color: var(--pri-800);
+  font: var(--font-14);
+}
+.rtable__tr:nth-child(even) .rtable__td {
+  background: var(--bg-100);
+}
+.rtable__tr:hover .rtable__td {
+  background: var(--bg-200);
+}
+.rtable__td-empty {
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--pri-500);
+  font: var(--font-14);
+}
+.rtable__pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.4rem 0.25rem;
+  font: var(--font-10);
+}
+.rtable__page-btn {
+  background: var(--sec-700);
+  color: var(--white);
+  border: 0;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font: var(--font-13);
+}
+.rtable__page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.rtable__page-btn:not(:disabled):hover {
+  background: var(--sec-600);
+}
+.rtable__page-info {
+  color: var(--pri-600);
+}
