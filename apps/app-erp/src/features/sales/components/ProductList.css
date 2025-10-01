@@ -8,45 +8,54 @@
   grid-auto-rows: auto; /* Allow rows to size naturally */
 }
 
-/* Small Mobile (480px+) */
+/* Small Mobile (480px+) - Accommodate wider cards with buttons */
 @media (min-width: 480px) {
   .product-list {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Increased from 200px */
     gap: 16px;
   }
 }
 
-/* Tablet styles - 768px and up */
+/* Tablet styles - 768px and up - Account for horizontal button layout */
 @media (min-width: 768px) {
   .product-list {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* Increased from 220px */
     gap: 20px;
     padding: 20px 0;
   }
 }
 
-/* Desktop styles - 1024px and up */
+/* Desktop styles - 1024px and up - Larger buttons need more space */
 @media (min-width: 1024px) {
   .product-list {
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); /* Increased from 250px */
     gap: 24px;
     padding: 24px 0;
   }
 }
 
-/* Large desktop styles - 1200px and up */
+/* Large desktop styles - 1200px and up - Maximum button comfort */
 @media (min-width: 1200px) {
   .product-list {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Increased from 280px */
     gap: 28px;
   }
 }
 
-/* Ensure maximum 4 columns on very large screens */
+/* Ensure maximum 3 columns on very large screens to prevent cards from being too wide */
 @media (min-width: 1600px) {
   .product-list {
+    grid-template-columns: repeat(3, 1fr); /* Changed from 4 to 3 columns */
+    max-width: 1200px; /* Reduced from 1400px */
+    margin: 0 auto;
+  }
+}
+
+/* For ultra-wide screens, limit to 4 columns maximum */
+@media (min-width: 2000px) {
+  .product-list {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
   }
 }
@@ -130,18 +139,21 @@
   }
 }
 
-/* Ensure ProductCards fill the grid cells properly and don't get cut off */
+/* Ensure ProductCards fill the grid cells properly and accommodate button width */
 .product-list .product-card {
   width: 100%;
-  height: auto; /* Let cards size naturally */
-  min-height: auto; /* Remove fixed min-height to prevent cutting */
-  align-self: stretch; /* Make cards fill grid cell vertically */
-  justify-self: stretch; /* Make cards fill grid cell horizontally */
+  height: auto;
+  min-height: auto;
+  align-self: stretch;
+  justify-self: stretch;
+  /* Allow cards to grow to accommodate button content */
+  min-width: 0; /* Allow shrinking if needed, but respect grid minmax */
 }
 
 /* Grid item alignment improvements */
 .product-list {
-  align-items: start; /* Align grid items to start */
+  align-items: start;
+  justify-items: stretch; /* Ensure cards stretch to fill grid cells */
 }
 
 /* Ensure no overflow issues */
@@ -164,28 +176,91 @@
   }
 }
 
+/* Small mobile range - single column but accommodate button width */
 @media (min-width: 480px) and (max-width: 767px) {
   .product-list {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+/* Medium mobile range - account for larger buttons */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+/* Desktop range - horizontal button layout needs more width */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* Large desktop - comfortable button spacing */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 }
 
 /* Auto-sizing improvement for better responsiveness */
 .product-list {
-  grid-template-rows: auto; /* Allow rows to auto-size */
+  grid-template-rows: auto;
 }
 
-/* Prevent grid items from shrinking too much */
-.product-list .product-card {
-  min-width: 0; /* Allow shrinking but prevent overflow */
+/* Grid container should accommodate growing cards */
+.product-list {
+  container-type: inline-size; /* For future container queries */
 }
 
-/* Grid debugging (remove in production) */
+/* Ensure grid respects card content width */
+@media (min-width: 480px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(220px, min-content), 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(260px, min-content), 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(290px, min-content), 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(320px, min-content), 1fr));
+  }
+}
+
+/* Special handling for quantity input state */
+.product-list .product-card:has(.product-card__quantity-section) {
+  min-width: fit-content; /* Allow natural width when quantity section is active */
+}
+
+/* Ensure proper spacing in different scenarios */
+.product-list {
+  gap: clamp(12px, 2vw, 28px); /* Responsive gap */
+}
+
+/* Responsive padding */
+.product-list {
+  padding: clamp(12px, 3vw, 24px) 0;
+}
+
+/* Grid debugging (uncomment for development) */
 /*
 .product-list {
-  border: 1px dashed red;
+  border: 2px dashed red;
+  background: rgba(255, 0, 0, 0.1);
 }
 .product-list .product-card {
-  border: 1px dashed blue;
+  border: 2px dashed blue;
 }
 */
