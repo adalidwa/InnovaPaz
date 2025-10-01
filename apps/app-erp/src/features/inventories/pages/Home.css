@@ -1,0 +1,137 @@
+.home-container {
+  padding: 2rem;
+  background-color: var(--bg-50);
+  min-height: 100vh;
+  font-family: var(--font);
+}
+
+.home-section {
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background-color: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--pri-100);
+}
+
+.home-title {
+  font: var(--font-25);
+  color: var(--pri-900);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--sec-700);
+  padding-bottom: 0.5rem;
+}
+
+.home-subtitle {
+  font: var(--font-20);
+  color: var(--pri-700);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.button-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.button-grid-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.button-showcase {
+  padding: 1rem;
+  background-color: var(--bg-100);
+  border-radius: 8px;
+  border: 1px solid var(--pri-200);
+}
+
+.button-description {
+  font: var(--font-14);
+  color: var(--pri-600);
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
+/* Estilos específicos para diferentes secciones */
+.design-buttons-section {
+  background: linear-gradient(135deg, var(--bg-50) 0%, var(--white) 100%);
+}
+
+.size-demo-section {
+  background-color: var(--sec-50);
+}
+
+.circular-button-demo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--pri-50);
+  border-radius: 8px;
+}
+
+.combinations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.size-comparison {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  background-color: var(--white);
+  border-radius: 8px;
+  border-left: 4px solid var(--sec-700);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 1rem;
+  }
+
+  .home-section {
+    padding: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .button-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .combinations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Hover effects para las secciones */
+.home-section:hover {
+  box-shadow: var(--card-hover-shadow);
+  transform: translateY(-2px);
+  transition: var(--transition-smooth);
+}
+
+/* Animaciones */
+.home-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
