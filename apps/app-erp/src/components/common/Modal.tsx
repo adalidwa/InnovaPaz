@@ -17,6 +17,8 @@ interface ModalProps {
   onCancel?: () => void;
   closeOnOverlayClick?: boolean;
   size?: 'small' | 'medium' | 'large';
+  children?: React.ReactNode;
+  showConfirmButton?: boolean;
 }
 
 function Modal({
@@ -33,6 +35,8 @@ function Modal({
   onCancel,
   closeOnOverlayClick = true,
   size = 'medium',
+  children,
+  showConfirmButton = true,
 }: ModalProps) {
   const getModalIcon = () => {
     const iconProps = { size: 24 };
@@ -101,28 +105,35 @@ function Modal({
         </div>
 
         <div className='modal-body'>
-          <p className='modal-message'>{message}</p>
-        </div>
-
-        <div className='modal-footer'>
-          {showCancelButton && (
-            <Button
-              variant='secondary'
-              onClick={handleCancel}
-              size='medium'
-              className='modal-cancel-button'
-            >
-              {cancelButtonText}
-            </Button>
+          {children ? (
+            <div className='modal-custom-content'>{children}</div>
+          ) : (
+            <>
+              <p className='modal-message'>{message}</p>
+              <div className='modal-actions'>
+                {showConfirmButton && (
+                  <Button
+                    variant={getConfirmButtonVariant()}
+                    onClick={handleConfirm}
+                    size='medium'
+                    className='modal-confirm-button'
+                  >
+                    {confirmButtonText}
+                  </Button>
+                )}
+                {showCancelButton && (
+                  <Button
+                    variant='secondary'
+                    onClick={handleCancel}
+                    size='medium'
+                    className='modal-cancel-button'
+                  >
+                    {cancelButtonText}
+                  </Button>
+                )}
+              </div>
+            </>
           )}
-          <Button
-            variant={getConfirmButtonVariant()}
-            onClick={handleConfirm}
-            size='medium'
-            className='modal-confirm-button'
-          >
-            {confirmButtonText}
-          </Button>
         </div>
       </div>
     </div>

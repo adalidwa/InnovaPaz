@@ -1,0 +1,6 @@
+@import '../pages/SalesReportsPage.css';
+/* Overrides específicos inventario */
+.report-block__title {
+  color: var(--pri-800);
+}
+/* El enlace de retorno reutiliza .report-back-link definido en SalesReportsPage.css */

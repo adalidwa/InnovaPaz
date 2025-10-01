@@ -1,12 +1,12 @@
 import React from 'react';
 import './SummaryCard.css';
+import { FaCube } from 'react-icons/fa';
 
 interface SummaryCardProps {
   title: string;
   value: number | string;
   percentage: string;
   isPositive?: boolean;
-  icon: React.ReactNode;
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({
@@ -14,7 +14,6 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   value,
   percentage,
   isPositive = true,
-  icon,
 }) => {
   return (
     <div className='summary-card'>
@@ -29,7 +28,9 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
           {isPositive ? '↑' : '↓'} {percentage}
         </p>
       </div>
-      <div className='summary-card__icon'>{icon}</div>
+      <div className='summary-card__icon'>
+        <FaCube />
+      </div>
     </div>
   );
 };

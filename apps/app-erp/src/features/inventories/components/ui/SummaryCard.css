@@ -2,25 +2,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--white);
+  background: #ffffff;
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  width: 20rem;
-  font-family: var(--font);
-  box-sizing: border-box;
-}
-
-@media (max-width: 1025px) {
-  .summary-card {
-    width: 18rem;
-  }
-}
-
-@media (max-width: 768px) {
-  .summary-card {
-    width: 15rem;
-  }
+  max-width: 340px;
 }
 
 .summary-card__content {
@@ -30,39 +16,38 @@
 }
 
 .summary-card__title {
-  font: var(--font-14);
-  color: var(--pri-500);
+  font-size: 14px;
+  color: #6b7280; /* gris */
   margin: 0;
 }
 
 .summary-card__value {
-  font-size: 24px;
-  line-height: 1.1;
+  font-size: 28px;
   font-weight: 600;
-  color: var(--pri-900);
+  color: #111827;
   margin: 0;
 }
 
 .summary-card__percentage {
-  font: var(--font-14);
+  font-size: 14px;
   font-weight: 500;
   margin: 0;
 }
 
 .summary-card__percentage--positive {
-  color: var(--sec-700);
+  color: #10b981; /* verde */
 }
 
 .summary-card__percentage--negative {
-  color: var(--acc-700);
+  color: #ef4444; /* rojo */
 }
 
 .summary-card__icon {
-  background: var(--sec-100);
+  background: #f3f4f6;
   padding: 12px;
   border-radius: 12px;
-  font-size: 1.5rem;
-  color: var(--sec-700);
+  font-size: 28px;
+  color: #1d4ed8; /* azul */
   display: flex;
   align-items: center;
   justify-content: center;

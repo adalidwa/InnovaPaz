@@ -1,5 +1,6 @@
 import React from 'react';
 import './Table.css';
+import Button from './Button';
 
 export interface TableColumn<T> {
   key: keyof T | string;
@@ -27,6 +28,23 @@ export interface TableProps<T> {
   emptyMessage?: string;
   loading?: boolean;
 }
+
+const mapVariantToTableVariant = (variant: string) => {
+  switch (variant) {
+    case 'primary':
+      return 'table-primary';
+    case 'secondary':
+      return 'table-secondary';
+    case 'success':
+      return 'table-success';
+    case 'danger':
+      return 'table-danger';
+    case 'warning':
+      return 'table-secondary';
+    default:
+      return 'table-primary';
+  }
+};
 
 function Table<T extends Record<string, any>>({
   data,
@@ -106,13 +124,15 @@ function Table<T extends Record<string, any>>({
                       {actions
                         .filter((action) => !action.show || action.show(row))
                         .map((action, actionIndex) => (
-                          <button
+                          <Button
                             key={actionIndex}
-                            className={`table-action-btn table-action-${action.variant || 'primary'} ${action.className || ''}`}
+                            variant={mapVariantToTableVariant(action.variant || 'primary') as any}
+                            size='small'
                             onClick={() => action.onClick(row, rowIndex)}
+                            className={`table-action-button ${action.className || ''}`}
                           >
                             {action.label}
-                          </button>
+                          </Button>
                         ))}
                     </td>
                   )}

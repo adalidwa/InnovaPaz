@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import '../../../assets/styles/theme.css';
 import './ShoppingPage.css';
 import ShoppingCard from '../components/ShoppingCard';
 import TitleDescription from '../../../components/common/TitleDescription';
@@ -23,6 +25,7 @@ interface ShoppingItem {
   type: string;
   quantity: number;
   icon: 'store' | 'people' | 'doc' | 'download' | 'tag' | 'contract' | 'analytics';
+  route?: string;
 }
 
 const pageInfo = {
@@ -38,6 +41,7 @@ const data: ShoppingItem[] = [
     type: 'Productos',
     quantity: 400,
     icon: 'store',
+    route: 'provisioning',
   },
   {
     status: 'Revisar',
@@ -46,6 +50,7 @@ const data: ShoppingItem[] = [
     type: 'Proveedores',
     quantity: 400,
     icon: 'people',
+    route: 'providers',
   },
   {
     status: 'Normal',
@@ -128,6 +133,7 @@ const resolveIcon = (name: ShoppingItem['icon'], color: string) => {
 
 function ShoppingPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const filteredData = data.filter(
     (item) =>
@@ -135,6 +141,12 @@ function ShoppingPage() {
       item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleCardClick = (item: ShoppingItem) => {
+    if (item.route) {
+      navigate(item.route);
+    }
+  };
 
   return (
     <div className='shopping-page'>
@@ -171,6 +183,7 @@ function ShoppingPage() {
               quantity={item.quantity}
               buttonText='Ver'
               buttonVariant={style.buttonVariant}
+              onButtonClick={() => handleCardClick(item)}
               titleSize={25}
               descriptionSize={16}
             />
