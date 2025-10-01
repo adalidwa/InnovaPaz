@@ -4,9 +4,59 @@ import Editar from '../../../assets/images/Editar.png';
 import Eliminar from '../../../assets/images/Delete.png';
 import { Button, StatusTag } from '../../../components/common';
 import TitleDescription from '../../../components/common/TitleDescription';
+import type { Product } from '../types/inventory';
 import './ProductsCardCrud.css';
+import { useNavigate } from 'react-router-dom';
 
-function ProductsCardCrud() {
+interface ProductsCardCrudProps {
+  product: Product;
+  onEdit?: (product: Product) => void;
+  onDeactivate?: (productId: string) => void;
+}
+
+function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudProps) {
+  const navigate = useNavigate();
+
+  const getStatusConfig = (status: Product['status']) => {
+    switch (status) {
+      case 'critico':
+        return { text: 'Crítico', color: 'var(--error-600)', textColor: 'var(--white)' };
+      case 'bajo':
+        return { text: 'Bajo', color: 'var(--warning-600)', textColor: 'var(--white)' };
+      case 'agotado':
+        return { text: 'Agotado', color: 'var(--error-800)', textColor: 'var(--white)' };
+      default:
+        return { text: 'Normal', color: 'var(--sec-600)', textColor: 'var(--white)' };
+    }
+  };
+
+  const statusConfig = getStatusConfig(product.status);
+
+  const handleView = () => {
+    navigate(`/productos/ver/${product.id}`);
+  };
+
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(product);
+    }
+  };
+
+  const handleDeactivate = () => {
+    if (
+      onDeactivate &&
+      window.confirm(`¿Estás seguro de que deseas desactivar el producto "${product.name}"?`)
+    ) {
+      onDeactivate(product.id);
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-BO');
+  };
+
   return (
     <div className='product-card'>
       <div className='product-card-header'>
@@ -14,9 +64,9 @@ function ProductsCardCrud() {
           <img src={Invetarios} alt='Inventarios' />
         </div>
         <StatusTag
-          text='Normal'
-          backgroundColor='var(--sec-600)'
-          textColor='var(--white)'
+          text={statusConfig.text}
+          backgroundColor={statusConfig.color}
+          textColor={statusConfig.textColor}
           width={60}
           height={24}
           radius={12}
@@ -25,8 +75,8 @@ function ProductsCardCrud() {
 
       <div className='product-title-section'>
         <TitleDescription
-          title='Coca Cola 500ml'
-          description='Código: COC500 | Bebidas'
+          title={product.name}
+          description={`Código: ${product.code} | ${product.category}`}
           titleSize={18}
           descriptionSize={13}
           titleWeight='semibold'
@@ -40,23 +90,23 @@ function ProductsCardCrud() {
       <div className='product-details'>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Stock:</span>
-          <span className='product-detail-value'>48</span>
+          <span className='product-detail-value'>{product.stock}</span>
         </div>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Precio:</span>
-          <span className='product-detail-value'>Bs. 3.5</span>
+          <span className='product-detail-value'>Bs. {product.price.toFixed(2)}</span>
         </div>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Mínimo:</span>
-          <span className='product-detail-value'>20</span>
+          <span className='product-detail-value'>{product.minStock}</span>
         </div>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Vencimiento:</span>
-          <span className='product-detail-value'>2024-12-15</span>
+          <span className='product-detail-value'>{formatDate(product.expirationDate)}</span>
         </div>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Lote:</span>
-          <span className='product-detail-value'>LOT2024001</span>
+          <span className='product-detail-value'>{product.lot || 'N/A'}</span>
         </div>
       </div>
 
@@ -66,14 +116,15 @@ function ProductsCardCrud() {
           size='small'
           icon={<img src={Ojo} alt='Ver' />}
           iconPosition='left'
+          onClick={handleView}
         >
           Ver
         </Button>
-        <Button variant='ghost' size='small' iconPosition='left'>
-          {<img src={Editar} alt='Editar' />}
+        <Button variant='ghost' size='small' iconPosition='left' onClick={handleEdit}>
+          <img src={Editar} alt='Editar' />
         </Button>
-        <Button variant='ghost' size='small' iconPosition='left'>
-          {<img src={Eliminar} alt='Eliminar' />}
+        <Button variant='ghost' size='small' iconPosition='left' onClick={handleDeactivate}>
+          <img src={Eliminar} alt='Desactivar' />
         </Button>
       </div>
     </div>

@@ -5,10 +5,11 @@ interface ProductsHeaderProps {
   title: string;
   subtitle: string;
   buttonText: string;
-  buttonVariant: string;
-  hasIcon: boolean;
+  buttonVariant: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent' | 'ghost';
+  hasIcon?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  onButtonClick?: () => void;
 }
 
 function ProductsHeader({
@@ -16,9 +17,10 @@ function ProductsHeader({
   subtitle,
   buttonText,
   buttonVariant,
-  hasIcon,
+  hasIcon = false,
   icon,
-  iconPosition,
+  iconPosition = 'left',
+  onButtonClick,
 }: ProductsHeaderProps) {
   return (
     <div className='products-header'>
@@ -29,8 +31,10 @@ function ProductsHeader({
       <div>
         <Button
           variant={buttonVariant}
+          size='medium'
           icon={hasIcon ? icon : undefined}
           iconPosition={iconPosition}
+          onClick={onButtonClick}
         >
           {buttonText}
         </Button>
