@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import ProductsHeader from '../components/ProductsHeader';
 import SummaryCardsRow from '../components/ui/SummaryCardsRow';
 import StatusListCard from '../components/ui/StatusListCard';
+import CriticalStockModal from '../components/ui/CriticalStockModal';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [showAllMovements, setShowAllMovements] = useState(false);
+  const [showCriticalStockModal, setShowCriticalStockModal] = useState(false);
 
-  // Full list of movements (15 items)
   const allMovements = [
     {
       id: 1,
@@ -116,10 +117,8 @@ const Dashboard = () => {
     },
   ];
 
-  // Display first 7 by default, or all based on state
   const displayedMovements = showAllMovements ? allMovements : allMovements.slice(0, 7);
 
-  // Sample data for Critical Products (only critico and bajo, with see more icon, no quantity)
   const criticalProducts = [
     {
       id: 1,
@@ -133,6 +132,41 @@ const Dashboard = () => {
       title: 'Producto B',
       time: '11:15 AM',
       tag: { label: 'Bajo', type: 'bajo' },
+      hasIcon: true,
+    },
+    {
+      id: 3,
+      title: 'Producto C',
+      time: '09:30 AM',
+      tag: { label: 'Crítico', type: 'critico' },
+      hasIcon: true,
+    },
+    {
+      id: 4,
+      title: 'Producto D',
+      time: '10:10 AM',
+      tag: { label: 'Bajo', type: 'bajo' },
+      hasIcon: true,
+    },
+    {
+      id: 5,
+      title: 'Producto E',
+      time: '12:00 PM',
+      tag: { label: 'Crítico', type: 'critico' },
+      hasIcon: true,
+    },
+    {
+      id: 6,
+      title: 'Producto F',
+      time: '01:20 PM',
+      tag: { label: 'Bajo', type: 'bajo' },
+      hasIcon: true,
+    },
+    {
+      id: 7,
+      title: 'Producto G',
+      time: '02:45 PM',
+      tag: { label: 'Crítico', type: 'critico' },
       hasIcon: true,
     },
   ];
@@ -162,9 +196,14 @@ const Dashboard = () => {
           buttonLabel='Gestionar stock critico'
           buttonVariant='warning'
           buttonClassName='status-list-card__button--text-primary'
-          onButtonClick={() => console.log('Productos clicked')}
+          onButtonClick={() => setShowCriticalStockModal(true)}
         />
       </div>
+
+      <CriticalStockModal
+        isOpen={showCriticalStockModal}
+        onClose={() => setShowCriticalStockModal(false)}
+      />
     </div>
   );
 };
