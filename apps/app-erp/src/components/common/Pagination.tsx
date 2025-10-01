@@ -1,4 +1,3 @@
-import React from 'react';
 import './Pagination.css';
 import Button from './Button';
 import { IoChevronBack, IoChevronForward } from 'react-icons/io5';

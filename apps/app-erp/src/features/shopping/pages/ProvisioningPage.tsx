@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './ProvisioningPage.css';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
@@ -152,7 +151,6 @@ const ITEMS_PER_PAGE = 10;
 function ProvisioningPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const navigate = useNavigate();
 
   const filteredData = productData.filter(
     (item) =>
