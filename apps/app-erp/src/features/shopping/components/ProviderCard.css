@@ -103,3 +103,9 @@
     font-size: 0.8125rem;
   }
 }
+
+/* Font consistency fixes */
+.provider-card,
+.provider-card * {
+  font-family: var(--font);
+}

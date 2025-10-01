@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../../../assets/styles/theme.css';
 import './ShoppingPage.css';
 import ShoppingCard from '../components/ShoppingCard';
 import TitleDescription from '../../../components/common/TitleDescription';

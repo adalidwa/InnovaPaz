@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import '../../../assets/styles/theme.css';
 import './ProvisioningPage.css';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';

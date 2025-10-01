@@ -310,3 +310,46 @@
     font-size: 0.7rem;
   }
 }
+
+/* Font consistency fixes */
+.provisioning-page,
+.provisioning-page * {
+  font-family: var(--font);
+}
+
+.modalOverlay,
+.modalOverlay * {
+  font-family: var(--font);
+}
+
+.editModal,
+.editModal * {
+  font-family: var(--font);
+}
+
+.editModalHeader h3,
+.editModalField label,
+.editModalField strong {
+  font-family: var(--font);
+}
+
+/* Ensure buttons, inputs and selects inherit font */
+.editModalButton,
+.editModalInput,
+.addProductButton,
+.deleteButton {
+  font-family: var(--font);
+}
+
+/* Table and product cells */
+.productCell,
+.productName,
+.productSupplier {
+  font-family: var(--font);
+}
+
+/* Modal specific elements */
+.editModalClose,
+.editModalFooter {
+  font-family: var(--font);
+}
