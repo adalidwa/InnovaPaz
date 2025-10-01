@@ -6,7 +6,6 @@ function App() {
   return (
     <>
       <AppRoutes />
-      <Input label='Descripción' placeholder='Descripción del producto...' />
     </>
   );
 }
