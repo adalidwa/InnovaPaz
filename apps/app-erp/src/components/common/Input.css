@@ -18,6 +18,14 @@
   margin-left: 0.125rem;
 }
 
+/* Input container for icons */
+.input-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
 .input {
   width: 100%;
   height: 2.5rem;
@@ -31,6 +39,15 @@
   transition: all 0.2s ease-in-out;
   box-sizing: border-box;
   font-family: var(--font);
+}
+
+/* Input with icons padding adjustments */
+.input--with-left-icon {
+  padding-left: 2.5rem;
+}
+
+.input--with-right-icon {
+  padding-right: 2.5rem;
 }
 
 .input::placeholder {
@@ -60,16 +77,9 @@
   cursor: pointer;
 }
 
-.date-input-container {
-  position: relative;
-  width: 100%;
-}
-
-.date-input-icon {
+/* Icon styles */
+.input-icon {
   position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
@@ -79,12 +89,29 @@
   justify-content: center;
   color: var(--pri-600);
   transition: color 0.2s;
+  z-index: 1;
+  width: 2rem;
+  height: 2rem;
 }
 
-.date-input-icon:hover {
+.input-icon:hover:not(:disabled) {
   color: var(--sec-700);
 }
 
+.input-icon:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.input-icon--left {
+  left: 0.75rem;
+}
+
+.input-icon--right {
+  right: 0.75rem;
+}
+
+/* Date picker styles */
 .date-picker {
   position: absolute;
   top: calc(100% + 0.5rem);
