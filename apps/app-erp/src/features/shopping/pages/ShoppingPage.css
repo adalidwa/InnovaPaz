@@ -17,7 +17,7 @@
 }
 
 .shopping-search {
-  max-width: 400px;
+  width: 93%;
 }
 
 .shopping-search .search-input {
@@ -62,10 +62,6 @@
   .shopping-header {
     margin-bottom: 1rem;
     gap: 1rem;
-  }
-
-  .shopping-search {
-    max-width: 100%;
   }
 }
 
