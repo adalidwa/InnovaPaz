@@ -1,13 +1,14 @@
 .status-list-card {
   background: var(--white);
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   width: 34.75rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   font-family: var(--font);
+  gap: 15px;
 }
 
 .status-list-card__header {
@@ -32,7 +33,7 @@
 .status-list-card__items {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 15px;
 }
 
 .status-list-card__item {
@@ -65,7 +66,7 @@
 .status-list-card__right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .status-list-card__tag {
