@@ -53,6 +53,7 @@ const Dashboard = () => {
           items={criticalProducts}
           buttonLabel='Gestionar stock critico'
           buttonVariant='warning'
+          buttonClassName='status-list-card__button--text-primary'
           onButtonClick={() => console.log('Productos clicked')}
         />
       </div>
