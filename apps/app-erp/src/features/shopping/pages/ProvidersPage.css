@@ -527,3 +527,41 @@
     font-size: 1rem;
   }
 }
+
+.historyModalSearch {
+  padding: 1rem 2rem;
+  border-bottom: 1px solid var(--pri-100);
+  background: var(--white);
+}
+
+.historyModalSearch .search-input {
+  width: 100%;
+}
+
+.historyModalPagination {
+  padding: 1rem 2rem;
+  border-top: 1px solid var(--pri-100);
+  background: var(--pri-25);
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .historyModalSearch {
+    padding: 1rem 1.5rem;
+  }
+
+  .historyModalPagination {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .historyModalSearch {
+    padding: 0.75rem 1rem;
+  }
+
+  .historyModalPagination {
+    padding: 0.75rem 1rem;
+  }
+}

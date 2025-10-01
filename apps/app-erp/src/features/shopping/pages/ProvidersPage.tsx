@@ -93,199 +93,160 @@ const providersData: Provider[] = [
     email: 'carmen@bebidas.bo',
     address: 'Villa Fátima, La Paz',
   },
-  {
-    id: 7,
-    title: 'Panificadora El Sol',
-    description: 'Proveedor de productos de panadería y repostería',
-    nit: '6549873210',
-    contact: 'Miguel Torres',
-    phone: '73159753',
-    email: 'miguel@elsol.bo',
-    address: 'Mercado Central, Sucre',
-  },
-  {
-    id: 8,
-    title: 'Carnes Finas Cochabamba',
-    description: 'Especialista en carnes rojas, blancas y embutidos',
-    nit: '9513574680',
-    contact: 'Patricia Mendoza',
-    phone: '72741852',
-    email: 'patricia@carnes.bo',
-    address: 'Quillacollo, Cochabamba',
-  },
-  {
-    id: 9,
-    title: 'Verduras del Campo',
-    description: 'Proveedor de frutas y verduras frescas de temporada',
-    nit: '7531594860',
-    contact: 'Fernando Castro',
-    phone: '71963741',
-    email: 'fernando@campo.bo',
-    address: 'Valle Alto, Cochabamba',
-  },
-  {
-    id: 10,
-    title: 'Productos de Limpieza Max',
-    description: 'Distribuidor de productos de limpieza e higiene personal',
-    nit: '8642097531',
-    contact: 'Sandra Morales',
-    phone: '70852963',
-    email: 'sandra@max.bo',
-    address: 'Zona Norte, La Paz',
-  },
-  {
-    id: 11,
-    title: 'Snacks Andinos',
-    description: 'Fabricante de bocadillos y snacks regionales',
-    nit: '1597534862',
-    contact: 'Daniel Rojas',
-    phone: '79741852',
-    email: 'daniel@snacks.bo',
-    address: 'Potosí Centro, Potosí',
-  },
-  {
-    id: 12,
-    title: 'Helados Artesanales',
-    description: 'Productor de helados y postres congelados',
-    nit: '9517536420',
-    contact: 'Lucia Fernández',
-    phone: '78963741',
-    email: 'lucia@helados.bo',
-    address: 'Prado Norte, La Paz',
-  },
-  {
-    id: 13,
-    title: 'Cereales Nutritivos S.A.',
-    description: 'Distribuidor de cereales, granos y legumbres',
-    nit: '3579514682',
-    contact: 'Alberto Vega',
-    phone: '77159357',
-    email: 'alberto@cereales.bo',
-    address: 'Villa Tunari, Cochabamba',
-  },
-  {
-    id: 14,
-    title: 'Condimentos Tradicionales',
-    description: 'Especias, condimentos y sazonadores naturales',
-    nit: '6428135790',
-    contact: 'Rosa Chávez',
-    phone: '76357951',
-    email: 'rosa@condimentos.bo',
-    address: 'Mercado Rodríguez, La Paz',
-  },
-  {
-    id: 15,
-    title: 'Bebidas Energéticas Pro',
-    description: 'Distribuidor de bebidas deportivas y energizantes',
-    nit: '1472583690',
-    contact: 'Oscar Jiménez',
-    phone: '75951357',
-    email: 'oscar@energeticas.bo',
-    address: 'Equipetrol, Santa Cruz',
-  },
-  {
-    id: 16,
-    title: 'Chocolates Amazónicos',
-    description: 'Productor de chocolates artesanales y confites',
-    nit: '9630741852',
-    contact: 'Elena Herrera',
-    phone: '74159753',
-    email: 'elena@amazonicos.bo',
-    address: 'Rurrenabaque, Beni',
-  },
-  {
-    id: 17,
-    title: 'Productos Orgánicos Vida',
-    description: 'Alimentos orgánicos certificados y productos naturales',
-    nit: '7418529630',
-    contact: 'Raúl Paredes',
-    phone: '73357159',
-    email: 'raul@organicos.bo',
-    address: 'Samaipata, Santa Cruz',
-  },
-  {
-    id: 18,
-    title: 'Conservas del Altiplano',
-    description: 'Especialista en conservas de frutas y verduras',
-    nit: '2583691470',
-    contact: 'Gloria Salinas',
-    phone: '72753951',
-    email: 'gloria@conservas.bo',
-    address: 'Oruro Centro, Oruro',
-  },
-  {
-    id: 19,
-    title: 'Aceites Premium',
-    description: 'Distribuidor de aceites vegetales y vinagres',
-    nit: '8529637410',
-    contact: 'Andrés Delgado',
-    phone: '71951357',
-    email: 'andres@aceites.bo',
-    address: 'Mineros, Santa Cruz',
-  },
-  {
-    id: 20,
-    title: 'Productos Gourmet Ltda.',
-    description: 'Importador de productos gourmet y delicatessen',
-    nit: '1593578426',
-    contact: 'Valeria Ramos',
-    phone: '70357951',
-    email: 'valeria@gourmet.bo',
-    address: 'Calacoto, La Paz',
-  },
 ];
 
 const generateHistoryData = (providerId: number): HistoryItem[] => {
-  const baseHistory: HistoryItem[] = [
-    {
-      id: 1,
-      date: '2024-09-25',
-      type: 'purchase',
-      description: 'Compra de productos varios - Factura #001234',
-      amount: 15400.5,
-      status: 'completed',
-    },
-    {
-      id: 2,
-      date: '2024-09-20',
-      type: 'order',
-      description: 'Orden de compra #OC-789',
-      amount: 8750.0,
-      status: 'pending',
-    },
-    {
-      id: 3,
-      date: '2024-09-15',
-      type: 'payment',
-      description: 'Pago parcial factura #001198',
-      amount: 12300.75,
-      status: 'completed',
-    },
-    {
-      id: 4,
-      date: '2024-09-10',
-      type: 'purchase',
-      description: 'Restock productos prioritarios',
-      amount: 23500.2,
-      status: 'completed',
-    },
-    {
-      id: 5,
-      date: '2024-09-05',
-      type: 'order',
-      description: 'Orden de compra #OC-756',
-      amount: 6890.4,
-      status: 'cancelled',
-    },
-  ];
+  const histories: Record<number, HistoryItem[]> = {
+    1: [
+      {
+        id: 101,
+        date: '2024-09-25',
+        type: 'purchase',
+        description: 'Compra CocaCola 2L - 200 unidades',
+        amount: 15400.5,
+        status: 'completed',
+      },
+      {
+        id: 102,
+        date: '2024-09-20',
+        type: 'order',
+        description: 'Orden bebidas gaseosas #OC-789',
+        amount: 8750.0,
+        status: 'pending',
+      },
+      {
+        id: 103,
+        date: '2024-09-15',
+        type: 'payment',
+        description: 'Pago factura #EMB-001198',
+        amount: 12300.75,
+        status: 'completed',
+      },
+      {
+        id: 104,
+        date: '2024-09-10',
+        type: 'purchase',
+        description: 'Restock bebidas prioritarias',
+        amount: 23500.2,
+        status: 'completed',
+      },
+      {
+        id: 105,
+        date: '2024-09-05',
+        type: 'order',
+        description: 'Orden especial eventos #OC-756',
+        amount: 6890.4,
+        status: 'cancelled',
+      },
+      {
+        id: 106,
+        date: '2024-08-30',
+        type: 'purchase',
+        description: 'Compra agua mineral - 500 unidades',
+        amount: 4500.0,
+        status: 'completed',
+      },
+      {
+        id: 107,
+        date: '2024-08-25',
+        type: 'payment',
+        description: 'Pago adelanto próxima orden',
+        amount: 10000.0,
+        status: 'completed',
+      },
+      {
+        id: 108,
+        date: '2024-08-20',
+        type: 'order',
+        description: 'Pedido temporada verano #OC-890',
+        amount: 18200.5,
+        status: 'completed',
+      },
+    ],
+    2: [
+      {
+        id: 201,
+        date: '2024-09-28',
+        type: 'purchase',
+        description: 'Compra productos limpieza varios',
+        amount: 9800.3,
+        status: 'completed',
+      },
+      {
+        id: 202,
+        date: '2024-09-22',
+        type: 'order',
+        description: 'Orden productos consumo masivo #OC-892',
+        amount: 15600.8,
+        status: 'pending',
+      },
+      {
+        id: 203,
+        date: '2024-09-18',
+        type: 'payment',
+        description: 'Pago factura mensual #ALT-2024-09',
+        amount: 22400.6,
+        status: 'completed',
+      },
+      {
+        id: 204,
+        date: '2024-09-12',
+        type: 'purchase',
+        description: 'Restock productos higiene personal',
+        amount: 11200.45,
+        status: 'completed',
+      },
+      {
+        id: 205,
+        date: '2024-09-08',
+        type: 'order',
+        description: 'Pedido especial descuentos #OC-845',
+        amount: 7300.2,
+        status: 'completed',
+      },
+      {
+        id: 206,
+        date: '2024-09-03',
+        type: 'purchase',
+        description: 'Compra detergentes industriales',
+        amount: 13450.75,
+        status: 'completed',
+      },
+    ],
+  };
 
-  return baseHistory.map((item) => ({
-    ...item,
-    id: item.id + providerId * 100,
-  }));
+  return (
+    histories[providerId] || [
+      {
+        id: providerId * 100 + 1,
+        date: '2024-09-20',
+        type: 'purchase',
+        description: 'Compra productos varios',
+        amount: 8500.0,
+        status: 'completed',
+      },
+      {
+        id: providerId * 100 + 2,
+        date: '2024-09-15',
+        type: 'order',
+        description: 'Orden de compra estándar',
+        amount: 5200.3,
+        status: 'pending',
+      },
+      {
+        id: providerId * 100 + 3,
+        date: '2024-09-10',
+        type: 'payment',
+        description: 'Pago factura mensual',
+        amount: 12800.75,
+        status: 'completed',
+      },
+    ]
+  );
 };
 
 const ITEMS_PER_PAGE = 10;
+const HISTORY_ITEMS_PER_PAGE = 5;
 
 function ProvidersPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -297,6 +258,10 @@ function ProvidersPage() {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
   const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+
+  // History modal states
+  const [historySearchTerm, setHistorySearchTerm] = useState('');
+  const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
 
   // Add provider form
   const [addForm, setAddForm] = useState({
@@ -317,18 +282,40 @@ function ProvidersPage() {
       provider.nit.includes(searchTerm)
   );
 
+  const filteredHistoryData = historyData.filter(
+    (item) =>
+      item.description.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
+      item.type.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
+      item.status.toLowerCase().includes(historySearchTerm.toLowerCase())
+  );
+
   const totalPages = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentProviders = filteredProviders.slice(startIndex, endIndex);
 
+  // History pagination
+  const historyTotalPages = Math.ceil(filteredHistoryData.length / HISTORY_ITEMS_PER_PAGE);
+  const historyStartIndex = (historyCurrentPage - 1) * HISTORY_ITEMS_PER_PAGE;
+  const historyEndIndex = historyStartIndex + HISTORY_ITEMS_PER_PAGE;
+  const currentHistoryItems = filteredHistoryData.slice(historyStartIndex, historyEndIndex);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
+  const handleHistoryPageChange = (page: number) => {
+    setHistoryCurrentPage(page);
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
+  };
+
+  const handleHistorySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHistorySearchTerm(e.target.value);
+    setHistoryCurrentPage(1);
   };
 
   const generateNewId = () => {
@@ -338,6 +325,8 @@ function ProvidersPage() {
   const handleProviderClick = (provider: Provider) => {
     setSelectedProvider(provider);
     setHistoryData(generateHistoryData(provider.id));
+    setHistorySearchTerm('');
+    setHistoryCurrentPage(1);
     setShowHistoryModal(true);
   };
 
@@ -409,7 +398,7 @@ function ProvidersPage() {
   };
 
   const getTotalAmount = () => {
-    return historyData
+    return filteredHistoryData
       .filter((item) => item.status === 'completed')
       .reduce((total, item) => total + item.amount, 0);
   };
@@ -626,15 +615,25 @@ function ProvidersPage() {
               <div className='historyStat'>
                 <div className='historyStatIcon'>📦</div>
                 <div className='historyStatContent'>
-                  <div className='historyStatValue'>{historyData.length}</div>
+                  <div className='historyStatValue'>{filteredHistoryData.length}</div>
                   <div className='historyStatLabel'>Transacciones</div>
                 </div>
               </div>
             </div>
 
+            <div className='historyModalSearch'>
+              <Input
+                placeholder='Buscar en el historial...'
+                value={historySearchTerm}
+                onChange={handleHistorySearchChange}
+                leftIcon={<IoSearch color='var(--pri-500)' />}
+                className='search-input'
+              />
+            </div>
+
             <div className='historyModalBody'>
               <div className='historyList'>
-                {historyData.map((item) => {
+                {currentHistoryItems.map((item) => {
                   const statusColors = getStatusColor(item.status);
                   return (
                     <div key={item.id} className='historyItem'>
@@ -665,7 +664,33 @@ function ProvidersPage() {
                   );
                 })}
               </div>
+
+              {filteredHistoryData.length === 0 && (
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '2rem',
+                    color: 'var(--pri-600)',
+                    fontSize: '1rem',
+                  }}
+                >
+                  No se encontraron transacciones que coincidan con tu búsqueda.
+                </div>
+              )}
             </div>
+
+            {filteredHistoryData.length > HISTORY_ITEMS_PER_PAGE && (
+              <div className='historyModalPagination'>
+                <Pagination
+                  currentPage={historyCurrentPage}
+                  totalPages={historyTotalPages}
+                  totalItems={filteredHistoryData.length}
+                  itemsPerPage={HISTORY_ITEMS_PER_PAGE}
+                  itemName='transacciones'
+                  onPageChange={handleHistoryPageChange}
+                />
+              </div>
+            )}
 
             <div className='historyModalFooter'>
               <Button
