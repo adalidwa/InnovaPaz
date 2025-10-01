@@ -1,3 +1,5 @@
+@import url('../../assets/styles/theme.css');
+
 /* Mobile First - Base styles */
 .input {
   width: 100%;
@@ -5,29 +7,31 @@
   padding: 0.5rem 0.75rem;
   font-size: 1rem;
   line-height: 1.5rem;
-  color: #374151;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  color: var(--pri-800);
+  background-color: var(--bg-50);
+  border: 1px solid var(--pri-200);
   border-radius: 0.5rem;
   transition: all 0.2s ease-in-out;
   box-sizing: border-box;
+  font-family: var(--font);
 }
 
 .input::placeholder {
-  color: #9ca3af;
+  color: var(--pri-500);
   font-weight: 400;
 }
 
 .input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--sec-700);
+  background-color: var(--white);
+  box-shadow: 0 0 0 3px var(--sec-200);
 }
 
 .input:disabled {
   cursor: not-allowed;
   opacity: 0.5;
-  background-color: #f9fafb;
+  background-color: var(--pri-100);
 }
 
 .input[type='file']::file-selector-button {
@@ -35,7 +39,7 @@
   background: transparent;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--pri-700);
   cursor: pointer;
 }
 
