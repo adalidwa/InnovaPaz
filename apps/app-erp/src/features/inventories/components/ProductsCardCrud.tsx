@@ -11,10 +11,10 @@ import { useNavigate } from 'react-router-dom';
 interface ProductsCardCrudProps {
   product: Product;
   onEdit?: (product: Product) => void;
-  onDelete?: (productId: string) => void;
+  onDeactivate?: (productId: string) => void;
 }
 
-function ProductsCardCrud({ product, onEdit, onDelete }: ProductsCardCrudProps) {
+function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudProps) {
   const navigate = useNavigate();
 
   const getStatusConfig = (status: Product['status']) => {
@@ -42,12 +42,12 @@ function ProductsCardCrud({ product, onEdit, onDelete }: ProductsCardCrudProps) 
     }
   };
 
-  const handleDelete = () => {
+  const handleDeactivate = () => {
     if (
-      onDelete &&
-      window.confirm(`¿Estás seguro de que deseas eliminar el producto "${product.name}"?`)
+      onDeactivate &&
+      window.confirm(`¿Estás seguro de que deseas desactivar el producto "${product.name}"?`)
     ) {
-      onDelete(product.id);
+      onDeactivate(product.id);
     }
   };
 
@@ -123,8 +123,8 @@ function ProductsCardCrud({ product, onEdit, onDelete }: ProductsCardCrudProps) 
         <Button variant='ghost' size='small' iconPosition='left' onClick={handleEdit}>
           <img src={Editar} alt='Editar' />
         </Button>
-        <Button variant='ghost' size='small' iconPosition='left' onClick={handleDelete}>
-          <img src={Eliminar} alt='Eliminar' />
+        <Button variant='ghost' size='small' iconPosition='left' onClick={handleDeactivate}>
+          <img src={Eliminar} alt='Desactivar' />
         </Button>
       </div>
     </div>

@@ -11,6 +11,7 @@ export interface Product {
   expirationDate?: string;
   lot?: string;
   status: 'normal' | 'bajo' | 'critico' | 'agotado';
+  active: boolean;
   createdAt: string;
   updatedAt: string;
 }

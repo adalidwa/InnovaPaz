@@ -6,6 +6,7 @@ import type { Product } from '../types/inventory';
 
 interface ProductsContextType {
   products: Product[];
+  allProducts: Product[];
   loading: boolean;
   error: string | null;
   addProduct: (productData: ProductFormData) => {
@@ -17,7 +18,8 @@ interface ProductsContextType {
     id: string,
     productData: Partial<ProductFormData>
   ) => { success: boolean; error?: string };
-  deleteProduct: (id: string) => { success: boolean; error?: string };
+  deactivateProduct: (id: string) => { success: boolean; error?: string };
+  activateProduct: (id: string) => { success: boolean; error?: string };
   getProductById: (id: string) => Product | undefined;
 }
 

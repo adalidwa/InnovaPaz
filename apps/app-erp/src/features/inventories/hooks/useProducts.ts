@@ -16,6 +16,7 @@ const mockProducts: Product[] = [
     expirationDate: '2024-12-15',
     lot: 'LOT2024001',
     status: 'normal',
+    active: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -32,6 +33,7 @@ const mockProducts: Product[] = [
     expirationDate: '2024-10-05',
     lot: 'LOT2024002',
     status: 'bajo',
+    active: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -93,6 +95,7 @@ export const useProducts = () => {
         id: Date.now().toString(),
         ...productData,
         status: getProductStatus(productData.stock, productData.minStock),
+        active: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -142,20 +145,47 @@ export const useProducts = () => {
     }
   }, []);
 
-  const deleteProduct = useCallback((id: string) => {
+  const deactivateProduct = useCallback((id: string) => {
     try {
       setLoading(true);
       setError(null);
 
       setProducts((prev) => {
-        const updatedProducts = prev.filter((product) => product.id !== id);
+        const updatedProducts = prev.map((product) =>
+          product.id === id
+            ? { ...product, active: false, updatedAt: new Date().toISOString() }
+            : product
+        );
         saveToLocalStorage(updatedProducts);
         return updatedProducts;
       });
       return { success: true };
     } catch (err) {
-      setError('Error al eliminar el producto');
-      return { success: false, error: 'Error al eliminar el producto' };
+      setError('Error al desactivar el producto');
+      return { success: false, error: 'Error al desactivar el producto' };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const activateProduct = useCallback((id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      setProducts((prev) => {
+        const updatedProducts = prev.map((product) =>
+          product.id === id
+            ? { ...product, active: true, updatedAt: new Date().toISOString() }
+            : product
+        );
+        saveToLocalStorage(updatedProducts);
+        return updatedProducts;
+      });
+      return { success: true };
+    } catch (err) {
+      setError('Error al activar el producto');
+      return { success: false, error: 'Error al activar el producto' };
     } finally {
       setLoading(false);
     }
@@ -168,13 +198,18 @@ export const useProducts = () => {
     [products]
   );
 
+  // Filtrar solo productos activos para mostrar en la UI
+  const activeProducts = products.filter((product) => product.active);
+
   return {
-    products,
+    products: activeProducts, // Solo devolver productos activos
+    allProducts: products, // Todos los productos para funciones internas
     loading,
     error,
     addProduct,
     updateProduct,
-    deleteProduct,
+    deactivateProduct,
+    activateProduct,
     getProductById,
   };
 };

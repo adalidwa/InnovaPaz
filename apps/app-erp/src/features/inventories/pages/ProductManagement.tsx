@@ -9,7 +9,7 @@ import './ProductManagement.css';
 
 function ProductManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { products, loading, addProduct, deleteProduct } = useProductsContext();
+  const { products, loading, addProduct, deactivateProduct } = useProductsContext();
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -38,11 +38,11 @@ function ProductManagement() {
   };
 
   const handleDeleteProduct = (productId: string) => {
-    const result = deleteProduct(productId);
+    const result = deactivateProduct(productId);
     if (result.success) {
-      console.log('Producto eliminado exitosamente');
+      console.log('Producto desactivado exitosamente');
     } else {
-      console.error('Error al eliminar producto:', result.error);
+      console.error('Error al desactivar producto:', result.error);
     }
   };
 
@@ -71,7 +71,7 @@ function ProductManagement() {
               key={product.id}
               product={product}
               onEdit={handleEditProduct}
-              onDelete={handleDeleteProduct}
+              onDeactivate={handleDeleteProduct}
             />
           ))
         )}
