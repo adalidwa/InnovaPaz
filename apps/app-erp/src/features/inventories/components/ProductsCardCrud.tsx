@@ -69,18 +69,12 @@ function ProductsCardCrud() {
         >
           Ver
         </Button>
-        <Button
-          variant='ghost'
-          size='small'
-          icon={<img src={Editar} alt='Editar' />}
-          iconPosition='left'
-        ></Button>
-        <Button
-          variant='ghost'
-          size='small'
-          icon={<img src={Eliminar} alt='Eliminar' />}
-          iconPosition='left'
-        ></Button>
+        <Button variant='ghost' size='small' iconPosition='left'>
+          {<img src={Editar} alt='Editar' />}
+        </Button>
+        <Button variant='ghost' size='small' iconPosition='left'>
+          {<img src={Eliminar} alt='Eliminar' />}
+        </Button>
       </div>
     </div>
   );
