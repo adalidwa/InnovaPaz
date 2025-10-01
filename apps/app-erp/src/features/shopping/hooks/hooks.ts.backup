@@ -130,9 +130,34 @@ export const useHistory = () => {
   // Obtener historial del proveedor seleccionado
   const getProviderHistory = (providerId: number): HistoryItem[] => {
     const historyKey = providerId.toString();
-    // Si no existe historial para este proveedor, retornar array vacío
-    // en lugar de generar datos de ejemplo
-    return (dbData.historyData as Record<string, HistoryItem[]>)[historyKey] || [];
+    return (
+      (dbData.historyData as Record<string, HistoryItem[]>)[historyKey] || [
+        {
+          id: providerId * 100 + 1,
+          date: '2024-09-20',
+          type: 'purchase',
+          description: 'Compra productos varios',
+          amount: 8500.0,
+          status: 'completed',
+        },
+        {
+          id: providerId * 100 + 2,
+          date: '2024-09-15',
+          type: 'order',
+          description: 'Orden de compra estándar',
+          amount: 5200.3,
+          status: 'pending',
+        },
+        {
+          id: providerId * 100 + 3,
+          date: '2024-09-10',
+          type: 'payment',
+          description: 'Pago factura mensual',
+          amount: 12800.75,
+          status: 'completed',
+        },
+      ]
+    );
   };
 
   const historyData = selectedProviderId ? getProviderHistory(selectedProviderId) : [];

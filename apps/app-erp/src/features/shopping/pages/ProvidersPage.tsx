@@ -105,7 +105,6 @@ const ProvidersPage: React.FC = () => {
 
   return (
     <div className='providers-page'>
-      {/* Header */}
       <div className='providers-header'>
         <div className='providersTitleSection'>
           <TitleDescription
@@ -135,7 +134,6 @@ const ProvidersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className='providers-content'>
         <div className='providers-grid'>
           {currentProviders.map((provider) => (
@@ -155,7 +153,6 @@ const ProvidersPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Paginación */}
         {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
@@ -167,7 +164,6 @@ const ProvidersPage: React.FC = () => {
           />
         )}
 
-        {/* Estado vacío */}
         {currentProviders.length === 0 && (
           <div
             style={{
@@ -182,7 +178,6 @@ const ProvidersPage: React.FC = () => {
         )}
       </div>
 
-      {/* Modal Agregar Proveedor */}
       {showAddModal && (
         <div className='modalOverlay'>
           <div className='providerModal'>
@@ -260,7 +255,6 @@ const ProvidersPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Historial Proveedor */}
       {showHistoryModal && getSelectedProvider() && (
         <div className='modalOverlay'>
           <div className='historyModal'>
