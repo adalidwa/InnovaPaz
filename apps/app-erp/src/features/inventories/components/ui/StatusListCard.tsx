@@ -7,6 +7,7 @@ interface StatusListItem {
   id: string | number;
   title: string;
   subtitle?: string;
+  time?: string;
   tag?: {
     label: string;
     type: 'entrada' | 'salida' | 'critico' | 'bajo';
@@ -46,6 +47,7 @@ const StatusListCard: React.FC<StatusListCardProps> = ({
           <div className='status-list-card__item' key={item.id}>
             <div className='status-list-card__info'>
               <p className='status-list-card__item-title'>{item.title}</p>
+              {item.time && <p className='status-list-card__item-time'>{item.time}</p>}
               {item.subtitle && <p className='status-list-card__item-subtitle'>{item.subtitle}</p>}
             </div>
 
