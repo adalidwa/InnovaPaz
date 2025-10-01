@@ -24,6 +24,15 @@
   margin: 0 0 1rem 0;
 }
 
+.error-message {
+  color: var(--error-600, #dc2626);
+  font: var(--font-12);
+  font-weight: 500;
+  margin-top: -1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;

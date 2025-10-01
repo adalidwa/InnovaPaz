@@ -19,6 +19,28 @@
   gap: 16px;
 }
 
+.no-product-selected {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  margin: 2rem;
+}
+
+.no-product-selected h2 {
+  color: var(--pri-800);
+  font: var(--font-24);
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.no-product-selected p {
+  color: var(--pri-600);
+  font: var(--font-16);
+  margin: 0;
+}
+
 @media (max-width: var(--breakpoint-mobile)) {
   .info-stock-container,
   .secondary-info-container {

@@ -1,11 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Button from '../../../components/common/Button';
+import type { Product } from '../types/inventory';
 import Editar from '../../../assets/images/Editar.png';
 import Eliminar from '../../../assets/images/Delete.png';
 import './ProductDetails.css';
 
-function ProductDetails() {
+interface ProductDetailsProps {
+  product: Product;
+}
+
+function ProductDetails({ product }: ProductDetailsProps) {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
@@ -21,8 +26,8 @@ function ProductDetails() {
 
         <div className='product-title-section'>
           <TitleDescription
-            title='Coca Cola 500ml'
-            description='Código: COC500 | Bebidas'
+            title={product.name}
+            description={`Código: ${product.code} | ${product.category}`}
             titleSize={24}
             descriptionSize={14}
             titleWeight='semibold'
@@ -38,7 +43,7 @@ function ProductDetails() {
             size='medium'
             icon={<img src={Editar} alt='Editar' />}
             iconPosition='left'
-            onClick={() => console.log('Editar producto')}
+            onClick={() => console.log('Editar producto:', product.name)}
           >
             Editar
           </Button>
@@ -47,7 +52,7 @@ function ProductDetails() {
             size='medium'
             icon={<img src={Eliminar} alt='Eliminar' />}
             iconPosition='left'
-            onClick={() => console.log('Eliminar producto')}
+            onClick={() => console.log('Eliminar producto:', product.name)}
           >
             Eliminar
           </Button>

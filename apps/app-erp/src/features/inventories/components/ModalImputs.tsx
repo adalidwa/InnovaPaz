@@ -1,55 +1,261 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
+import type { ProductFormData } from '../hooks/useProducts';
 import './ModalImputs.css';
 
-function ModalImputs() {
+interface ModalImputsProps {
+  onSave: (productData: ProductFormData) => { success: boolean; product?: any; error?: string };
+  onCancel: () => void;
+  loading?: boolean;
+}
+
+function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
+  const [formData, setFormData] = useState<ProductFormData>({
+    name: '',
+    code: '',
+    category: '',
+    description: '',
+    price: 0,
+    cost: 0,
+    stock: 0,
+    minStock: 0,
+    expirationDate: '',
+    lot: '',
+  });
+
+  const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
+
   const categorias = [
-    { value: 'bebidas', label: 'Bebidas' },
-    { value: 'alimentos', label: 'Alimentos' },
-    { value: 'limpieza', label: 'Limpieza' },
+    { value: 'Bebidas', label: 'Bebidas' },
+    { value: 'Alimentos', label: 'Alimentos' },
+    { value: 'Limpieza', label: 'Limpieza' },
+    { value: 'Higiene Personal', label: 'Higiene Personal' },
+    { value: 'Lácteos', label: 'Lácteos' },
+    { value: 'Snacks', label: 'Snacks' },
   ];
 
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'El nombre del producto es requerido';
+    }
+
+    if (!formData.code.trim()) {
+      newErrors.code = 'El código del producto es requerido';
+    }
+
+    if (!formData.category) {
+      newErrors.category = 'La categoría es requerida';
+    }
+
+    if (formData.price <= 0) {
+      newErrors.price = 'El precio debe ser mayor a 0';
+    }
+
+    if (formData.cost <= 0) {
+      newErrors.cost = 'El costo debe ser mayor a 0';
+    }
+
+    if (formData.stock < 0) {
+      newErrors.stock = 'El stock no puede ser negativo';
+    }
+
+    if (formData.minStock < 0) {
+      newErrors.minStock = 'El stock mínimo no puede ser negativo';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      code: '',
+      category: '',
+      description: '',
+      price: 0,
+      cost: 0,
+      stock: 0,
+      minStock: 0,
+      expirationDate: '',
+      lot: '',
+    });
+    setErrors({});
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      const result = onSave(formData);
+      if (result.success) {
+        resetForm();
+      }
+    }
+  };
+
+  const handleInputChange = (field: keyof ProductFormData) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+
+      // Limpiar error del campo si existe
+      if (errors[field]) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: undefined,
+        }));
+      }
+    };
+  };
+
+  const handleSelectChange = (field: keyof ProductFormData) => {
+    return (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: e.target.value,
+      }));
+
+      // Limpiar error del campo si existe
+      if (errors[field]) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: undefined,
+        }));
+      }
+    };
+  };
+
   return (
-    <div className='modal-form'>
+    <form className='modal-form' onSubmit={handleSubmit}>
       <div className='form-row'>
-        <Input label='Nombre del Producto' required placeholder='Ej: Coca Cola 500ml' />
-        <Input label='Código del Producto' required placeholder='Ej: COC500' />
+        <Input
+          label='Nombre del Producto'
+          required
+          placeholder='Ej: Coca Cola 500ml'
+          value={formData.name}
+          onChange={handleInputChange('name')}
+        />
+        <Input
+          label='Código del Producto'
+          required
+          placeholder='Ej: COC500'
+          value={formData.code}
+          onChange={handleInputChange('code')}
+        />
       </div>
 
-      <Select label='Categoría' required placeholder='Seleccionar categoría' options={categorias} />
+      {errors.name && <span className='error-message'>{errors.name}</span>}
+      {errors.code && <span className='error-message'>{errors.code}</span>}
 
-      <Input label='Descripción' placeholder='Descripción del producto...' />
+      <Select
+        label='Categoría'
+        required
+        placeholder='Seleccionar categoría'
+        options={categorias}
+        value={formData.category}
+        onChange={handleSelectChange('category')}
+      />
+
+      {errors.category && <span className='error-message'>{errors.category}</span>}
+
+      <Input
+        label='Descripción'
+        placeholder='Descripción del producto...'
+        value={formData.description}
+        onChange={handleInputChange('description')}
+      />
 
       <div className='form-row'>
-        <Input label='Precio de Venta (Bs.)' required type='number' placeholder='0.00' />
-        <Input label='Costo (Bs.)' required type='number' placeholder='0.00' />
+        <Input
+          label='Precio de Venta (Bs.)'
+          required
+          type='number'
+          placeholder='0.00'
+          value={formData.price || ''}
+          onChange={handleInputChange('price')}
+          step='0.01'
+          min='0'
+        />
+        <Input
+          label='Costo (Bs.)'
+          required
+          type='number'
+          placeholder='0.00'
+          value={formData.cost || ''}
+          onChange={handleInputChange('cost')}
+          step='0.01'
+          min='0'
+        />
       </div>
 
+      {errors.price && <span className='error-message'>{errors.price}</span>}
+      {errors.cost && <span className='error-message'>{errors.cost}</span>}
+
       <div className='form-row'>
-        <Input label='Stock Inicial' required type='number' placeholder='0' />
-        <Input label='Stock Mínimo' required type='number' placeholder='0' />
+        <Input
+          label='Stock Inicial'
+          required
+          type='number'
+          placeholder='0'
+          value={formData.stock || ''}
+          onChange={handleInputChange('stock')}
+          min='0'
+        />
+        <Input
+          label='Stock Mínimo'
+          required
+          type='number'
+          placeholder='0'
+          value={formData.minStock || ''}
+          onChange={handleInputChange('minStock')}
+          min='0'
+        />
       </div>
+
+      {errors.stock && <span className='error-message'>{errors.stock}</span>}
+      {errors.minStock && <span className='error-message'>{errors.minStock}</span>}
 
       <div className='form-section'>
         <h4 className='section-title'>Campos Específicos - Minimarket</h4>
 
         <div className='form-row'>
-          <Input label='Fecha de Vencimiento' type='date' />
-          <Input label='Lote' placeholder='Ej: LOT2024001' />
+          <Input
+            label='Fecha de Vencimiento'
+            type='date'
+            value={formData.expirationDate}
+            onChange={handleInputChange('expirationDate')}
+          />
+          <Input
+            label='Lote'
+            placeholder='Ej: LOT2024001'
+            value={formData.lot}
+            onChange={handleInputChange('lot')}
+          />
         </div>
       </div>
 
       <div className='form-actions'>
-        <Button variant='secondary' size='medium'>
+        <Button
+          variant='secondary'
+          size='medium'
+          type='button'
+          onClick={onCancel}
+          disabled={loading}
+        >
           Cancelar
         </Button>
-        <Button variant='primary' size='medium'>
-          Guardar Producto
+        <Button variant='primary' size='medium' type='submit' disabled={loading}>
+          {loading ? 'Guardando...' : 'Guardar Producto'}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 

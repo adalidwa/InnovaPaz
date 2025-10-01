@@ -3,10 +3,13 @@ import ProductsHeader from '../components/ProductsHeader';
 import ProductosSearchBar from '../components/ProductosSearchBar';
 import ProductsCardCrud from '../components/ProductsCardCrud';
 import ModalImputs from '../components/ModalImputs';
+import { useProductsContext } from '../context/ProductsContext';
+import type { ProductFormData } from '../hooks/useProducts';
 import './ProductManagement.css';
 
 function ProductManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { products, loading, addProduct, deleteProduct } = useProductsContext();
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -14,6 +17,33 @@ function ProductManagement() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+  };
+
+  const handleSaveProduct = (productData: ProductFormData) => {
+    const result = addProduct(productData);
+    if (result.success) {
+      handleCloseModal();
+      // Aquí podrías agregar una notificación de éxito
+      console.log('Producto agregado exitosamente:', result.product);
+    } else {
+      // Aquí podrías mostrar un mensaje de error
+      console.error('Error al agregar producto:', result.error);
+    }
+    return result;
+  };
+
+  const handleEditProduct = (product: any) => {
+    // TODO: Implementar edición de productos
+    console.log('Editar producto:', product);
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    const result = deleteProduct(productId);
+    if (result.success) {
+      console.log('Producto eliminado exitosamente');
+    } else {
+      console.error('Error al eliminar producto:', result.error);
+    }
   };
 
   return (
@@ -29,12 +59,22 @@ function ProductManagement() {
         onButtonClick={handleOpenModal}
       />
       <ProductosSearchBar />
+
       <div className='products-container'>
-        <ProductsCardCrud />
-        <ProductsCardCrud />
-        <ProductsCardCrud />
-        <ProductsCardCrud />
-        <ProductsCardCrud />
+        {products.length === 0 ? (
+          <div className='no-products'>
+            <p>No hay productos registrados. ¡Agrega tu primer producto!</p>
+          </div>
+        ) : (
+          products.map((product) => (
+            <ProductsCardCrud
+              key={product.id}
+              product={product}
+              onEdit={handleEditProduct}
+              onDelete={handleDeleteProduct}
+            />
+          ))
+        )}
       </div>
 
       {isModalOpen && (
@@ -47,7 +87,11 @@ function ProductManagement() {
               </button>
             </div>
             <div className='modal-body'>
-              <ModalImputs />
+              <ModalImputs
+                onSave={handleSaveProduct}
+                onCancel={handleCloseModal}
+                loading={loading}
+              />
             </div>
           </div>
         </div>

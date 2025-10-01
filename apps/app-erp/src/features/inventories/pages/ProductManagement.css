@@ -1,7 +1,19 @@
 .products-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.no-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--pri-500);
+  font: var(--font-16);
+  background-color: var(--pri-50);
+  border-radius: 12px;
+  border: 2px dashed var(--pri-200);
 }
 
 .modal-overlay {

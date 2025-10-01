@@ -1,7 +1,18 @@
 import Invetarios from '../../../assets/icons/Inventarios.png';
+import type { Product } from '../types/inventory';
 import './ProductInfoCard.css';
 
-function ProductInfoCard() {
+interface ProductInfoCardProps {
+  product: Product;
+}
+
+function ProductInfoCard({ product }: ProductInfoCardProps) {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-BO');
+  };
+
   return (
     <div className='product-info-card'>
       <div className='card-header'>
@@ -13,31 +24,29 @@ function ProductInfoCard() {
         <div className='info-row'>
           <div className='info-item'>
             <span className='info-label'>Descripción</span>
-            <p className='info-value'>
-              Bebida gaseosa sabor cola, envase plástico retornable de 500ml
-            </p>
+            <p className='info-value'>{product.description || 'Sin descripción disponible'}</p>
           </div>
           <div className='info-item'>
             <span className='info-label'>Fecha de Vencimiento</span>
-            <p className='info-value date'>2024-12-15</p>
+            <p className='info-value date'>{formatDate(product.expirationDate)}</p>
           </div>
         </div>
 
         <div className='info-row'>
           <div className='info-item'>
-            <span className='info-label'>Proveedor</span>
-            <p className='info-value'>Distribuidora La Paz</p>
+            <span className='info-label'>Categoría</span>
+            <p className='info-value'>{product.category}</p>
           </div>
           <div className='info-item'>
             <span className='info-label'>Lote</span>
-            <p className='info-value tag'>LOT2024001</p>
+            <p className='info-value tag'>{product.lot || 'N/A'}</p>
           </div>
         </div>
 
         <div className='info-row single-column'>
           <div className='info-item'>
-            <span className='info-label'>Ubicación</span>
-            <p className='info-value'>Pasillo A - Estante 2</p>
+            <span className='info-label'>Código del Producto</span>
+            <p className='info-value'>{product.code}</p>
           </div>
         </div>
       </div>
