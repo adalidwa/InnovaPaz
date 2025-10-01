@@ -6,7 +6,15 @@ import './ProductManagement.css';
 function ProductManagement() {
   return (
     <div>
-      <ProductsHeader />
+      <ProductsHeader
+        title='Gestion de productos'
+        subtitle='Administra el inventario de tu minimarket'
+        buttonText='Agregar Producto'
+        buttonVariant='primary'
+        hasIcon={true}
+        icon={<span className='icon-plus'>+</span>}
+        iconPosition='left'
+      />
       <ProductosSearchBar />
       <div className='products-container'>
         <ProductsCardCrud />
