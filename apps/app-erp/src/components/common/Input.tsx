@@ -1,10 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
-import { BsCalendar3 } from 'react-icons/bs';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { BsCalendar3, BsEye, BsEyeSlash } from 'react-icons/bs';
 import './Input.css';
 
 interface InputProps extends React.ComponentProps<'input'> {
   label?: string;
   required?: boolean;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
+  onRightIconClick?: () => void;
+  onLeftIconClick?: () => void;
 }
 
 function Input({
@@ -15,12 +19,17 @@ function Input({
   id,
   value,
   onChange,
+  leftIcon,
+  rightIcon,
+  onRightIconClick,
+  onLeftIconClick,
   ...props
 }: InputProps) {
   const inputId = id || `input-${label?.toLowerCase().replace(/\s+/g, '-')}`;
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showPassword, setShowPassword] = useState(false);
   const datePickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -165,6 +174,31 @@ function Input({
     );
   };
 
+  // Función para alternar visibilidad de password
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Determinar clases para el input basado en iconos
+  const getInputClasses = () => {
+    let classes = `input ${className}`;
+    if (leftIcon) classes += ' input--with-left-icon';
+    if (rightIcon || type === 'date' || type === 'password') classes += ' input--with-right-icon';
+    return classes;
+  };
+
+  // Determinar el tipo de input actual (para password que puede cambiar entre text y password)
+  const getInputType = () => {
+    if (type === 'password') {
+      return showPassword ? 'text' : 'password';
+    }
+    if (type === 'date') {
+      return 'text';
+    }
+    return type;
+  };
+
+  // Para inputs de tipo date
   if (type === 'date') {
     const days = getDaysInMonth(currentMonth);
     const monthNames = [
@@ -191,11 +225,21 @@ function Input({
             {required && <span className='input-required'>*</span>}
           </label>
         )}
-        <div className='date-input-container' ref={datePickerRef}>
+        <div className='input-container' ref={datePickerRef}>
+          {leftIcon && (
+            <button
+              type='button'
+              className='input-icon input-icon--left'
+              onClick={onLeftIconClick}
+              disabled={!onLeftIconClick}
+            >
+              {leftIcon}
+            </button>
+          )}
           <input
             type='text'
             id={inputId}
-            className={`input ${className}`}
+            className={getInputClasses()}
             required={required}
             value={formatDate(selectedDate)}
             placeholder='mm/dd/yyyy'
@@ -205,7 +249,7 @@ function Input({
           />
           <button
             type='button'
-            className='date-input-icon'
+            className='input-icon input-icon--right'
             onClick={() => setShowDatePicker(!showDatePicker)}
           >
             <BsCalendar3 size={18} />
@@ -286,15 +330,49 @@ function Input({
           {required && <span className='input-required'>*</span>}
         </label>
       )}
-      <input
-        type={type}
-        id={inputId}
-        className={`input ${className}`}
-        required={required}
-        value={value}
-        onChange={onChange}
-        {...props}
-      />
+      <div className='input-container'>
+        {leftIcon && (
+          <button
+            type='button'
+            className='input-icon input-icon--left'
+            onClick={onLeftIconClick}
+            disabled={!onLeftIconClick}
+          >
+            {leftIcon}
+          </button>
+        )}
+        <input
+          type={getInputType()}
+          id={inputId}
+          className={getInputClasses()}
+          required={required}
+          value={value}
+          onChange={onChange}
+          {...props}
+        />
+        {/* Icono para password */}
+        {type === 'password' && (
+          <button
+            type='button'
+            className='input-icon input-icon--right'
+            onClick={togglePasswordVisibility}
+            aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          >
+            {showPassword ? <BsEyeSlash size={20} /> : <BsEye size={20} />}
+          </button>
+        )}
+        {/* Icono personalizado (solo si no es password) */}
+        {rightIcon && type !== 'password' && (
+          <button
+            type='button'
+            className='input-icon input-icon--right'
+            onClick={onRightIconClick}
+            disabled={!onRightIconClick}
+          >
+            {rightIcon}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
