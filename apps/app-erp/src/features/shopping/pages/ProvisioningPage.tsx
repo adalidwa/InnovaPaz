@@ -7,7 +7,7 @@ import StatusTag from '../../../components/common/StatusTag';
 import Pagination from '../../../components/common/Pagination';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
-import { IoSearch, IoClose } from 'react-icons/io5';
+import { IoSearch, IoClose, IoAdd, IoTrash } from 'react-icons/io5';
 
 type ProductStatus = 'Normal' | 'Critico';
 
@@ -158,6 +158,15 @@ function ProvisioningPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [editForm, setEditForm] = useState({
+    product: '',
+    currentStock: 0,
+    minStock: 0,
+    maxStock: 0,
+  });
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({
+    product: '',
     currentStock: 0,
     minStock: 0,
     maxStock: 0,
@@ -165,6 +174,9 @@ function ProvisioningPage() {
 
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [buyProduct, setBuyProduct] = useState<ProductItem | null>(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteProduct, setDeleteProduct] = useState<ProductItem | null>(null);
 
   const filteredData = products.filter(
     (item) =>
@@ -177,9 +189,39 @@ function ProvisioningPage() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentData = filteredData.slice(startIndex, endIndex);
 
+  const generateNewId = () => {
+    return Math.max(...products.map((p) => p.id)) + 1;
+  };
+
+  const handleAddProduct = () => {
+    setAddForm({
+      product: '',
+      currentStock: 0,
+      minStock: 0,
+      maxStock: 0,
+    });
+    setShowAddModal(true);
+  };
+
+  const handleSaveAdd = () => {
+    if (addForm.product.trim()) {
+      const newProduct: ProductItem = {
+        id: generateNewId(),
+        product: addForm.product,
+        currentStock: addForm.currentStock,
+        minStock: addForm.minStock,
+        maxStock: addForm.maxStock,
+        status: addForm.currentStock < addForm.minStock ? 'Critico' : 'Normal',
+      };
+      setProducts([...products, newProduct]);
+      setShowAddModal(false);
+    }
+  };
+
   const handleEditProduct = (product: ProductItem) => {
     setSelectedProduct(product);
     setEditForm({
+      product: product.product,
       currentStock: product.currentStock,
       minStock: product.minStock,
       maxStock: product.maxStock,
@@ -188,11 +230,12 @@ function ProvisioningPage() {
   };
 
   const handleSaveEdit = () => {
-    if (selectedProduct) {
+    if (selectedProduct && editForm.product.trim()) {
       const updatedProducts = products.map((product) => {
         if (product.id === selectedProduct.id) {
           const updatedProduct = {
             ...product,
+            product: editForm.product,
             currentStock: editForm.currentStock,
             minStock: editForm.minStock,
             maxStock: editForm.maxStock,
@@ -206,6 +249,24 @@ function ProvisioningPage() {
       });
       setProducts(updatedProducts);
       setShowEditModal(false);
+      setSelectedProduct(null);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    if (selectedProduct) {
+      setDeleteProduct(selectedProduct);
+      setShowDeleteModal(true);
+      setShowEditModal(false);
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteProduct) {
+      const updatedProducts = products.filter((product) => product.id !== deleteProduct.id);
+      setProducts(updatedProducts);
+      setShowDeleteModal(false);
+      setDeleteProduct(null);
       setSelectedProduct(null);
     }
   };
@@ -307,12 +368,22 @@ function ProvisioningPage() {
   return (
     <div className='provisioningPage'>
       <div className='provisioningHeader'>
-        <TitleDescription
-          title={pageInfo.title}
-          description={pageInfo.description}
-          titleSize={32}
-          descriptionSize={16}
-        />
+        <div className='provisioningTitleSection'>
+          <TitleDescription
+            title={pageInfo.title}
+            description={pageInfo.description}
+            titleSize={32}
+            descriptionSize={16}
+          />
+          <Button
+            variant='primary'
+            onClick={handleAddProduct}
+            icon={<IoAdd />}
+            className='addProductButton'
+          >
+            Agregar Producto
+          </Button>
+        </div>
         <div className='provisioningSearch'>
           <Input
             placeholder='Buscar en provisionamiento...'
@@ -341,14 +412,18 @@ function ProvisioningPage() {
         />
       </div>
 
-      {showEditModal && selectedProduct && (
+      {(showEditModal || showAddModal) && (
         <div className='modalOverlay'>
           <div className='editModal'>
             <div className='editModalHeader'>
-              <h3>Editar Producto</h3>
+              <h3>{showEditModal ? 'Editar Producto' : 'Agregar Nuevo Producto'}</h3>
               <button
                 className='editModalClose'
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  setShowAddModal(false);
+                  setSelectedProduct(null);
+                }}
                 type='button'
               >
                 <IoClose size={20} />
@@ -356,16 +431,39 @@ function ProvisioningPage() {
             </div>
             <div className='editModalBody'>
               <div className='editModalField'>
-                <strong>{selectedProduct.product}</strong>
+                <label>Nombre del Producto:</label>
+                <Input
+                  type='text'
+                  value={showEditModal ? editForm.product : addForm.product}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (showEditModal) {
+                      setEditForm({ ...editForm, product: value });
+                    } else {
+                      setAddForm({ ...addForm, product: value });
+                    }
+                  }}
+                  placeholder='Ingrese el nombre del producto'
+                  className='editModalInput'
+                />
               </div>
               <div className='editModalField'>
                 <label>Stock Actual:</label>
                 <Input
                   type='number'
-                  value={editForm.currentStock.toString()}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, currentStock: parseInt(e.target.value) || 0 })
+                  value={
+                    showEditModal
+                      ? editForm.currentStock.toString()
+                      : addForm.currentStock.toString()
                   }
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    if (showEditModal) {
+                      setEditForm({ ...editForm, currentStock: value });
+                    } else {
+                      setAddForm({ ...addForm, currentStock: value });
+                    }
+                  }}
                   className='editModalInput'
                 />
               </div>
@@ -373,10 +471,15 @@ function ProvisioningPage() {
                 <label>Stock Mínimo:</label>
                 <Input
                   type='number'
-                  value={editForm.minStock.toString()}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, minStock: parseInt(e.target.value) || 0 })
-                  }
+                  value={showEditModal ? editForm.minStock.toString() : addForm.minStock.toString()}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    if (showEditModal) {
+                      setEditForm({ ...editForm, minStock: value });
+                    } else {
+                      setAddForm({ ...addForm, minStock: value });
+                    }
+                  }}
                   className='editModalInput'
                 />
               </div>
@@ -384,25 +487,50 @@ function ProvisioningPage() {
                 <label>Stock Máximo:</label>
                 <Input
                   type='number'
-                  value={editForm.maxStock.toString()}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, maxStock: parseInt(e.target.value) || 0 })
-                  }
+                  value={showEditModal ? editForm.maxStock.toString() : addForm.maxStock.toString()}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value) || 0;
+                    if (showEditModal) {
+                      setEditForm({ ...editForm, maxStock: value });
+                    } else {
+                      setAddForm({ ...addForm, maxStock: value });
+                    }
+                  }}
                   className='editModalInput'
                 />
               </div>
             </div>
             <div className='editModalFooter'>
-              <Button
-                variant='secondary'
-                onClick={() => setShowEditModal(false)}
-                className='editModalButton'
-              >
-                Cancelar
-              </Button>
-              <Button variant='primary' onClick={handleSaveEdit} className='editModalButton'>
-                Guardar
-              </Button>
+              {showEditModal && (
+                <Button
+                  variant='accent'
+                  onClick={handleDeleteClick}
+                  icon={<IoTrash />}
+                  className='deleteButton'
+                >
+                  Eliminar
+                </Button>
+              )}
+              <div className='editModalMainButtons'>
+                <Button
+                  variant='secondary'
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setShowAddModal(false);
+                    setSelectedProduct(null);
+                  }}
+                  className='editModalButton'
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant='primary'
+                  onClick={showEditModal ? handleSaveEdit : handleSaveAdd}
+                  className='editModalButton'
+                >
+                  {showEditModal ? 'Guardar' : 'Agregar'}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -419,6 +547,19 @@ function ProvisioningPage() {
         cancelButtonText='Cancelar'
         onConfirm={handleConfirmBuy}
         onCancel={() => setShowBuyModal(false)}
+      />
+
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title='Eliminar Producto'
+        message={`¿Está seguro que desea eliminar el producto "${deleteProduct?.product}"? Esta acción no se puede deshacer.`}
+        modalType='error'
+        showCancelButton={true}
+        confirmButtonText='Eliminar'
+        cancelButtonText='Cancelar'
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteModal(false)}
       />
     </div>
   );

@@ -212,3 +212,74 @@
     padding: 1rem;
   }
 }
+
+/* Title Section with Add Button */
+.provisioningTitleSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.addProductButton {
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+/* Enhanced Modal Footer */
+.editModalFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--pri-100);
+  background: var(--pri-25);
+}
+
+.editModalMainButtons {
+  display: flex;
+  gap: 1rem;
+}
+
+.deleteButton {
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .provisioningTitleSection {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .addProductButton {
+    align-self: stretch;
+  }
+
+  .editModalFooter {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .editModalMainButtons {
+    flex-direction: column-reverse;
+    width: 100%;
+  }
+
+  .deleteButton {
+    margin-right: 0;
+    order: 3;
+  }
+
+  .editModalButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .provisioningTitleSection {
+    gap: 0.75rem;
+  }
+}
