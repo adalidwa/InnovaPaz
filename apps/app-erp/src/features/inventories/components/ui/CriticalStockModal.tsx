@@ -258,12 +258,12 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({ isOpen, onClose
                     >
                       <FaEye /> Ver Detalles
                     </button>
-                    <button
+                    {/* <button
                       className='action-button action-button--secondary'
                       onClick={() => handleTransfer(product.id)}
                     >
                       Transferir
-                    </button>
+                    </button> */}
                   </div>
                 </div>
               ))}
