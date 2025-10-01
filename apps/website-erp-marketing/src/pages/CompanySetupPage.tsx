@@ -8,6 +8,7 @@ import Button from '../components/common/Button';
 import Logo from '../components/ui/Logo';
 import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
+import { buildERPUrl } from '../configs/appConfig';
 import './CompanySetupPage.css';
 
 const CompanySetupPage: React.FC = () => {
@@ -57,8 +58,8 @@ const CompanySetupPage: React.FC = () => {
         console.log('User data:', userData);
 
         if (userData.empresa_id && userData.setup_completed) {
-          console.log('User already has company setup, redirecting to dashboard');
-          navigate('/dashboard');
+          console.log('User already has company setup, redirecting to ERP dashboard');
+          window.location.href = buildERPUrl();
           return;
         }
 
@@ -118,8 +119,10 @@ const CompanySetupPage: React.FC = () => {
       });
 
       console.log('Company setup completed successfully');
-      setSuccess('¡Empresa configurada exitosamente!');
-      setTimeout(() => navigate('/dashboard'), 1500);
+      setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
+      setTimeout(() => {
+        window.location.href = buildERPUrl();
+      }, 2000);
     } catch (err) {
       console.error('Error configurando empresa:', err);
       setError('Error al configurar la empresa. Inténtalo de nuevo.');
