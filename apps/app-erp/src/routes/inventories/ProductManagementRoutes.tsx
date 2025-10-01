@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import ProductManagement from '../../features/inventories/pages/ProductManagement';
 
-function InventariesRoutes() {
+function ProductManagementRoutes() {
   return (
     <Routes>
       <Route index element={<ProductManagement />} />
@@ -9,4 +9,4 @@ function InventariesRoutes() {
   );
 }
 
-export default InventariesRoutes;
+export default ProductManagementRoutes;

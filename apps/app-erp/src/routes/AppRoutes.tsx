@@ -1,11 +1,11 @@
 import { Routes, Route } from 'react-router-dom';
 import ShoppingRoutes from './shopping/ShoppingRoutes';
-import InventariesRoutes from './inventories/InventariesRoutes';
+import ProductManagementRoutes from './inventories/ProductManagementRoutes';
 
 const AppRoutes = () => (
   <Routes>
     <Route path='/shopping/*' element={<ShoppingRoutes />} />
-    <Route path='/productos/*' element={<InventariesRoutes />} />
+    <Route path='/productos/*' element={<ProductManagementRoutes />} />
   </Routes>
 );
 
