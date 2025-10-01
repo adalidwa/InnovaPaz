@@ -1,7 +1,7 @@
 /* Mobile-first styles for PointOfSale */
 .point-of-sale {
   width: 100%;
-  background-color: var(--bg-50);
+  background-color: var(--white);
   min-height: calc(100vh - 200px);
 }
 
@@ -252,16 +252,4 @@
 .point-of-sale__products,
 .point-of-sale__cart {
   overflow: hidden;
-}
-
-/* Dark mode support (future) */
-@media (prefers-color-scheme: dark) {
-  .point-of-sale {
-    background-color: var(--pri-900);
-  }
-
-  .point-of-sale__products {
-    background-color: var(--pri-800);
-    border-color: var(--pri-600);
-  }
 }
