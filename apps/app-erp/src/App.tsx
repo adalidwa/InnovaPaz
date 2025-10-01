@@ -1,12 +1,13 @@
-import { BrowserRouter } from 'react-router-dom';
 import './App.css';
 import AppRoutes from './routes/AppRoutes';
+import Input from './components/common/Input';
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <AppRoutes />
-    </BrowserRouter>
+      <Input label='Descripción' placeholder='Descripción del producto...' />
+    </>
   );
 }
 
