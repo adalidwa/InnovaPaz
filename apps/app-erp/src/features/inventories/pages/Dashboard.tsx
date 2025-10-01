@@ -1,4 +1,5 @@
 import React from 'react';
+import ProductsHeader from '../components/ProductsHeader';
 import SummaryCardsRow from '../components/ui/SummaryCardsRow';
 import StatusListCard from '../components/ui/StatusListCard';
 import './Dashboard.css';
@@ -38,6 +39,13 @@ const Dashboard = () => {
 
   return (
     <div className='dashboard'>
+      <ProductsHeader
+        title='Dashboard de Inventario'
+        subtitle='Resumen general de tu minimarket'
+        buttonText='Generar reporte'
+        buttonVariant='primary'
+        hasIcon={false}
+      />
       <SummaryCardsRow />
       <div className='dashboard-row'>
         <StatusListCard
