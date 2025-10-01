@@ -3,6 +3,7 @@ import { BsPlus } from 'react-icons/bs';
 import Input from './Input';
 import Button from './Button';
 import Modal from './Modal';
+import StatusTag from './StatusTag';
 import './ProductCard.css';
 
 export interface Product {
@@ -75,12 +76,52 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
     setShowSuccessModal(false);
   };
 
+  // Determinar colores del stock según disponibilidad
+  const getStockColors = () => {
+    if (product.stock === 0) {
+      return {
+        backgroundColor: 'var(--acc-50)',
+        textColor: 'var(--acc-600)',
+      };
+    } else if (product.stock <= 10) {
+      return {
+        backgroundColor: 'var(--var-50)',
+        textColor: 'var(--var-800)',
+      };
+    } else {
+      return {
+        backgroundColor: 'var(--sec-100)',
+        textColor: 'var(--sec-700)',
+      };
+    }
+  };
+
+  const stockColors = getStockColors();
+
   return (
     <>
       <div className={`product-card ${className}`}>
         <div className='product-card__header'>
-          <span className='product-card__code'>{product.code}</span>
-          <span className='product-card__stock'>Stock: {product.stock}</span>
+          <StatusTag
+            text={product.code}
+            backgroundColor='var(--pri-100)'
+            textColor='var(--pri-600)'
+            width='auto'
+            height={24}
+            radius={6}
+            uppercase={true}
+            className='product-card__code-tag'
+          />
+
+          <StatusTag
+            text={`Stock: ${product.stock}`}
+            backgroundColor={stockColors.backgroundColor}
+            textColor={stockColors.textColor}
+            width='auto'
+            height={24}
+            radius={6}
+            className='product-card__stock-tag'
+          />
         </div>
 
         <div className='product-card__content'>
