@@ -108,30 +108,6 @@
   white-space: nowrap;
 }
 
-.table-action-btn {
-  padding: 7px 18px;
-  margin: 0 2px;
-  border: none;
-  border-radius: 999px;
-  font: var(--font-13);
-  font-weight: 400;
-  cursor: pointer;
-  transition:
-    background 0.15s,
-    color 0.15s,
-    box-shadow 0.15s;
-  text-decoration: none;
-  display: inline-block;
-  min-width: 48px;
-  font-size: 14px;
-  box-shadow: none;
-  opacity: 0.9;
-}
-
-.table-action-btn:active {
-  opacity: 0.7;
-}
-
 .table-action-primary {
   background: var(--pri-100);
   color: var(--pri-700);
@@ -283,4 +259,15 @@
   }
 }
 
-/* Force white background for action buttons */
+.table-action-button {
+  margin: 0 2px;
+  min-width: 60px;
+}
+
+.table-action-button:first-child {
+  margin-left: 0;
+}
+
+.table-action-button:last-child {
+  margin-right: 0;
+}

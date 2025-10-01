@@ -207,3 +207,52 @@
 .btn-outline:active {
   background-color: var(--sec-800);
 }
+
+/* Table Action Button Variants - White background with colored text */
+.btn-table-primary {
+  background-color: var(--white);
+  color: var(--pri-700);
+  border: 1px solid var(--pri-200);
+}
+
+.btn-table-primary:hover {
+  background-color: var(--pri-50);
+  color: var(--pri-800);
+  border-color: var(--pri-300);
+}
+
+.btn-table-danger {
+  background-color: var(--white);
+  color: var(--acc-700);
+  border: 1px solid var(--acc-200);
+}
+
+.btn-table-danger:hover {
+  background-color: var(--acc-50);
+  color: var(--acc-800);
+  border-color: var(--acc-300);
+}
+
+.btn-table-success {
+  background-color: var(--white);
+  color: var(--sec-700);
+  border: 1px solid var(--sec-200);
+}
+
+.btn-table-success:hover {
+  background-color: var(--sec-50);
+  color: var(--sec-800);
+  border-color: var(--sec-300);
+}
+
+.btn-table-secondary {
+  background-color: var(--white);
+  color: var(--pri-600);
+  border: 1px solid var(--pri-200);
+}
+
+.btn-table-secondary:hover {
+  background-color: var(--pri-50);
+  color: var(--pri-700);
+  border-color: var(--pri-300);
+}
