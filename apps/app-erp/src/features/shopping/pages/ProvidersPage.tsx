@@ -184,10 +184,11 @@ const providersData: Provider[] = [
   },
 ];
 
+const ITEMS_PER_PAGE = 10;
+
 function ProvidersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
 
   const filteredProviders = providersData.filter(
     (provider) =>
@@ -197,9 +198,9 @@ function ProvidersPage() {
       provider.nit.includes(searchTerm)
   );
 
-  const totalPages = Math.ceil(filteredProviders.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const totalPages = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentProviders = filteredProviders.slice(startIndex, endIndex);
 
   const handlePageChange = (page: number) => {
@@ -224,72 +225,76 @@ function ProvidersPage() {
   return (
     <div className='providers-page'>
       <div className='providers-header'>
-        <TitleDescription
-          title={pageInfo.title}
-          description={pageInfo.description}
-          titleSize={32}
-          descriptionSize={16}
-        />
-        <div className='providers-search-and-add'>
-          <div className='providers-search'>
-            <Input
-              placeholder='Buscar proveedores...'
-              value={searchTerm}
-              onChange={handleSearchChange}
-              leftIcon={<IoSearch color='var(--pri-500)' />}
-              className='search-input'
-            />
-          </div>
-          <Button onClick={handleAddProvider} variant='primary' className='providers-add-button'>
-            <IoAdd />
+        <div className='providersTitleSection'>
+          <TitleDescription
+            title={pageInfo.title}
+            description={pageInfo.description}
+            titleSize={32}
+            descriptionSize={16}
+          />
+          <Button
+            variant='primary'
+            onClick={handleAddProvider}
+            icon={<IoAdd />}
+            className='addProviderButton'
+          >
             Nuevo Proveedor
           </Button>
         </div>
-      </div>
-
-      <div className='providers-grid'>
-        {currentProviders.map((provider) => (
-          <ProviderCard
-            key={provider.id}
-            title={provider.title}
-            description={provider.description}
-            nit={provider.nit}
-            contact={provider.contact}
-            phone={provider.phone}
-            buttonText='Ver historial'
-            buttonVariant='primary'
-            onButtonClick={() => handleProviderClick(provider)}
-            titleSize={20}
-            descriptionSize={14}
+        <div className='providers-search'>
+          <Input
+            placeholder='Buscar proveedores...'
+            value={searchTerm}
+            onChange={handleSearchChange}
+            leftIcon={<IoSearch color='var(--pri-500)' />}
+            className='search-input'
           />
-        ))}
+        </div>
       </div>
 
-      {filteredProviders.length > itemsPerPage && (
-        <div className='providers-pagination'>
+      <div className='providers-content'>
+        <div className='providers-grid'>
+          {currentProviders.map((provider) => (
+            <ProviderCard
+              key={provider.id}
+              title={provider.title}
+              description={provider.description}
+              nit={provider.nit}
+              contact={provider.contact}
+              phone={provider.phone}
+              buttonText='Ver historial'
+              buttonVariant='primary'
+              onButtonClick={() => handleProviderClick(provider)}
+              titleSize={20}
+              descriptionSize={14}
+            />
+          ))}
+        </div>
+
+        {filteredProviders.length > ITEMS_PER_PAGE && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             totalItems={filteredProviders.length}
-            itemsPerPage={itemsPerPage}
+            itemsPerPage={ITEMS_PER_PAGE}
             itemName='proveedores'
             onPageChange={handlePageChange}
           />
-        </div>
-      )}
+        )}
 
-      {filteredProviders.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '3rem',
-            color: 'var(--pri-600)',
-            fontSize: '1.125rem',
-          }}
-        >
-          No se encontraron proveedores que coincidan con tu búsqueda.
-        </div>
-      )}
+        {filteredProviders.length === 0 && (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '3rem',
+              color: 'var(--pri-600)',
+              fontSize: '1.125rem',
+            }}
+          >
+            No se encontraron proveedores que coincidan con tu búsqueda.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
