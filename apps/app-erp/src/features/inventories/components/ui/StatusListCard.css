@@ -57,6 +57,12 @@
   color: var(--pri-900);
 }
 
+.status-list-card__item-time {
+  font: var(--font-13);
+  color: var(--pri-500);
+  margin: 2px 0 0 0;
+}
+
 .status-list-card__item-subtitle {
   font: var(--font-13);
   color: var(--pri-500);

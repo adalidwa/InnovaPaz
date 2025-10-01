@@ -10,12 +10,14 @@ const Dashboard = () => {
     {
       id: 1,
       title: 'Entrada de Producto X',
+      time: '10:00 AM',
       tag: { label: 'Entrada', type: 'entrada' },
       value: 50,
     },
     {
       id: 2,
       title: 'Salida de Producto Y',
+      time: '02:30 PM',
       tag: { label: 'Salida', type: 'salida' },
       value: 20,
     },
@@ -26,12 +28,14 @@ const Dashboard = () => {
     {
       id: 1,
       title: 'Producto A',
+      time: '08:45 AM',
       tag: { label: 'Crítico', type: 'critico' },
       hasIcon: true,
     },
     {
       id: 2,
       title: 'Producto B',
+      time: '11:15 AM',
       tag: { label: 'Bajo', type: 'bajo' },
       hasIcon: true,
     },
