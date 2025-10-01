@@ -89,6 +89,21 @@
   color: var(--white);
 }
 
+.btn-ghost {
+  background-color: var(--transparent, transparent);
+  color: var(--pri-600);
+  border: none;
+}
+
+.btn-ghost:hover {
+  background-color: var(--pri-100);
+  color: var(--pri-800);
+}
+
+.btn-ghost:active {
+  background-color: var(--pri-200);
+}
+
 /* Tamaños */
 .btn-small {
   padding: 6px 12px;
