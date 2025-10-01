@@ -1,4 +1,4 @@
-import Dinero from '../../../assets/images/dinero.png';
+import Dinero from '../../../assets/images/Dinero.png';
 import type { Product } from '../types/inventory';
 import './PricingInfoComponent.css';
 
