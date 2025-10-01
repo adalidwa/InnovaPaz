@@ -5,8 +5,8 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
 import Table from '../../../components/common/Table';
 import StatusTag from '../../../components/common/StatusTag';
-import Button from '../../../components/common/Button';
-import { IoSearch, IoChevronBack, IoChevronForward } from 'react-icons/io5';
+import Pagination from '../../../components/common/Pagination';
+import { IoSearch } from 'react-icons/io5';
 
 type ProductStatus = 'Normal' | 'Critico';
 
@@ -165,18 +165,6 @@ function ProvisioningPage() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentData = filteredData.slice(startIndex, endIndex);
 
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-
   const handleEditProduct = (product: ProductItem) => {
     console.log('Editar producto:', product);
   };
@@ -282,36 +270,14 @@ function ProvisioningPage() {
           actions={tableActions}
           emptyMessage='No se encontraron productos'
         />
-
-        {totalPages > 1 && (
-          <div className='paginationContainer'>
-            <div className='paginationInfo'>
-              Mostrando {startIndex + 1}-{Math.min(endIndex, filteredData.length)} de{' '}
-              {filteredData.length} productos
-            </div>
-            <div className='paginationControls'>
-              <Button
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                variant='secondary'
-                className='paginationButton'
-              >
-                <IoChevronBack />
-              </Button>
-              <span className='paginationText'>
-                Página {currentPage} de {totalPages}
-              </span>
-              <Button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                variant='secondary'
-                className='paginationButton'
-              >
-                <IoChevronForward />
-              </Button>
-            </div>
-          </div>
-        )}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredData.length}
+          itemsPerPage={ITEMS_PER_PAGE}
+          onPageChange={setCurrentPage}
+          itemName='productos'
+        />
       </div>
     </div>
   );
