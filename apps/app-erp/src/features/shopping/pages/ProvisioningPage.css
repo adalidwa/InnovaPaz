@@ -65,3 +65,150 @@
     gap: 0.75rem;
   }
 }
+
+/* Edit Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.editModal {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 2rem;
+}
+
+.editModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--pri-100);
+}
+
+.editModalHeader h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--pri-800);
+}
+
+.editModalClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--pri-500);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.editModalClose:hover {
+  background: var(--pri-50);
+  color: var(--pri-700);
+}
+
+.editModalBody {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.editModalField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editModalField label {
+  font-weight: 500;
+  color: var(--pri-700);
+  font-size: 0.9rem;
+}
+
+.editModalField strong {
+  font-size: 1.1rem;
+  color: var(--pri-800);
+  padding: 0.5rem 0;
+}
+
+.editModalInput {
+  width: 100%;
+}
+
+.editModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid var(--pri-100);
+  background: var(--pri-25);
+}
+
+.editModalButton {
+  min-width: 100px;
+}
+
+@media (max-width: 768px) {
+  .editModal {
+    margin: 1rem;
+    max-width: none;
+    width: calc(100% - 2rem);
+  }
+
+  .editModalHeader {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .editModalBody {
+    padding: 1.5rem;
+    gap: 1.25rem;
+  }
+
+  .editModalFooter {
+    padding: 1.25rem 1.5rem;
+    flex-direction: column-reverse;
+  }
+
+  .editModalButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .editModal {
+    margin: 0.5rem;
+    width: calc(100% - 1rem);
+    border-radius: 8px;
+  }
+
+  .editModalHeader {
+    padding: 1rem;
+  }
+
+  .editModalBody {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .editModalFooter {
+    padding: 1rem;
+  }
+}

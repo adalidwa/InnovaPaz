@@ -5,7 +5,9 @@ import Input from '../../../components/common/Input';
 import Table from '../../../components/common/Table';
 import StatusTag from '../../../components/common/StatusTag';
 import Pagination from '../../../components/common/Pagination';
-import { IoSearch } from 'react-icons/io5';
+import Modal from '../../../components/common/Modal';
+import Button from '../../../components/common/Button';
+import { IoSearch, IoClose } from 'react-icons/io5';
 
 type ProductStatus = 'Normal' | 'Critico';
 
@@ -151,8 +153,20 @@ const ITEMS_PER_PAGE = 10;
 function ProvisioningPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState(productData);
 
-  const filteredData = productData.filter(
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
+  const [editForm, setEditForm] = useState({
+    currentStock: 0,
+    minStock: 0,
+    maxStock: 0,
+  });
+
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [buyProduct, setBuyProduct] = useState<ProductItem | null>(null);
+
+  const filteredData = products.filter(
     (item) =>
       item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.status.toLowerCase().includes(searchTerm.toLowerCase())
@@ -164,11 +178,60 @@ function ProvisioningPage() {
   const currentData = filteredData.slice(startIndex, endIndex);
 
   const handleEditProduct = (product: ProductItem) => {
-    console.log('Editar producto:', product);
+    setSelectedProduct(product);
+    setEditForm({
+      currentStock: product.currentStock,
+      minStock: product.minStock,
+      maxStock: product.maxStock,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = () => {
+    if (selectedProduct) {
+      const updatedProducts = products.map((product) => {
+        if (product.id === selectedProduct.id) {
+          const updatedProduct = {
+            ...product,
+            currentStock: editForm.currentStock,
+            minStock: editForm.minStock,
+            maxStock: editForm.maxStock,
+            status: (editForm.currentStock < editForm.minStock
+              ? 'Critico'
+              : 'Normal') as ProductStatus,
+          };
+          return updatedProduct;
+        }
+        return product;
+      });
+      setProducts(updatedProducts);
+      setShowEditModal(false);
+      setSelectedProduct(null);
+    }
   };
 
   const handleBuyProduct = (product: ProductItem) => {
-    console.log('Comprar producto:', product);
+    setBuyProduct(product);
+    setShowBuyModal(true);
+  };
+
+  const handleConfirmBuy = () => {
+    if (buyProduct) {
+      const updatedProducts = products.map((product) => {
+        if (product.id === buyProduct.id) {
+          const newStock = product.currentStock + 50;
+          return {
+            ...product,
+            currentStock: newStock,
+            status: (newStock < product.minStock ? 'Critico' : 'Normal') as ProductStatus,
+          };
+        }
+        return product;
+      });
+      setProducts(updatedProducts);
+      setShowBuyModal(false);
+      setBuyProduct(null);
+    }
   };
 
   const getStatusStyle = (status: ProductStatus) => {
@@ -277,6 +340,86 @@ function ProvisioningPage() {
           itemName='productos'
         />
       </div>
+
+      {showEditModal && selectedProduct && (
+        <div className='modalOverlay'>
+          <div className='editModal'>
+            <div className='editModalHeader'>
+              <h3>Editar Producto</h3>
+              <button
+                className='editModalClose'
+                onClick={() => setShowEditModal(false)}
+                type='button'
+              >
+                <IoClose size={20} />
+              </button>
+            </div>
+            <div className='editModalBody'>
+              <div className='editModalField'>
+                <strong>{selectedProduct.product}</strong>
+              </div>
+              <div className='editModalField'>
+                <label>Stock Actual:</label>
+                <Input
+                  type='number'
+                  value={editForm.currentStock.toString()}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, currentStock: parseInt(e.target.value) || 0 })
+                  }
+                  className='editModalInput'
+                />
+              </div>
+              <div className='editModalField'>
+                <label>Stock Mínimo:</label>
+                <Input
+                  type='number'
+                  value={editForm.minStock.toString()}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, minStock: parseInt(e.target.value) || 0 })
+                  }
+                  className='editModalInput'
+                />
+              </div>
+              <div className='editModalField'>
+                <label>Stock Máximo:</label>
+                <Input
+                  type='number'
+                  value={editForm.maxStock.toString()}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, maxStock: parseInt(e.target.value) || 0 })
+                  }
+                  className='editModalInput'
+                />
+              </div>
+            </div>
+            <div className='editModalFooter'>
+              <Button
+                variant='secondary'
+                onClick={() => setShowEditModal(false)}
+                className='editModalButton'
+              >
+                Cancelar
+              </Button>
+              <Button variant='primary' onClick={handleSaveEdit} className='editModalButton'>
+                Guardar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Modal
+        isOpen={showBuyModal}
+        onClose={() => setShowBuyModal(false)}
+        title='Confirmar Compra'
+        message={`¿Está seguro que desea comprar más stock de "${buyProduct?.product}"? Se agregarán 50 unidades al inventario.`}
+        modalType='warning'
+        showCancelButton={true}
+        confirmButtonText='Confirmar Compra'
+        cancelButtonText='Cancelar'
+        onConfirm={handleConfirmBuy}
+        onCancel={() => setShowBuyModal(false)}
+      />
     </div>
   );
 }
