@@ -1,0 +1,69 @@
+@import url('../../assets/styles/theme.css');
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--white);
+  border-bottom: 1px solid var(--pri-200);
+  padding: 0.5rem 1.5rem;
+  height: 60px;
+  min-height: 60px;
+  font-family: var(--font);
+  flex-shrink: 0;
+}
+
+.header__left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.header__logo {
+  font: var(--font-20);
+  font-weight: bold;
+  color: var(--pri-700);
+  margin: 0;
+}
+
+.header__subtitle {
+  font: var(--font-14);
+  color: var(--pri-500);
+}
+
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header__icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--pri-600);
+  font-size: var(--font-16);
+  transition: color 0.2s;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.header__icon-btn:hover {
+  color: var(--pri-700);
+  background-color: var(--pri-100);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.5rem 1rem;
+  }
+
+  .header__subtitle {
+    display: none;
+  }
+
+  .header__right {
+    gap: 0.5rem;
+  }
+}
