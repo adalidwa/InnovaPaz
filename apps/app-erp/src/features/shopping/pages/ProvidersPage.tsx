@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import '../../../assets/styles/theme.css';
 import './ProvidersPage.css';
 import ProviderCard from '../components/ProviderCard';
 import TitleDescription from '../../../components/common/TitleDescription';

@@ -565,3 +565,43 @@
     padding: 0.75rem 1rem;
   }
 }
+
+/* Font consistency fixes */
+.providers-page,
+.providers-page * {
+  font-family: var(--font);
+}
+
+.providerModal,
+.providerModal * {
+  font-family: var(--font);
+}
+
+.historyModal,
+.historyModal * {
+  font-family: var(--font);
+}
+
+.providerModalHeader h3,
+.historyModalHeader h3,
+.historyModalTitle h3 {
+  font-family: var(--font);
+}
+
+.providerModalField label,
+.historyModalSubtitle,
+.historyStatLabel,
+.historyStatValue,
+.historyItemDescription,
+.historyItemAmount,
+.historyItemDate,
+.historyItemStatus {
+  font-family: var(--font);
+}
+
+/* Ensure buttons and inputs inherit font */
+.providerModalButton,
+.historyModalButton,
+.providerModalInput {
+  font-family: var(--font);
+}
