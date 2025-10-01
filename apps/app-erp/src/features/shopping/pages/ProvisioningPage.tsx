@@ -373,25 +373,25 @@ function ProvisioningPage() {
       key: 'currentStock',
       header: 'Stock Actual',
       width: '12%',
-      className: 'textCenter',
+      className: 'text-center',
     },
     {
       key: 'minStock',
       header: 'Stock Mínimo',
       width: '12%',
-      className: 'textCenter',
+      className: 'text-center',
     },
     {
       key: 'maxStock',
       header: 'Stock Máximo',
       width: '12%',
-      className: 'textCenter',
+      className: 'text-center',
     },
     {
       key: 'status',
       header: 'Estado',
       width: '15%',
-      className: 'textCenter',
+      className: 'text-center',
       render: (value: ProductStatus) => {
         const style = getStatusStyle(value);
         return (
@@ -421,8 +421,8 @@ function ProvisioningPage() {
   ];
 
   return (
-    <div className='provisioningPage'>
-      <div className='provisioningHeader'>
+    <div className='provisioning-page'>
+      <div className='provisioning-header'>
         <div className='provisioningTitleSection'>
           <TitleDescription
             title={pageInfo.title}
@@ -439,7 +439,7 @@ function ProvisioningPage() {
             Agregar Producto
           </Button>
         </div>
-        <div className='provisioningSearch'>
+        <div className='provisioning-search'>
           <Input
             placeholder='Buscar productos o proveedores...'
             value={searchTerm}
@@ -450,7 +450,7 @@ function ProvisioningPage() {
         </div>
       </div>
 
-      <div className='provisioningTable'>
+      <div className='provisioning-table'>
         <Table
           data={currentData}
           columns={tableColumns}
