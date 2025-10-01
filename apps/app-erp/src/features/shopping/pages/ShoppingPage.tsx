@@ -1,4 +1,3 @@
-import React from 'react';
 import './ShoppingPage.css';
 import ShoppingCard from '../components/ShoppingCard';
 import {
@@ -135,7 +134,7 @@ function ShoppingPage() {
               description={item.description}
               type={item.type}
               quantity={item.quantity}
-              buttonText='View'
+              buttonText='Ver'
               buttonVariant={style.buttonVariant}
               titleSize={25}
               descriptionSize={16}
