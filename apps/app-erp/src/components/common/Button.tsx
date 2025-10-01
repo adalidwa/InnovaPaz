@@ -4,7 +4,7 @@ import './Button.css';
 
 interface ButtonProps {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent';
+  variant?: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent' | 'ghost';
   size?: 'small' | 'medium' | 'large';
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
