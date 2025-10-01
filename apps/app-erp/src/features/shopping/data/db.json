@@ -1,0 +1,182 @@
+{
+  "providers": [
+    {
+      "id": 1,
+      "title": "Embotelladora Boliviana",
+      "description": "Define umbrales de stock para reabastecimiento automático",
+      "nit": "5555555555",
+      "contact": "Carlos Mamani",
+      "phone": "77999888",
+      "email": "carlos@embotelladora.bo",
+      "address": "Av. América 1234, La Paz"
+    },
+    {
+      "id": 2,
+      "title": "Distribuidora Altiplano",
+      "description": "Proveedor especializado en productos de consumo masivo",
+      "nit": "1234567890",
+      "contact": "María Gonzales",
+      "phone": "78123456",
+      "email": "maria@altiplano.bo",
+      "address": "Calle Comercio 567, El Alto"
+    },
+    {
+      "id": 3,
+      "title": "Alimentos del Valle S.R.L.",
+      "description": "Distribuidor de productos alimenticios frescos y conservados",
+      "nit": "9876543210",
+      "contact": "José Vargas",
+      "phone": "79654321",
+      "email": "jose@alimentosvalle.bo",
+      "address": "Zona Sur 890, Cochabamba"
+    },
+    {
+      "id": 4,
+      "title": "Comercial Paceña",
+      "description": "Importador y distribuidor de productos internacionales",
+      "nit": "4567891230",
+      "contact": "Ana Quispe",
+      "phone": "76987654",
+      "email": "ana@pacena.bo",
+      "address": "Centro Histórico 321, La Paz"
+    },
+    {
+      "id": 5,
+      "title": "Lacteos Santa Cruz",
+      "description": "Especialista en productos lácteos y derivados",
+      "nit": "7890123456",
+      "contact": "Roberto Silva",
+      "phone": "75456789",
+      "email": "roberto@lacteos.bo",
+      "address": "Plan 3000, Santa Cruz"
+    },
+    {
+      "id": 6,
+      "title": "Bebidas Refrescantes Ltda.",
+      "description": "Distribuidor exclusivo de bebidas carbonatadas y jugos",
+      "nit": "3216549870",
+      "contact": "Carmen Rodríguez",
+      "phone": "74789123",
+      "email": "carmen@bebidas.bo",
+      "address": "Villa Fátima, La Paz"
+    }
+  ],
+  "historyData": {
+    "1": [
+      {
+        "id": 101,
+        "date": "2024-09-25",
+        "type": "purchase",
+        "description": "Compra CocaCola 2L - 200 unidades",
+        "amount": 15400.5,
+        "status": "completed"
+      },
+      {
+        "id": 102,
+        "date": "2024-09-20",
+        "type": "order",
+        "description": "Orden bebidas gaseosas #OC-789",
+        "amount": 8750.0,
+        "status": "pending"
+      },
+      {
+        "id": 103,
+        "date": "2024-09-15",
+        "type": "payment",
+        "description": "Pago factura #EMB-001198",
+        "amount": 12300.75,
+        "status": "completed"
+      },
+      {
+        "id": 104,
+        "date": "2024-09-10",
+        "type": "purchase",
+        "description": "Restock bebidas prioritarias",
+        "amount": 23500.2,
+        "status": "completed"
+      },
+      {
+        "id": 105,
+        "date": "2024-09-05",
+        "type": "order",
+        "description": "Orden especial eventos #OC-756",
+        "amount": 6890.4,
+        "status": "cancelled"
+      },
+      {
+        "id": 106,
+        "date": "2024-08-30",
+        "type": "purchase",
+        "description": "Compra agua mineral - 500 unidades",
+        "amount": 4500.0,
+        "status": "completed"
+      },
+      {
+        "id": 107,
+        "date": "2024-08-25",
+        "type": "payment",
+        "description": "Pago adelanto próxima orden",
+        "amount": 10000.0,
+        "status": "completed"
+      },
+      {
+        "id": 108,
+        "date": "2024-08-20",
+        "type": "order",
+        "description": "Pedido temporada verano #OC-890",
+        "amount": 18200.5,
+        "status": "completed"
+      }
+    ],
+    "2": [
+      {
+        "id": 201,
+        "date": "2024-09-28",
+        "type": "purchase",
+        "description": "Compra productos limpieza varios",
+        "amount": 9800.3,
+        "status": "completed"
+      },
+      {
+        "id": 202,
+        "date": "2024-09-22",
+        "type": "order",
+        "description": "Orden productos consumo masivo #OC-892",
+        "amount": 15600.8,
+        "status": "pending"
+      },
+      {
+        "id": 203,
+        "date": "2024-09-18",
+        "type": "payment",
+        "description": "Pago factura mensual #ALT-2024-09",
+        "amount": 22400.6,
+        "status": "completed"
+      },
+      {
+        "id": 204,
+        "date": "2024-09-12",
+        "type": "purchase",
+        "description": "Restock productos higiene personal",
+        "amount": 11200.45,
+        "status": "completed"
+      },
+      {
+        "id": 205,
+        "date": "2024-09-08",
+        "type": "order",
+        "description": "Pedido especial descuentos #OC-845",
+        "amount": 7300.2,
+        "status": "completed"
+      },
+      {
+        "id": 206,
+        "date": "2024-09-03",
+        "type": "purchase",
+        "description": "Compra detergentes industriales",
+        "amount": 13450.75,
+        "status": "completed"
+      }
+    ]
+  }
+}
