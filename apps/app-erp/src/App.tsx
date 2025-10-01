@@ -63,8 +63,14 @@ function App() {
   };
 
   const handleAddToCart = (product: Product, quantity: number) => {
-    console.log(`Agregado al carrito: ${product.name} - Cantidad: ${quantity}`);
-    alert(`${product.name} agregado al carrito. Cantidad: ${quantity}`);
+    console.log(`Producto agregado al carrito:`, {
+      product: product.name,
+      code: product.code,
+      quantity: quantity,
+      total: product.price * quantity,
+    });
+    // Aquí implementarías la lógica real para agregar al carrito
+    // como actualizar el estado global, localStorage, etc.
   };
 
   return (
