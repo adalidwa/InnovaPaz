@@ -5,14 +5,18 @@ import Dashboard from '../features/inventories/pages/Dashboard';
 import ReportsRoutes from './reports/ReportsRoutes';
 import SalesRoutes from './sales/SalesRoutes';
 import UserRoutes from './users/UserRoutes';
+import SalesRoutes from './sales/SalesRoutes';
+import Dashboard from '../features/inventories/pages/Dashboard';
 
 const AppRoutes = () => (
   <Routes>
+    <Route path='/*' element={<SalesRoutes />} />
     <Route path='/*' element={<SalesRoutes />} />
     <Route path='/shopping/*' element={<ShoppingRoutes />} />
     <Route path='/productos/*' element={<ProductManagementRoutes />} />
     <Route path='/reportes/*' element={<ReportsRoutes />} />
     <Route path='/configuracion/*' element={<UserRoutes />} />
+    <Route path='/dashboard/*' element={<Dashboard />} />
     <Route path='/dashboard' element={<Dashboard />} />
     <Route path='/ventas/*' element={<SalesRoutes />} />
   </Routes>
