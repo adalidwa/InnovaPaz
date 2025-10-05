@@ -14,6 +14,7 @@ import { auth } from '../configs/firebaseConfig';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../configs/firebaseConfig';
+import { buildERPUrl } from '../configs/appConfig';
 
 const getPlanDisplayName = (plan: string | null) => {
   switch (plan) {
@@ -46,9 +47,9 @@ const RegisterPage: React.FC = () => {
             const userData = userSnap.data();
 
             if (userData.empresa_id && userData.setup_completed) {
-              console.log('Usuario ya tiene empresa configurada, redirigiendo a dashboard');
+              console.log('Usuario ya tiene empresa configurada, redirigiendo al ERP');
               setIsNavigating(true);
-              navigate('/dashboard');
+              window.location.href = buildERPUrl();
               return;
             }
           }
