@@ -164,16 +164,6 @@
     padding: 20px;
     border-radius: 0 0 10px 10px;
   }
-
-  .sales-cart__cancel-btn {
-    order: 1;
-    flex: 1;
-  }
-
-  .sales-cart__process-btn {
-    order: 2;
-    flex: 2;
-  }
 }
 
 /* Desktop styles - 1024px and up */
