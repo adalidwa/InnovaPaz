@@ -14,6 +14,9 @@ interface PricingCardProps {
   buttonText: string;
   icons?: React.ReactNode[];
   onButtonClick?: () => void;
+  priceComment?: string;
+  isPopular?: boolean;
+  badgeText?: string;
 }
 
 const PricingCard: React.FC<PricingCardProps> = ({
@@ -26,14 +29,21 @@ const PricingCard: React.FC<PricingCardProps> = ({
   buttonText,
   icons = [],
   onButtonClick,
+  priceComment,
+  isPopular = false,
+  badgeText,
 }) => {
   return (
-    <div className={`pricing-card ${highlight ? 'pricing-card--highlight' : ''}`}>
+    <div
+      className={`pricing-card ${highlight ? 'pricing-card--highlight' : ''} ${isPopular ? 'pricing-card--popular' : ''}`}
+    >
+      {badgeText && <div className='pricing-card__badge'>{badgeText}</div>}
       <CardHeader
         title={title}
         description={description}
         comment={comment}
         price={price}
+        priceComment={priceComment}
         icons={icons}
       />
 

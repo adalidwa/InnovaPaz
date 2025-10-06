@@ -33,7 +33,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         // Si no hay displayName, buscar en Firestore y actualizar el perfil
         if (!displayName && firebaseUser.uid) {
           try {
-            const docRef = doc(db, 'usuarios', firebaseUser.uid);
+            const docRef = doc(db, 'users', firebaseUser.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
               const data = docSnap.data();

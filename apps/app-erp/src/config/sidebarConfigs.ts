@@ -64,7 +64,7 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
       },
       {
         label: 'Configuración',
-        href: '/configuracion/equipo',
+        href: '/configuracion/empresa',
         icon: FaCog,
       },
     ],
@@ -110,7 +110,7 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
       },
       {
         label: 'Configuración',
-        href: '/ventas/configuracion/equipo',
+        href: '/ventas/configuracion/empresa',
         icon: FaCog,
       },
     ],
