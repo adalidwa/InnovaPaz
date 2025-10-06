@@ -163,7 +163,6 @@ CREATE TABLE usuarios (
 CREATE TABLE tipo_empresa (
   tipo_id SERIAL PRIMARY KEY,
   tipo_empresa VARCHAR(100),
-  descripcion TEXT,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -233,7 +232,6 @@ CREATE TABLE atributos (
   atributo_padre_id INT REFERENCES atributos(atributo_id),
   tipo_atributo VARCHAR(50),
   unidad_medida VARCHAR(20),
-  descripcion TEXT,
   es_obligatorio BOOLEAN DEFAULT FALSE
 );
 
@@ -253,7 +251,6 @@ CREATE TABLE producto (
   producto_id SERIAL PRIMARY KEY,
   codigo VARCHAR(50),
   nombre_producto VARCHAR(150),
-  descripcion TEXT,
   imagen VARCHAR(255),
   precio_venta DECIMAL(10,2),
   precio_costo DECIMAL(10,2),
@@ -302,7 +299,6 @@ CREATE TABLE almacenes (
   empresa_id INT REFERENCES empresas(empresa_id),
   nombre VARCHAR(100),
   direccion TEXT,
-  descripcion TEXT,
   activo BOOLEAN DEFAULT TRUE,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
