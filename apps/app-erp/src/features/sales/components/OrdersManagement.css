@@ -64,32 +64,6 @@
 }
 
 /* Status-specific colors for summary cards */
-.orders-summary-card--pending {
-  border-left: 4px solid var(--var-600);
-}
-
-.orders-summary-card--pending .orders-summary-card__icon {
-  background-color: var(--var-100);
-  color: var(--var-700);
-}
-
-.orders-summary-card--in-process {
-  border-left: 4px solid var(--sec-600);
-}
-
-.orders-summary-card--in-process .orders-summary-card__icon {
-  background-color: var(--sec-100);
-  color: var(--sec-700);
-}
-
-.orders-summary-card--completed {
-  border-left: 4px solid var(--acc-600);
-}
-
-.orders-summary-card--completed .orders-summary-card__icon {
-  background-color: var(--acc-100);
-  color: var(--acc-700);
-}
 
 .orders-summary-card__content {
   flex: 1;

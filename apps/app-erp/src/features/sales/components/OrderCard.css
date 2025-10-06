@@ -133,17 +133,6 @@
 }
 
 /* Status-based left border accent */
-.order-card[data-status='Pendiente'] {
-  border-left: 4px solid var(--var-600);
-}
-
-.order-card[data-status='En Proceso'] {
-  border-left: 4px solid var(--sec-600);
-}
-
-.order-card[data-status='Completada'] {
-  border-left: 4px solid var(--acc-600);
-}
 
 /* Tablet styles - 768px and up */
 @media (min-width: 768px) {
