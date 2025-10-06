@@ -8,6 +8,11 @@ interface ProductsContextType {
   products: Product[];
   allProducts: Product[];
   searchTerm: string;
+  filters: {
+    categories: string[];
+    statuses: ('normal' | 'bajo' | 'critico' | 'agotado')[];
+    priceRange: { min: number; max: number };
+  };
   loading: boolean;
   error: string | null;
   addProduct: (productData: ProductFormData) => {
@@ -23,6 +28,14 @@ interface ProductsContextType {
   activateProduct: (id: string) => { success: boolean; error?: string };
   getProductById: (id: string) => Product | undefined;
   updateSearchTerm: (term: string) => void;
+  updateFilters: (filters: {
+    categories: string[];
+    statuses: ('normal' | 'bajo' | 'critico' | 'agotado')[];
+    priceRange: { min: number; max: number };
+  }) => void;
+  clearFilters: () => void;
+  availableCategories: () => string[];
+  priceRange: () => { min: number; max: number };
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
