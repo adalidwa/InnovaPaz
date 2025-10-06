@@ -303,10 +303,10 @@ export const useShoppingModules = () => {
         return (dbData.contracts || []).length; // Número de contratos
       case 7: // Reportes
         return (
-          (dbData.reports?.purchasesByProvider?.length || 0) +
-          (dbData.reports?.providerPerformance?.length || 0) +
-          (dbData.reports?.stockAnalysis?.length || 0)
-        ); // Total elementos de reportes
+          (dbData.providers || []).length +
+          (dbData.products || []).length +
+          (dbData.purchaseOrders || []).length
+        ); // Total elementos disponibles para reportes
       default:
         return 0;
     }
