@@ -23,15 +23,20 @@
 }
 
 /* Variantes */
+
 .btn-primary {
-  background-color: var(--sec-700);
+  background-color: var(--pri-600);
   color: var(--white);
-  border: 1px solid var(--sec-700);
+  border: 1px solid var(--pri-600);
 }
 
 .btn-primary:hover {
   background-color: var(--sec-600);
   border-color: var(--sec-600);
+}
+
+.btn-primary:active {
+  background-color: var(--pri-700);
 }
 
 .btn-secondary {
