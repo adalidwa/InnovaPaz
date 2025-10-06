@@ -6,3 +6,4 @@ export { default as StatusTag } from './StatusTag';
 export { default as Select } from './Select';
 export { default as Table } from './Table';
 export { default as Pagination } from './Pagination';
+export { default as TitleDescription } from './TitleDescription';
