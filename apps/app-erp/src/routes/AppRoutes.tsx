@@ -9,12 +9,10 @@ import UserRoutes from './users/UserRoutes';
 const AppRoutes = () => (
   <Routes>
     <Route path='/*' element={<SalesRoutes />} />
-    <Route path='/*' element={<SalesRoutes />} />
     <Route path='/shopping/*' element={<ShoppingRoutes />} />
     <Route path='/productos/*' element={<ProductManagementRoutes />} />
     <Route path='/reportes/*' element={<ReportsRoutes />} />
     <Route path='/configuracion/*' element={<UserRoutes />} />
-    <Route path='/dashboard/*' element={<Dashboard />} />
     <Route path='/dashboard' element={<Dashboard />} />
     <Route path='/ventas/*' element={<SalesRoutes />} />
   </Routes>

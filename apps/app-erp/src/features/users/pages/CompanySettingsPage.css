@@ -1,0 +1,173 @@
+.company-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  min-height: 100vh;
+  background: var(--content-bg);
+  padding: 2rem;
+}
+
+.company-settings-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.settings-page-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.settings-title {
+  font: var(--font-39);
+  color: var(--content-text);
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.settings-subtitle {
+  font: var(--font-16);
+  color: var(--pri-500);
+  margin: 0;
+}
+
+.company-settings-content {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(36, 34, 49, 0.08);
+  overflow: hidden;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 0.35rem;
+  background: var(--bg-50);
+  border-bottom: 1px solid var(--pri-100);
+}
+
+.settings-tab-btn {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  background: transparent;
+  border: none;
+  font: var(--font-16);
+  color: var(--pri-500);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  line-height: 1;
+  border-radius: 6px;
+  font-weight: 500;
+  letter-spacing: 0.25px;
+  white-space: nowrap;
+}
+
+.settings-tab-btn:hover {
+  background: var(--pri-50);
+  color: var(--pri-700);
+}
+
+.settings-tab-btn.is-active {
+  background: var(--white);
+  color: var(--sec-700);
+  font-weight: 600;
+}
+
+.settings-tab-btn.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.4rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--pri-500, #6366f1), var(--pri-600, #4f46e5));
+}
+
+.settings-tab-btn:focus-visible {
+  outline: 2px solid var(--pri-500, #6366f1);
+  outline-offset: 2px;
+}
+
+.settings-tab-icon {
+  display: flex;
+  align-items: center;
+}
+
+.settings-tab-label {
+  font-size: inherit;
+}
+
+.settings-tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font: var(--font-16);
+  color: var(--pri-500);
+  background: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--pri-100);
+}
+
+.plan-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: var(--pri-50);
+  border: 1px solid var(--pri-200);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.plan-name {
+  font: var(--font-16);
+  font-weight: 600;
+  color: var(--pri-700);
+}
+
+.users-count {
+  font: var(--font-14);
+  color: var(--pri-600);
+  background: var(--white);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--pri-200);
+}
+
+@media (max-width: 768px) {
+  .company-settings-page {
+    padding: 1rem;
+  }
+
+  .settings-tabs {
+    flex-direction: column;
+  }
+
+  .settings-tab-btn {
+    justify-content: flex-start;
+    border-bottom: 1px solid var(--pri-100);
+    border-right: none;
+  }
+
+  .settings-tab-btn.is-active {
+    border-bottom: 1px solid var(--pri-100);
+    border-left: 3px solid var(--sec-700);
+  }
+
+  .settings-tab-panel {
+    padding: 1.5rem;
+  }
+}

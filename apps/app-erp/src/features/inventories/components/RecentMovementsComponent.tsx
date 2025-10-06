@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import Movimientos from '../../../assets/images/movimiento.png';
 import StatusTag from '../../../components/common/StatusTag';
 import Button from '../../../components/common/Button';
+import HistorialCompletoModal from './HistorialCompletoModal';
 import type { Product } from '../types/inventory';
 import './RecentMovementsComponent.css';
 
@@ -9,6 +11,16 @@ interface RecentMovementsComponentProps {
 }
 
 function RecentMovementsComponent({ product }: RecentMovementsComponentProps) {
+  const [isHistorialModalOpen, setIsHistorialModalOpen] = useState(false);
+
+  const handleOpenHistorial = () => {
+    setIsHistorialModalOpen(true);
+  };
+
+  const handleCloseHistorial = () => {
+    setIsHistorialModalOpen(false);
+  };
+
   // Generar movimientos simulados basados en el producto
   const generateMovements = () => {
     const movements = [];
@@ -69,10 +81,16 @@ function RecentMovementsComponent({ product }: RecentMovementsComponentProps) {
       </div>
 
       <div className='movements-footer'>
-        <Button variant='outline' size='medium' fullWidth>
+        <Button variant='outline' size='medium' fullWidth onClick={handleOpenHistorial}>
           Ver Historial Completo
         </Button>
       </div>
+
+      <HistorialCompletoModal
+        isOpen={isHistorialModalOpen}
+        onClose={handleCloseHistorial}
+        product={product}
+      />
     </div>
   );
 }

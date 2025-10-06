@@ -3,41 +3,31 @@ import './CardHeader.css';
 
 interface CardHeaderProps {
   title: string;
-  price: string;
   description?: string;
   comment?: string;
+  price: string;
+  priceComment?: string;
   icons?: React.ReactNode[];
 }
 
 const CardHeader: React.FC<CardHeaderProps> = ({
   title,
-  price,
   description,
   comment,
+  price,
+  priceComment,
   icons = [],
 }) => {
   return (
     <div className='card-header'>
-      {description && <span className='card-header__tag'>{description}</span>}
-
-      {icons.length > 0 && (
-        <div className='card-header__icons'>
-          {icons.map((icon, idx) => (
-            <span key={idx} className='card-header__icon'>
-              {icon}
-            </span>
-          ))}
-        </div>
-      )}
-
+      <div className='card-header__icons'>{icons}</div>
       <h3 className='card-header__title'>{title}</h3>
-
-      {comment && <p className='card-header__comment'>{comment}</p>}
-
-      <p className='card-header__price'>
+      {description && <div className='card-header__description'>{description}</div>}
+      {comment && <div className='card-header__comment'>{comment}</div>}
+      <div className='pricing-card__price'>
         {price}
-        <span>/mes</span>
-      </p>
+        {priceComment && <span className='pricing-card__price-comment'>{priceComment}</span>}
+      </div>
     </div>
   );
 };

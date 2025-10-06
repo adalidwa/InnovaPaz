@@ -1,38 +1,29 @@
-import { createPool } from 'mysql2/promise';
+import { Pool } from 'pg';
 import { DB_CONFIG } from './utils/env.js';
 
-export const pool = createPool({
+export const pool = new Pool({
   host: DB_CONFIG.HOST,
   port: DB_CONFIG.PORT,
   user: DB_CONFIG.USER,
   password: DB_CONFIG.PASSWORD,
   database: DB_CONFIG.DATABASE,
-  charset: 'utf8mb4',
-  waitForConnections: DB_CONFIG.WAIT_FOR_CONNECTIONS,
-  connectionLimit: 5, // Reducir el límite para conexión remota
-  queueLimit: DB_CONFIG.QUEUE_LIMIT,
-  // Configuración SSL para conexión remota
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  // Configuraciones de timeout para conexión remota
-  acquireTimeout: 120000, // 2 minutos para obtener conexión
-  timeout: 120000, // 2 minutos para queries
-  reconnect: true, // Reconectar automáticamente
-  idleTimeout: 300000, // 5 minutos idle timeout
-  enableKeepAlive: true, // Mantener conexión viva
-  keepAliveInitialDelay: 0,
+  max: DB_CONFIG.CONNECTION_LIMIT, // Límite de conexiones
+  idleTimeoutMillis: 30000, // Timeout idle
+  connectionTimeoutMillis: 2000, // Timeout de conexión
 });
 
-console.log('🔗 Pool de conexiones a la base de datos remota creado exitosamente');
+console.log('🔗 Pool de conexiones a PostgreSQL creado exitosamente');
 
 // Test de conexión inicial
 pool
-  .getConnection()
-  .then((connection) => {
-    console.log('✅ Conexión de prueba a la base de datos exitosa');
-    connection.release();
+  .connect()
+  .then((client) => {
+    console.log('✅ Conexión de prueba a PostgreSQL exitosa');
+    console.log(`📊 Conectado a la base de datos: ${DB_CONFIG.DATABASE}`);
+    console.log(`🏠 Host: ${DB_CONFIG.HOST}:${DB_CONFIG.PORT}`);
+    client.release();
   })
   .catch((error) => {
     console.error('❌ Error en conexión de prueba:', error.message);
+    console.error('� Verifica que PostgreSQL esté ejecutándose y las credenciales sean correctas');
   });
