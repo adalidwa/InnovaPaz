@@ -1,0 +1,445 @@
+/* Mobile-first styles for ClientsTable */
+.clients-table {
+  width: 100%;
+  min-height: calc(100vh - 200px);
+}
+
+.clients-table__container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.clients-table__header {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background-color: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--pri-200);
+  box-shadow: 0 2px 8px rgba(36, 34, 49, 0.08);
+}
+
+.clients-table__title-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.clients-table__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--sec-700) 0%, var(--sec-600) 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+}
+
+.clients-table__title-desc {
+  flex: 1;
+  min-width: 0;
+}
+
+.clients-table__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Management Buttons Group */
+.clients-table__management-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.clients-table__management-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Quick Actions Group */
+.clients-table__quick-actions {
+  display: flex;
+  width: 100%;
+}
+
+.clients-table__add-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.clients-table__content {
+  background-color: var(--white);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--pri-200);
+  box-shadow: 0 2px 8px rgba(36, 34, 49, 0.08);
+  overflow: hidden;
+}
+
+/* Category Tags Styles */
+.clients-table__category {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font: var(--font-13);
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.clients-table__category--vip {
+  background-color: var(--sec-100);
+  color: var(--sec-700);
+  border: 1px solid var(--sec-300);
+}
+
+.clients-table__category--wholesale {
+  background-color: var(--var-100);
+  color: var(--var-700);
+  border: 1px solid var(--var-300);
+}
+
+.clients-table__category--retail {
+  background-color: var(--pri-100);
+  color: var(--pri-700);
+  border: 1px solid var(--pri-300);
+}
+
+/* Table Cell Customizations */
+.clients-table__name-cell {
+  font-weight: 600;
+  color: var(--pri-900);
+}
+
+.clients-table__email-cell {
+  color: var(--pri-600);
+  word-break: break-all;
+}
+
+.clients-table__phone-cell {
+  color: var(--pri-700);
+  font-family: 'Courier New', monospace;
+}
+
+.clients-table__nit-cell {
+  color: var(--pri-700);
+  font-family: 'Courier New', monospace;
+}
+
+.clients-table__category-cell {
+  text-align: center;
+}
+
+/* Mobile responsive table adjustments */
+.clients-table__table .table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.clients-table__table .table {
+  min-width: 600px;
+}
+
+/* Tablet styles - 768px and up */
+@media (min-width: 768px) {
+  .clients-table__container {
+    padding: 24px;
+  }
+
+  .clients-table__header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-bottom: 32px;
+    padding: 24px;
+    border-radius: 10px;
+  }
+
+  .clients-table__title-section {
+    flex: 1;
+    align-items: center;
+  }
+
+  .clients-table__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  .clients-table__actions {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    width: auto;
+  }
+
+  .clients-table__management-buttons {
+    flex-direction: row;
+    gap: 12px;
+    width: auto;
+  }
+
+  .clients-table__management-btn {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .clients-table__quick-actions {
+    width: auto;
+  }
+
+  .clients-table__add-btn {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .clients-table__content {
+    padding: 24px;
+    border-radius: 10px;
+  }
+
+  .clients-table__table .table {
+    min-width: auto;
+  }
+}
+
+/* Desktop styles - 1024px and up */
+@media (min-width: 1024px) {
+  .clients-table__container {
+    padding: 32px;
+    max-width: 1600px;
+  }
+
+  .clients-table__header {
+    align-items: center;
+    margin-bottom: 40px;
+    padding: 32px;
+    border-radius: 12px;
+  }
+
+  .clients-table__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+  }
+
+  .clients-table__actions {
+    gap: 24px;
+  }
+
+  .clients-table__management-buttons {
+    gap: 16px;
+  }
+
+  .clients-table__content {
+    padding: 32px;
+    border-radius: 12px;
+  }
+}
+
+/* Large desktop styles - 1200px and up */
+@media (min-width: 1200px) {
+  .clients-table__container {
+    max-width: 1800px;
+  }
+
+  .clients-table__actions {
+    gap: 28px;
+  }
+
+  .clients-table__management-buttons {
+    gap: 20px;
+  }
+}
+
+/* Extra large screens - 1600px and up */
+@media (min-width: 1600px) {
+  .clients-table__container {
+    max-width: 2000px;
+  }
+}
+
+/* Button group visual separation */
+.clients-table__actions::before {
+  content: '';
+  width: 1px;
+  height: 100%;
+  background-color: var(--pri-200);
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .clients-table__actions::before {
+    display: block;
+    height: 40px;
+    margin: 0 4px;
+  }
+}
+
+/* Animation for container */
+.clients-table__container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus improvements */
+.clients-table__add-btn:focus-visible,
+.clients-table__management-btn:focus-visible {
+  outline: 3px solid var(--sec-400);
+  outline-offset: 2px;
+}
+
+/* Loading state styles */
+.clients-table--loading .clients-table__content {
+  background: linear-gradient(90deg, var(--pri-100) 25%, var(--pri-50) 50%, var(--pri-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Very small screens adjustments */
+@media (max-width: 480px) {
+  .clients-table__container {
+    padding: 12px;
+  }
+
+  .clients-table__header {
+    padding: 16px;
+    gap: 16px;
+    border-radius: 6px;
+  }
+
+  .clients-table__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .clients-table__management-buttons {
+    gap: 8px;
+  }
+
+  .clients-table__content {
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .clients-table__category {
+    padding: 3px 8px;
+    font: var(--font-10);
+  }
+}
+
+/* Print styles */
+@media print {
+  .clients-table__actions {
+    display: none;
+  }
+
+  .clients-table__header {
+    box-shadow: none;
+    border: 1px solid var(--pri-300);
+  }
+
+  .clients-table__content {
+    box-shadow: none;
+    border: 1px solid var(--pri-300);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .clients-table__category--vip {
+    background-color: var(--white);
+    border: 2px solid var(--sec-700);
+  }
+
+  .clients-table__category--wholesale {
+    background-color: var(--white);
+    border: 2px solid var(--var-700);
+  }
+
+  .clients-table__category--retail {
+    background-color: var(--white);
+    border: 2px solid var(--pri-700);
+  }
+
+  .clients-table__actions::before {
+    background-color: var(--pri-700);
+    width: 2px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .clients-table__container {
+    animation: none;
+  }
+
+  .clients-table--loading .clients-table__content {
+    animation: none;
+  }
+}
+
+/* Button hover effects enhancements */
+.clients-table__management-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+.clients-table__add-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Responsive button text adjustments */
+@media (max-width: 1200px) {
+  .clients-table__management-btn {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 992px) {
+  .clients-table__management-btn {
+    font-size: 12px;
+  }
+}
+
+/* Button alignment improvements */
+.clients-table__actions {
+  align-items: stretch;
+}
+
+@media (min-width: 768px) {
+  .clients-table__actions {
+    align-items: center;
+  }
+}
