@@ -933,9 +933,10 @@ export const useReceptions = () => {
   };
 
   const getReturnReasonOptions = () => {
+    const returnReasons = (dbData.returnReasons as ReturnReason[]) || [];
     return [
       { value: '', label: 'Seleccionar motivo...' },
-      ...(dbData.returnReasons as ReturnReason[]).map((reason) => ({
+      ...returnReasons.map((reason) => ({
         value: reason.value,
         label: reason.label,
       })),
@@ -993,9 +994,8 @@ export const useReceptions = () => {
   }): void => {
     const product = dbData.products.find((p) => p.id === returnData.productId);
     const supplier = dbData.providers.find((p) => p.id === returnData.supplierId);
-    const reasonInfo = (dbData.returnReasons as ReturnReason[]).find(
-      (r) => r.value === returnData.reason
-    );
+    const returnReasons = (dbData.returnReasons as ReturnReason[]) || [];
+    const reasonInfo = returnReasons.find((r) => r.value === returnData.reason);
 
     if (!product || !supplier || !reasonInfo) return;
 
