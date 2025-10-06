@@ -129,54 +129,52 @@ Ejecuta el siguiente SQL en tu base de datos PostgreSQL.
 --         TABLAS PRINCIPALES DE CONFIGURACIÓN
 -- ==============================================
 
-CREATE TABLE tipo_empresa (
+CREATE TABLE tipos_empresa (
   tipo_id SERIAL PRIMARY KEY,
-  tipo_empresa VARCHAR(100),
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  tipo_empresa VARCHAR(100) UNIQUE NOT NULL,
+  fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE planes (
   plan_id SERIAL PRIMARY KEY,
-  nombre_plan VARCHAR(100) NOT NULL,
+  nombre_plan VARCHAR(100) UNIQUE NOT NULL,
   precio_mensual INT NOT NULL,
   limites JSONB,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE empresas (
   empresa_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nombre VARCHAR(150) NOT NULL,
-  tipo_empresa_id INT REFERENCES tipo_empresa(tipo_id),
+  tipo_empresa_id INT REFERENCES tipos_empresa(tipo_id),
   ajustes JSONB,
   plan_id INT REFERENCES planes(plan_id),
   estado_suscripcion VARCHAR(50) DEFAULT 'en_prueba',
-  fecha_fin_prueba TIMESTAMP,
-  fecha_fin_periodo_actual TIMESTAMP,
+  fecha_fin_prueba TIMESTAMP WITH TIME ZONE,
+  fecha_fin_periodo_actual TIMESTAMP WITH TIME ZONE,
   id_cliente_procesador_pago VARCHAR(150),
-  tamano_empresa VARCHAR(20),
-  email VARCHAR(100),
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE roles (
   rol_id SERIAL PRIMARY KEY,
-  empresa_id UUID REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id) ON DELETE CASCADE,
   nombre_rol VARCHAR(100) NOT NULL,
   permisos JSONB,
   es_predeterminado BOOLEAN DEFAULT FALSE,
   estado VARCHAR(50) DEFAULT 'activo',
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE usuarios (
-  uid VARCHAR(100) PRIMARY KEY,
-  empresa_id UUID REFERENCES empresas(empresa_id),
+  uid VARCHAR(128) PRIMARY KEY,
+  empresa_id UUID REFERENCES empresas(empresa_id) ON DELETE SET NULL,
   rol_id INT REFERENCES roles(rol_id),
-  nombre_completo VARCHAR(150) NOT NULL,
+  nombre_completo VARCHAR(150),
   email VARCHAR(150) UNIQUE NOT NULL,
   estado VARCHAR(50) DEFAULT 'activo',
-  preferencias JSONB DEFAULT '{}'::jsonb,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  preferencias JSONB,
+  fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==============================================
