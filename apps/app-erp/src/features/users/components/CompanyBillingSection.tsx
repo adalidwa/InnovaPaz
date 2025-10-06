@@ -13,9 +13,9 @@ interface Invoice {
 }
 
 const invoices: Invoice[] = [
-  { id: '1', numero: 'INV-001', fecha: '01 Dic 2024', monto: 49, estado: 'pagada' },
-  { id: '2', numero: 'INV-002', fecha: '01 Nov 2024', monto: 49, estado: 'pagada' },
-  { id: '3', numero: 'INV-003', fecha: '01 Oct 2024', monto: 49, estado: 'pagada' },
+  { id: '1', numero: 'INV-001', fecha: '01 Dic 2024', monto: 10, estado: 'pagada' },
+  { id: '2', numero: 'INV-002', fecha: '01 Nov 2024', monto: 10, estado: 'pagada' },
+  { id: '3', numero: 'INV-003', fecha: '01 Oct 2024', monto: 10, estado: 'pagada' },
 ];
 
 const invoiceCols: TableColumn<Invoice>[] = [
@@ -24,7 +24,7 @@ const invoiceCols: TableColumn<Invoice>[] = [
   {
     key: 'monto',
     header: 'Monto',
-    render: (v) => `$${Number(v).toFixed(2)}`,
+    render: (v) => `Bs${Number(v).toFixed(2)}`,
   },
   {
     key: 'estado',
@@ -111,11 +111,11 @@ function CompanyBillingSection() {
         <div className='plan-header'>
           <div className='plan-main'>
             <div className='plan-title-row'>
-              <h3 className='plan-name'>Plan Profesional</h3>
+              <h3 className='plan-name'>Plan Básico</h3>
               <span className='plan-status-badge'>Activo</span>
             </div>
             <div className='plan-price-row'>
-              <span className='plan-price'>$49</span>
+              <span className='plan-price'>Bs10</span>
               <span className='plan-period'>/mensual</span>
             </div>
           </div>
