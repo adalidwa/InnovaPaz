@@ -6,9 +6,8 @@
 
 .sales-navigation__tabs {
   display: flex;
-  justify-content: space-between;
-
   align-items: center;
+  gap: 0.5rem;
   border-radius: 8px;
   padding: 0.8rem;
   border: 1px solid var(--pri-200);
@@ -17,6 +16,7 @@
 .sales-navigation__tab {
   transition: all 0.2s ease;
   font-weight: 500;
+  flex: 1;
 }
 
 .sales-navigation__tab--active {

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import TitleDescription from '../../../components/common/TitleDescription';
+import { useState } from 'react';
 import SearchProducts from './SearchProducts';
 import ProductList, { type Product } from './ProductList';
 import SalesCart from './SalesCart';
