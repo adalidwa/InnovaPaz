@@ -1,0 +1,127 @@
+.status-list-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 45rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  gap: 15px;
+}
+
+.status-list-card__header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 6px;
+}
+
+.status-list-card__icon {
+  font-size: 1.125rem; /* Equivalent to 18px */
+  color: var(--var-600); /* Amarillo advertencia */
+}
+
+.status-list-card__title {
+  font: var(--font-20);
+  font-weight: 600;
+  color: var(--pri-900);
+  margin: 0;
+}
+
+.status-list-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.status-list-card__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--pri-200);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.status-list-card__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-list-card__item-title {
+  font: var(--font-16);
+  font-weight: 500;
+  margin: 0;
+  color: var(--pri-900);
+}
+
+.status-list-card__item-time {
+  font: var(--font-13);
+  color: var(--pri-500);
+  margin: 2px 0 0 0;
+}
+
+.status-list-card__item-subtitle {
+  font: var(--font-13);
+  color: var(--pri-500);
+  margin: 2px 0 0 0;
+}
+
+.status-list-card__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-list-card__tag {
+  font: var(--font-13);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.status-list-card__tag--entrada {
+  background: var(--sec-800); /* Azul */
+  color: var(--white);
+}
+
+.status-list-card__tag--salida {
+  background: var(--pri-200); /* Gris */
+  color: var(--pri-600);
+}
+
+.status-list-card__tag--critico {
+  background: var(--acc-700); /* Rojo */
+  color: var(--white);
+}
+
+.status-list-card__tag--bajo {
+  background: var(--var-500); /* Amarillo */
+  color: var(--pri-600);
+}
+
+.status-list-card__value {
+  font: var(--font-14);
+  font-weight: 600;
+  color: var(--pri-900);
+}
+
+.status-list-card__action {
+  background: var(--transparent);
+  border: none;
+  color: var(--pri-600);
+  font: var(--font-16);
+  cursor: pointer;
+}
+
+.status-list-card__button--blue-border {
+  border-color: var(--sec-700) !important;
+}
+
+@media (max-width: 768px) {
+  .status-list-card {
+    width: 29rem;
+  }
+}
