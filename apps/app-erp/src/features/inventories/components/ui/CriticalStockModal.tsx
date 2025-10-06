@@ -242,12 +242,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
   }, [statusFilter, categoryFilter]);
 
   const getProgressPercentage = (current: number, min: number, max: number) => {
-    // Calculate percentage based on current stock relative to minimum stock
-    // If current >= min, show 100%, otherwise show percentage of minimum reached
-    if (current >= min) {
-      return 100;
-    }
-    return Math.max((current / min) * 100, 5); // Minimum 5% for visibility
+    return Math.min((current / max) * 100, 100);
   };
 
   const formatDate = (dateString: string) => {
@@ -377,7 +372,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
                     <div className='critical-stock-modal__progress-label'>
                       <span className='critical-stock-modal__progress-text'>Nivel de stock</span>
                       <span className='critical-stock-modal__progress-percentage'>
-                        {product.currentStock}/{product.minStock} {product.unit}
+                        {product.currentStock}/{product.maxStock} {product.unit}
                       </span>
                     </div>
                     <div className='critical-stock-modal__progress-bar'>

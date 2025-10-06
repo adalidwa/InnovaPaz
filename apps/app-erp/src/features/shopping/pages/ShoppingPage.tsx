@@ -1,124 +1,57 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import '../../../assets/styles/theme.css';
 import './ShoppingPage.css';
-import ShoppingCard from '../components/ShoppingCard';
 import TitleDescription from '../../../components/common/TitleDescription';
-import Input from '../../../components/common/Input';
-import {
-  IoStorefront,
-  IoPeople,
-  IoDocumentText,
-  IoDownload,
-  IoPricetag,
-  IoContract,
-  IoAnalytics,
-  IoSearch,
-} from 'react-icons/io5';
-import { useShoppingModules, type ShoppingModule } from '../hooks/hooks';
-
-type Status = 'Normal' | 'Revisar';
-
-const pageInfo = {
-  title: 'Compras',
-  description: 'Administra el inventario de tu minimarket',
-};
-
-const resolveIcon = (name: ShoppingModule['icon'], color: string) => {
-  switch (name) {
-    case 'store':
-      return <IoStorefront color={color} />;
-    case 'people':
-      return <IoPeople color={color} />;
-    case 'doc':
-      return <IoDocumentText color={color} />;
-    case 'download':
-      return <IoDownload color={color} />;
-    case 'tag':
-      return <IoPricetag color={color} />;
-    case 'contract':
-      return <IoContract color={color} />;
-    case 'analytics':
-    default:
-      return <IoAnalytics color={color} />;
-  }
-};
-
-const statusStyle = (status: Status) => {
-  if (status === 'Normal') {
-    return {
-      tagBg: 'var(--sec-100)',
-      tagText: 'var(--sec-800)',
-      iconColor: 'var(--sec-700)',
-      buttonVariant: 'success' as const,
-    };
-  }
-  return {
-    tagBg: 'var(--acc-100)',
-    tagText: 'var(--acc-800)',
-    iconColor: 'var(--acc-700)',
-    buttonVariant: 'accent' as const,
-  };
-};
+import { ShoppingNavigation } from '../components';
+import ProvidersPage from './ProvidersPage';
+import PurchaseOrdersPage from './PurchaseOrdersPage';
+import ReceptionsPage from './ReceptionsPage';
+import QuotesPage from './QuotesPage';
+import ContractsPage from './ContractsPage';
+import ReportsPage from './ReportsPage';
 
 function ShoppingPage() {
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('proveedores');
 
-  // Use shopping modules hook instead of hardcoded data
-  const { modules, searchTerm, getModuleQuantity, getModuleStatus, handleSearchChange } =
-    useShoppingModules();
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+  };
 
-  const handleCardClick = (module: ShoppingModule) => {
-    if (module.route) {
-      navigate(module.route);
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'proveedores':
+        return <ProvidersPage />;
+      case 'ordenes-compra':
+        return <PurchaseOrdersPage />;
+      case 'recepciones':
+        return <ReceptionsPage />;
+      case 'cotizaciones':
+        return <QuotesPage />;
+      case 'contratos':
+        return <ContractsPage />;
+      case 'reportes':
+        return <ReportsPage />;
+      default:
+        return <ProvidersPage />;
     }
   };
 
   return (
-    <div className='shopping-page'>
-      <div className='shopping-header'>
+    <main>
+      <div className='shopping-navigation__title-container'>
         <TitleDescription
-          title={pageInfo.title}
-          description={pageInfo.description}
-          titleSize={32}
+          title='Módulo de Compras'
+          description='Gestión completa de compras, proveedores, órdenes y contratos'
+          titleSize={31}
           descriptionSize={16}
+          titleWeight='bold'
+          descriptionWeight='normal'
+          align='left'
         />
-        <div className='shopping-search'>
-          <Input
-            placeholder='Buscar en compras...'
-            value={searchTerm}
-            onChange={handleSearchChange}
-            leftIcon={<IoSearch color='var(--pri-500)' />}
-            className='search-input'
-          />
-        </div>
+        <ShoppingNavigation defaultTab={activeTab} onTabChange={handleTabChange} />
       </div>
-      <div className='shopping-grid'>
-        {modules.map((module) => {
-          const status = getModuleStatus(module);
-          const quantity = getModuleQuantity(module.id);
-          const style = statusStyle(status);
-
-          return (
-            <ShoppingCard
-              key={module.id}
-              statusText={status}
-              statusBgColor={style.tagBg}
-              statusTextColor={style.tagText}
-              icon={resolveIcon(module.icon, style.iconColor)}
-              title={module.title}
-              description={module.description}
-              type={module.type}
-              quantity={quantity}
-              buttonText='Ver'
-              buttonVariant={style.buttonVariant}
-              onButtonClick={() => handleCardClick(module)}
-              titleSize={25}
-              descriptionSize={16}
-            />
-          );
-        })}
-      </div>
-    </div>
+      <div>{renderContent()}</div>
+    </main>
   );
 }
 
