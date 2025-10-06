@@ -129,6 +129,10 @@ Ejecuta el siguiente SQL en tu base de datos PostgreSQL.
 --         TABLAS PRINCIPALES DE CONFIGURACIÓN
 -- ==============================================
 
+-- ==============================================
+--         TABLAS PRINCIPALES DE CONFIGURACIÓN
+-- ==============================================
+
 CREATE TABLE roles (
   rol_id SERIAL PRIMARY KEY,
   empresa_id UUID REFERENCES empresas(empresa_id),
@@ -163,6 +167,7 @@ CREATE TABLE usuarios (
 CREATE TABLE tipo_empresa (
   tipo_id SERIAL PRIMARY KEY,
   tipo_empresa VARCHAR(100),
+  descripcion TEXT,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -222,7 +227,7 @@ CREATE TABLE categorias (
   categoria_padre_id INT REFERENCES categorias(categoria_id),
   nivel INT,
   estado BOOLEAN DEFAULT TRUE,
-  tipo_negocio_id INT REFERENCES tipo_negocio(tipo_id),
+  tipo_empresa_id INT REFERENCES tipo_empresa(tipo_id),
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -232,11 +237,12 @@ CREATE TABLE atributos (
   atributo_padre_id INT REFERENCES atributos(atributo_id),
   tipo_atributo VARCHAR(50),
   unidad_medida VARCHAR(20),
+  descripcion TEXT,
   es_obligatorio BOOLEAN DEFAULT FALSE
 );
 
-CREATE TABLE tipo_negocio_atributo (
-  tipo_negocio_id INT REFERENCES tipo_negocio(tipo_id),
+CREATE TABLE tipo_empresa_atributo (
+  tipo_empresa_id INT REFERENCES tipo_empresa(tipo_id),
   atributo_id INT REFERENCES atributos(atributo_id),
   es_predeterminado BOOLEAN DEFAULT FALSE
 );
@@ -251,6 +257,7 @@ CREATE TABLE producto (
   producto_id SERIAL PRIMARY KEY,
   codigo VARCHAR(50),
   nombre_producto VARCHAR(150),
+  descripcion TEXT,
   imagen VARCHAR(255),
   precio_venta DECIMAL(10,2),
   precio_costo DECIMAL(10,2),
@@ -299,6 +306,7 @@ CREATE TABLE almacenes (
   empresa_id INT REFERENCES empresas(empresa_id),
   nombre VARCHAR(100),
   direccion TEXT,
+  descripcion TEXT,
   activo BOOLEAN DEFAULT TRUE,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
