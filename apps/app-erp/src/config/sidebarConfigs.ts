@@ -43,6 +43,11 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
         icon: FaBox,
       },
       {
+        label: 'Ventas',
+        href: '/shopping',
+        icon: FaShoppingCart,
+      },
+      {
         label: 'Movimientos',
         href: '/movimientos',
         icon: FaShoppingCart,
