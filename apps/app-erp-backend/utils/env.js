@@ -13,10 +13,10 @@ export const SERVER_CONFIG = {
 
 export const DB_CONFIG = {
   HOST: process.env.DB_HOST,
-  PORT: process.env.DB_PORT || 3306,
+  PORT: process.env.DB_PORT || 5432,
   USER: process.env.DB_USER,
   PASSWORD: process.env.DB_PASSWORD,
-  DATABASE: process.env.DB_DATABASE,
+  DATABASE: process.env.DB_NAME,
   CONNECTION_LIMIT: process.env.DB_CONNECTION_LIMIT || 10,
   QUEUE_LIMIT: process.env.DB_QUEUE_LIMIT || 0,
   WAIT_FOR_CONNECTIONS: process.env.DB_WAIT_FOR_CONNECTIONS === 'true',
