@@ -1,0 +1,290 @@
+.historial-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.historial-modal-container {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 900px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.historial-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 24px 20px;
+  border-bottom: 2px solid var(--pri-200);
+}
+
+.historial-title-section h2 {
+  font-size: var(--font-24);
+  font-weight: var(--semibold);
+  color: var(--pri-900);
+  margin: 0 0 4px 0;
+}
+
+.historial-product-name {
+  font-size: var(--font-14);
+  color: var(--pri-600);
+  margin: 0;
+}
+
+.historial-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--pri-500);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.historial-modal-close:hover {
+  color: var(--pri-700);
+}
+
+.historial-filters {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--pri-200);
+  background-color: var(--pri-50);
+}
+
+.historial-search {
+  margin-bottom: 16px;
+}
+
+.historial-filter-row {
+  display: flex;
+  gap: 16px;
+}
+
+.historial-filter-row > * {
+  flex: 1;
+}
+
+.historial-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.historial-stats {
+  display: flex;
+  gap: 24px;
+  padding: 20px 24px;
+  background-color: var(--pri-25);
+  border-bottom: 1px solid var(--pri-200);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: var(--font-12);
+  color: var(--pri-600);
+  font-weight: var(--medium);
+}
+
+.stat-value {
+  font-size: var(--font-18);
+  font-weight: var(--semibold);
+  color: var(--pri-900);
+}
+
+.stat-value.entry {
+  color: var(--sec-600);
+}
+
+.stat-value.exit {
+  color: var(--pri-600);
+}
+
+.historial-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+.no-movements {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--pri-500);
+  font-size: var(--font-16);
+}
+
+.historial-movement-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid var(--pri-200);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.historial-movement-item:hover {
+  border-color: var(--pri-300);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.historial-movement-item.entry {
+  border-left: 4px solid var(--sec-600);
+}
+
+.historial-movement-item.exit {
+  border-left: 4px solid var(--pri-600);
+}
+
+.movement-indicator-large {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-20);
+  font-weight: var(--bold);
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.historial-movement-item.entry .movement-indicator-large {
+  background-color: var(--sec-600);
+}
+
+.historial-movement-item.exit .movement-indicator-large {
+  background-color: var(--pri-600);
+}
+
+.movement-info-complete {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.movement-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.movement-main-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.movement-quantity {
+  font-size: var(--font-16);
+  font-weight: var(--semibold);
+  color: var(--pri-900);
+}
+
+.movement-balance {
+  font-size: var(--font-14);
+  color: var(--pri-600);
+  font-weight: var(--medium);
+}
+
+.movement-details-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.movement-operation {
+  font-size: var(--font-14);
+  font-weight: var(--semibold);
+  color: var(--pri-800);
+}
+
+.movement-person {
+  font-size: var(--font-14);
+  color: var(--pri-600);
+}
+
+.movement-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-12);
+  color: var(--pri-500);
+}
+
+.movement-datetime {
+  font-weight: var(--medium);
+}
+
+.movement-details-text {
+  font-style: italic;
+}
+
+.historial-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 24px;
+  border-top: 1px solid var(--pri-200);
+  background-color: var(--pri-25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .historial-modal-container {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .historial-stats {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .historial-filter-row {
+    flex-direction: column;
+  }
+
+  .movement-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .movement-details-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .movement-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

@@ -36,3 +36,12 @@ export interface StockAction {
   quantity: number;
   notes?: string;
 }
+
+export interface ProductFilters {
+  categories: string[];
+  statuses: ('normal' | 'bajo' | 'critico' | 'agotado')[];
+  priceRange: {
+    min: number;
+    max: number;
+  };
+}

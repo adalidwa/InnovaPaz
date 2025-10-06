@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700;800&family=Dancing+Script:wght@400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&display=swap');
 
 html,
 body {
@@ -6,6 +6,9 @@ body {
   padding: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  background: var(--content-bg) !important;
+  color: var(--content-text) !important;
+  font-family: var(--font);
 }
 
 html::-webkit-scrollbar,
@@ -14,6 +17,37 @@ body::-webkit-scrollbar {
 }
 
 :root {
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-open-sans: 'Open Sans', sans-serif;
+  --font-dancing-script: 'Dancing Script', cursive;
+  --font-oswald: 'Oswald', sans-serif;
+  /* ========================================
+    TIPOGRAFÍAS DISPONIBLES
+    (Manipulables desde la interfaz)
+  ======================================== */
+  --font-inter: 'Inter', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-lato: 'Lato', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  /* Fuente principal seleccionada */
+  --font: var(--font-inter);
+  /* ========================================
+     VARIABLES DE TEMA PERSONALIZABLES
+     (Manipulables desde la interfaz)
+  ======================================== */
+
+  /* Header Section */
+  --header-bg: var(--white);
+  --header-text: var(--pri-800);
+
+  /* Sidebar Section */
+  --sidebar-bg: var(--pri-800);
+  --sidebar-text: var(--white);
+
+  /* Content Section */
+  --content-bg: var(--bg-100);
+  --content-text: var(--pri-900);
+
   /* ========================================
      VARIABLES GENERALES DEL SISTEMA
      (Aplicables a todo el proyecto)
@@ -76,9 +110,6 @@ body::-webkit-scrollbar {
   --var-200: #f3f1cf;
   --var-100: #f7f6df;
   --var-50: #faf9eb;
-
-  /* Typography - General */
-  --font: 'Inter', sans-serif;
 
   /* Font Presets - General */
   --font-61: 61px/1.1 var(--font);

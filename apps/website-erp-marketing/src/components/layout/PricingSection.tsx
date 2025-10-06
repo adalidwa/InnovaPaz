@@ -2,8 +2,8 @@ import PricingCard from '../common/PricingCard';
 import HeroTitle from '../common/HeroTitle';
 import './PricingSection.css';
 import basic from '../../assets/icons/basic_icon.png';
-import professional from '../../assets/icons/professional_icon.png';
-import bussines from '../../assets/icons/business_icon.png';
+import standard from '../../assets/icons/professional_icon.png';
+import premium from '../../assets/icons/business_icon.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../../configs/firebaseConfig';
@@ -15,10 +15,8 @@ const PricingSection = () => {
   const handleRedirect = (planId: string) => {
     if (!loading) {
       if (user) {
-        // Usuario logueado - ir directamente a completar empresa
         navigate(`/company-setup?plan=${planId}`);
       } else {
-        // Usuario no logueado - ir al registro completo
         navigate(`/register?plan=${planId}`);
       }
     }
@@ -38,50 +36,55 @@ const PricingSection = () => {
         <div className='pricing__cards'>
           <PricingCard
             title='Básico'
-            price='Bs. 50'
-            comment='Perfecto para empresas pequeñas'
+            price='Bs. 10'
+            priceComment='/mes'
+            comment='Ideal para ferreterías, licorerías o minimarkets que empiezan.'
             features={[
-              'Hasta 10 usuarios',
-              'Gestión básica de inventario',
-              'Facturación simple',
-              'Soporte por gmail',
-              '20GB de almacenamiento',
+              '1 Miembro del Equipo',
+              '150 Productos en Inventario',
+              '250 Transacciones/mes (Ventas y Compras)',
+              'Dashboard con reportes básicos',
+              'Soporte por Email (72h)',
             ]}
-            buttonText='Comenzar Ahora'
-            icons={[<img src={basic} alt='Hand' />]}
+            buttonText='Elegir Plan Básico'
+            icons={[<img src={basic} alt='Icono Básico' />]}
             onButtonClick={() => handleRedirect('basico')}
           />
           <PricingCard
-            title='Profesional'
-            comment='Para grandes organizaciones'
-            price='Bs. 100'
+            title='Estándar'
+            price='Bs. 50'
+            priceComment='/mes'
+            comment='Perfecto para negocios que buscan crecer y añadir más miembros al equipo.'
+            isPopular={true}
+            badgeText='¡14 días gratis!'
             features={[
-              'Hasta 50 usuarios',
-              'Gestión de inventario avanzada',
-              'Facturación avanzada',
-              'Soporte por gmail',
-              '200GB de almacenamiento',
-              'Integraciones API',
+              'Hasta 5 Miembros del Equipo',
+              '5 Roles Personalizables',
+              '5,000 Productos en Inventario',
+              '10,000 Transacciones/mes',
+              'Reportes Estándar y Exportación',
+              'Soporte Prioritario (24h)',
             ]}
-            buttonText='Comenzar Ahora'
-            icons={[<img src={professional} alt='Grid' />]}
-            onButtonClick={() => handleRedirect('profesional')}
+            buttonText='Iniciar Prueba Gratuita'
+            icons={[<img src={standard} alt='Icono Estándar' />]}
+            onButtonClick={() => handleRedirect('estandar')}
           />
           <PricingCard
-            title='Empresarial'
-            comment='Ideal para empresas en crecimiento'
-            price='Bs. 200'
+            title='Premium'
+            price='Bs. 90'
+            priceComment='/mes'
+            comment='La solución completa para negocios con alto volumen de ventas y personal.'
             features={[
-              'Usuarios ilimitados',
-              'Todas las funcionalidades',
-              'Facturación simple',
-              'Soporte 24/7 dedicado',
-              'Almacenamiento ilimitado',
-              'Personalización completa',
+              'Miembros del Equipo Ilimitados',
+              'Roles Ilimitados',
+              'Productos Ilimitados',
+              'Transacciones Ilimitadas',
+              'Reportes Avanzados',
+              'Soporte Dedicado + Chat',
             ]}
-            buttonText='Comenzar Ahora'
-            icons={[<img src={bussines} alt='Bookmark' />]}
-            onButtonClick={() => handleRedirect('empresarial')}
+            buttonText='Elegir Plan Premium'
+            icons={[<img src={premium} alt='Icono Premium' />]}
+            onButtonClick={() => handleRedirect('premium')}
           />
         </div>
       </div>
