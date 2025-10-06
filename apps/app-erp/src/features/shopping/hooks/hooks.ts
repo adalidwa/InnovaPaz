@@ -584,7 +584,9 @@ export interface PurchaseOrder {
 
 // Hook para Purchase Orders
 export const usePurchaseOrders = () => {
-  const [orders, setOrders] = useState<PurchaseOrder[]>(dbData.purchaseOrders as PurchaseOrder[]);
+  const [orders, setOrders] = useState<PurchaseOrder[]>(
+    (dbData.purchaseOrders || []) as PurchaseOrder[]
+  );
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -892,7 +894,9 @@ export interface ReturnReason {
 
 // Hook para recepciones
 export const useReceptions = () => {
-  const [receptions, setReceptions] = useState<Reception[]>(dbData.receptions as Reception[]);
+  const [receptions, setReceptions] = useState<Reception[]>(
+    (dbData.receptions || []) as Reception[]
+  );
   const [returns, setReturns] = useState<Return[]>(dbData.returns as Return[]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -901,7 +905,7 @@ export const useReceptions = () => {
   const getPurchaseOrderOptions = () => {
     return [
       { value: '', label: 'Seleccionar orden...' },
-      ...(dbData.purchaseOrders as PurchaseOrder[]).map((order) => ({
+      ...((dbData.purchaseOrders || []) as PurchaseOrder[]).map((order) => ({
         value: order.id.toString(),
         label: `${order.orderNumber} - ${order.supplierName}`,
       })),
@@ -953,7 +957,7 @@ export const useReceptions = () => {
     date: string;
     items: Omit<ReceptionItem, 'productName'>[];
   }): void => {
-    const purchaseOrder = (dbData.purchaseOrders as PurchaseOrder[]).find(
+    const purchaseOrder = ((dbData.purchaseOrders || []) as PurchaseOrder[]).find(
       (po) => po.id === receptionData.purchaseOrderId
     );
 
@@ -1014,7 +1018,7 @@ export const useReceptions = () => {
 
   // Combinar recepciones y devoluciones para el historial
   const getMovementHistory = () => {
-    const receptionHistory = receptions.map((reception) => ({
+    const receptionHistory = (receptions || []).map((reception) => ({
       id: `reception-${reception.id}`,
       type: 'reception' as const,
       title: `Recepción - ${reception.orderNumber}`,
@@ -1024,7 +1028,7 @@ export const useReceptions = () => {
       data: reception,
     }));
 
-    const returnHistory = returns.map((returnItem) => ({
+    const returnHistory = (returns || []).map((returnItem) => ({
       id: `return-${returnItem.id}`,
       type: 'return' as const,
       title: `Devolución - ${returnItem.productName}`,
