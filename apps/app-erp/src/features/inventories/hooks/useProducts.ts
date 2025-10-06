@@ -69,6 +69,7 @@ export const useProducts = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Función para guardar en localStorage
   const saveToLocalStorage = (productsToSave: Product[]) => {
@@ -198,12 +199,36 @@ export const useProducts = () => {
     [products]
   );
 
+  // Función para filtrar productos por búsqueda
+  const filterProductsBySearch = useCallback((products: Product[], search: string) => {
+    if (!search.trim()) {
+      return products;
+    }
+
+    const searchLower = search.toLowerCase().trim();
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.code.toLowerCase().includes(searchLower) ||
+        product.category.toLowerCase().includes(searchLower)
+    );
+  }, []);
+
   // Filtrar solo productos activos para mostrar en la UI
   const activeProducts = products.filter((product) => product.active);
 
+  // Aplicar filtro de búsqueda a productos activos
+  const filteredProducts = filterProductsBySearch(activeProducts, searchTerm);
+
+  // Función para actualizar el término de búsqueda
+  const updateSearchTerm = useCallback((term: string) => {
+    setSearchTerm(term);
+  }, []);
+
   return {
-    products: activeProducts, // Solo devolver productos activos
+    products: filteredProducts, // Productos activos filtrados por búsqueda
     allProducts: products, // Todos los productos para funciones internas
+    searchTerm,
     loading,
     error,
     addProduct,
@@ -211,5 +236,6 @@ export const useProducts = () => {
     deactivateProduct,
     activateProduct,
     getProductById,
+    updateSearchTerm,
   };
 };

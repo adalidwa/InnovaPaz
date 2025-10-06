@@ -9,7 +9,7 @@ import './ProductManagement.css';
 
 function ProductManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { products, loading, addProduct, deactivateProduct } = useProductsContext();
+  const { products, searchTerm, loading, addProduct, deactivateProduct } = useProductsContext();
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -63,7 +63,14 @@ function ProductManagement() {
       <div className='products-container'>
         {products.length === 0 ? (
           <div className='no-products'>
-            <p>No hay productos registrados. ¡Agrega tu primer producto!</p>
+            {searchTerm ? (
+              <p>
+                No se encontraron productos que coincidan con "{searchTerm}". Intenta con otro
+                término de búsqueda.
+              </p>
+            ) : (
+              <p>No hay productos registrados. ¡Agrega tu primer producto!</p>
+            )}
           </div>
         ) : (
           products.map((product) => (
