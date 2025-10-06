@@ -1,456 +1,106 @@
-import { useState } from 'react';
-import '../../../assets/styles/theme.css';
+import React from 'react';
+import { IoSearch, IoAdd, IoClose, IoPeople, IoAnalytics } from 'react-icons/io5';
+
+// Imports locales
 import './ProvidersPage.css';
-import ProviderCard from '../components/ProviderCard';
+import { useProviders, useHistory, useModal, useProviderForm, type Provider } from '../hooks/hooks';
+
+// Imports de componentes
 import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Pagination from '../../../components/common/Pagination';
-import { IoSearch, IoAdd, IoClose, IoPeople, IoAnalytics } from 'react-icons/io5';
+import ProviderCard from '../components/ProviderCard';
 
-interface Provider {
-  id: number;
-  title: string;
-  description: string;
-  nit: string;
-  contact: string;
-  phone: string;
-  email?: string;
-  address?: string;
-}
-
-interface HistoryItem {
-  id: number;
-  date: string;
-  type: 'purchase' | 'order' | 'payment';
-  description: string;
-  amount: number;
-  status: 'completed' | 'pending' | 'cancelled';
-}
-
-const pageInfo = {
+const PAGE_INFO = {
   title: 'Gestión de Proveedores',
   description: 'Administra tus proveedores y evalúa su desempeño',
 };
 
-const providersData: Provider[] = [
-  {
-    id: 1,
-    title: 'Embotelladora Boliviana',
-    description: 'Define umbrales de stock para reabastecimiento automático',
-    nit: '5555555555',
-    contact: 'Carlos Mamani',
-    phone: '77999888',
-    email: 'carlos@embotelladora.bo',
-    address: 'Av. América 1234, La Paz',
-  },
-  {
-    id: 2,
-    title: 'Distribuidora Altiplano',
-    description: 'Proveedor especializado en productos de consumo masivo',
-    nit: '1234567890',
-    contact: 'María Gonzales',
-    phone: '78123456',
-    email: 'maria@altiplano.bo',
-    address: 'Calle Comercio 567, El Alto',
-  },
-  {
-    id: 3,
-    title: 'Alimentos del Valle S.R.L.',
-    description: 'Distribuidor de productos alimenticios frescos y conservados',
-    nit: '9876543210',
-    contact: 'José Vargas',
-    phone: '79654321',
-    email: 'jose@alimentosvalle.bo',
-    address: 'Zona Sur 890, Cochabamba',
-  },
-  {
-    id: 4,
-    title: 'Comercial Paceña',
-    description: 'Importador y distribuidor de productos internacionales',
-    nit: '4567891230',
-    contact: 'Ana Quispe',
-    phone: '76987654',
-    email: 'ana@pacena.bo',
-    address: 'Centro Histórico 321, La Paz',
-  },
-  {
-    id: 5,
-    title: 'Lacteos Santa Cruz',
-    description: 'Especialista en productos lácteos y derivados',
-    nit: '7890123456',
-    contact: 'Roberto Silva',
-    phone: '75456789',
-    email: 'roberto@lacteos.bo',
-    address: 'Plan 3000, Santa Cruz',
-  },
-  {
-    id: 6,
-    title: 'Bebidas Refrescantes Ltda.',
-    description: 'Distribuidor exclusivo de bebidas carbonatadas y jugos',
-    nit: '3216549870',
-    contact: 'Carmen Rodríguez',
-    phone: '74789123',
-    email: 'carmen@bebidas.bo',
-    address: 'Villa Fátima, La Paz',
-  },
-];
+const ProvidersPage: React.FC = () => {
+  // Hooks para proveedores
+  const {
+    currentProviders,
+    filteredProviders,
+    searchTerm,
+    currentPage,
+    totalPages,
+    addProvider,
+    validateProvider,
+    handleSearchChange,
+    handlePageChange,
+    ITEMS_PER_PAGE,
+  } = useProviders();
 
-const generateHistoryData = (providerId: number): HistoryItem[] => {
-  const histories: Record<number, HistoryItem[]> = {
-    1: [
-      {
-        id: 101,
-        date: '2024-09-25',
-        type: 'purchase',
-        description: 'Compra CocaCola 2L - 200 unidades',
-        amount: 15400.5,
-        status: 'completed',
-      },
-      {
-        id: 102,
-        date: '2024-09-20',
-        type: 'order',
-        description: 'Orden bebidas gaseosas #OC-789',
-        amount: 8750.0,
-        status: 'pending',
-      },
-      {
-        id: 103,
-        date: '2024-09-15',
-        type: 'payment',
-        description: 'Pago factura #EMB-001198',
-        amount: 12300.75,
-        status: 'completed',
-      },
-      {
-        id: 104,
-        date: '2024-09-10',
-        type: 'purchase',
-        description: 'Restock bebidas prioritarias',
-        amount: 23500.2,
-        status: 'completed',
-      },
-      {
-        id: 105,
-        date: '2024-09-05',
-        type: 'order',
-        description: 'Orden especial eventos #OC-756',
-        amount: 6890.4,
-        status: 'cancelled',
-      },
-      {
-        id: 106,
-        date: '2024-08-30',
-        type: 'purchase',
-        description: 'Compra agua mineral - 500 unidades',
-        amount: 4500.0,
-        status: 'completed',
-      },
-      {
-        id: 107,
-        date: '2024-08-25',
-        type: 'payment',
-        description: 'Pago adelanto próxima orden',
-        amount: 10000.0,
-        status: 'completed',
-      },
-      {
-        id: 108,
-        date: '2024-08-20',
-        type: 'order',
-        description: 'Pedido temporada verano #OC-890',
-        amount: 18200.5,
-        status: 'completed',
-      },
-    ],
-    2: [
-      {
-        id: 201,
-        date: '2024-09-28',
-        type: 'purchase',
-        description: 'Compra productos limpieza varios',
-        amount: 9800.3,
-        status: 'completed',
-      },
-      {
-        id: 202,
-        date: '2024-09-22',
-        type: 'order',
-        description: 'Orden productos consumo masivo #OC-892',
-        amount: 15600.8,
-        status: 'pending',
-      },
-      {
-        id: 203,
-        date: '2024-09-18',
-        type: 'payment',
-        description: 'Pago factura mensual #ALT-2024-09',
-        amount: 22400.6,
-        status: 'completed',
-      },
-      {
-        id: 204,
-        date: '2024-09-12',
-        type: 'purchase',
-        description: 'Restock productos higiene personal',
-        amount: 11200.45,
-        status: 'completed',
-      },
-      {
-        id: 205,
-        date: '2024-09-08',
-        type: 'order',
-        description: 'Pedido especial descuentos #OC-845',
-        amount: 7300.2,
-        status: 'completed',
-      },
-      {
-        id: 206,
-        date: '2024-09-03',
-        type: 'purchase',
-        description: 'Compra detergentes industriales',
-        amount: 13450.75,
-        status: 'completed',
-      },
-    ],
+  // Hooks para historial
+  const {
+    selectedProviderId,
+    historyData,
+    currentHistoryItems,
+    searchTerm: historySearchTerm,
+    currentPage: historyCurrentPage,
+    totalPages: historyTotalPages,
+    getTotalAmount,
+    getStatusColor,
+    getTypeIcon,
+    getStatusText,
+    selectProvider,
+    clearSelection,
+    handleSearchChange: handleHistorySearchChange,
+    handlePageChange: handleHistoryPageChange,
+    formatCurrency,
+    formatDate,
+    HISTORY_ITEMS_PER_PAGE,
+  } = useHistory();
+
+  // Hooks para modales
+  const {
+    showAddModal,
+    showHistoryModal,
+    openAddModal,
+    closeAddModal,
+    openHistoryModal,
+    closeHistoryModal,
+  } = useModal();
+
+  // Hook para formulario
+  const { form, resetForm, handleFormInputChange } = useProviderForm();
+
+  // Handlers
+  const handleProviderClick = (provider: Provider): void => {
+    selectProvider(provider.id);
+    openHistoryModal();
   };
 
-  return (
-    histories[providerId] || [
-      {
-        id: providerId * 100 + 1,
-        date: '2024-09-20',
-        type: 'purchase',
-        description: 'Compra productos varios',
-        amount: 8500.0,
-        status: 'completed',
-      },
-      {
-        id: providerId * 100 + 2,
-        date: '2024-09-15',
-        type: 'order',
-        description: 'Orden de compra estándar',
-        amount: 5200.3,
-        status: 'pending',
-      },
-      {
-        id: providerId * 100 + 3,
-        date: '2024-09-10',
-        type: 'payment',
-        description: 'Pago factura mensual',
-        amount: 12800.75,
-        status: 'completed',
-      },
-    ]
-  );
-};
-
-const ITEMS_PER_PAGE = 10;
-const HISTORY_ITEMS_PER_PAGE = 5;
-
-function ProvidersPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [providers, setProviders] = useState(providersData);
-
-  // Modal states
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
-
-  // History modal states
-  const [historySearchTerm, setHistorySearchTerm] = useState('');
-  const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
-
-  // Add provider form
-  const [addForm, setAddForm] = useState({
-    title: '',
-    description: '',
-    nit: '',
-    contact: '',
-    phone: '',
-    email: '',
-    address: '',
-  });
-
-  const filteredProviders = providers.filter(
-    (provider) =>
-      provider.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      provider.nit.includes(searchTerm)
-  );
-
-  const filteredHistoryData = historyData.filter(
-    (item) =>
-      item.description.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
-      item.type.toLowerCase().includes(historySearchTerm.toLowerCase()) ||
-      item.status.toLowerCase().includes(historySearchTerm.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredProviders.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentProviders = filteredProviders.slice(startIndex, endIndex);
-
-  // History pagination
-  const historyTotalPages = Math.ceil(filteredHistoryData.length / HISTORY_ITEMS_PER_PAGE);
-  const historyStartIndex = (historyCurrentPage - 1) * HISTORY_ITEMS_PER_PAGE;
-  const historyEndIndex = historyStartIndex + HISTORY_ITEMS_PER_PAGE;
-  const currentHistoryItems = filteredHistoryData.slice(historyStartIndex, historyEndIndex);
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleAddProvider = (): void => {
+    resetForm();
+    openAddModal();
   };
 
-  const handleHistoryPageChange = (page: number) => {
-    setHistoryCurrentPage(page);
-  };
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleHistorySearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHistorySearchTerm(e.target.value);
-    setHistoryCurrentPage(1);
-  };
-
-  const generateNewId = () => {
-    return Math.max(...providers.map((p) => p.id)) + 1;
-  };
-
-  const handleProviderClick = (provider: Provider) => {
-    setSelectedProvider(provider);
-    setHistoryData(generateHistoryData(provider.id));
-    setHistorySearchTerm('');
-    setHistoryCurrentPage(1);
-    setShowHistoryModal(true);
-  };
-
-  const handleAddProvider = () => {
-    setAddForm({
-      title: '',
-      description: '',
-      nit: '',
-      contact: '',
-      phone: '',
-      email: '',
-      address: '',
-    });
-    setShowAddModal(true);
-  };
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleNITChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); // Solo números
-    if (value.length <= 13) {
-      // NIT boliviano máximo 13 dígitos
-      setAddForm({ ...addForm, nit: value });
-    }
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); // Solo números
-    if (value.length <= 8) {
-      // Teléfono boliviano máximo 8 dígitos
-      setAddForm({ ...addForm, phone: value });
-    }
-  };
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase(); // Email en minúsculas
-    setAddForm({ ...addForm, email: value });
-  };
-  const handleSaveAdd = () => {
-    // Validaciones
-    if (!addForm.title.trim()) {
-      alert('El nombre de la empresa es obligatorio');
-      return;
-    }
-    if (!addForm.nit.trim()) {
-      alert('El NIT es obligatorio');
-      return;
-    }
-    if (addForm.nit.length < 7) {
-      alert('El NIT debe tener al menos 7 dígitos');
-      return;
-    }
-    if (!addForm.contact.trim()) {
-      alert('La persona de contacto es obligatoria');
-      return;
-    }
-    if (addForm.phone && addForm.phone.length < 7) {
-      alert('El teléfono debe tener al menos 7 dígitos');
-      return;
-    }
-    if (addForm.email && !validateEmail(addForm.email)) {
-      alert('Por favor ingrese un email válido');
-      return;
-    }
-
-    const newProvider: Provider = {
-      id: generateNewId(),
-      title: addForm.title.trim(),
-      description: addForm.description.trim(),
-      nit: addForm.nit,
-      contact: addForm.contact.trim(),
-      phone: addForm.phone,
-      email: addForm.email.trim(),
-      address: addForm.address.trim(),
+  const handleSaveProvider = (): void => {
+    const newProvider = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      nit: form.nit,
+      contact: form.contact.trim(),
+      phone: form.phone,
+      email: form.email.trim(),
+      address: form.address.trim(),
     };
-    setProviders([...providers, newProvider]);
-    setShowAddModal(false);
-  };
 
-  const getStatusColor = (status: HistoryItem['status']) => {
-    switch (status) {
-      case 'completed':
-        return { bg: 'var(--sec-100)', text: 'var(--sec-800)' };
-      case 'pending':
-        return { bg: 'var(--warning-100)', text: 'var(--warning-800)' };
-      case 'cancelled':
-        return { bg: 'var(--acc-100)', text: 'var(--acc-800)' };
-      default:
-        return { bg: 'var(--pri-100)', text: 'var(--pri-800)' };
+    const validationError = validateProvider(newProvider);
+
+    if (validationError) {
+      alert(validationError);
+      return;
     }
+
+    addProvider(newProvider);
+    closeAddModal();
   };
 
-  const getTypeIcon = (type: HistoryItem['type']) => {
-    switch (type) {
-      case 'purchase':
-        return '🛒';
-      case 'order':
-        return '📋';
-      case 'payment':
-        return '💰';
-      default:
-        return '📄';
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-BO', {
-      style: 'currency',
-      currency: 'BOB',
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-BO');
-  };
-
-  const getTotalAmount = () => {
-    return filteredHistoryData
-      .filter((item) => item.status === 'completed')
-      .reduce((total, item) => total + item.amount, 0);
+  const getSelectedProvider = (): Provider | null => {
+    return currentProviders.find((p) => p.id === selectedProviderId) || null;
   };
 
   return (
@@ -458,8 +108,8 @@ function ProvidersPage() {
       <div className='providers-header'>
         <div className='providersTitleSection'>
           <TitleDescription
-            title={pageInfo.title}
-            description={pageInfo.description}
+            title={PAGE_INFO.title}
+            description={PAGE_INFO.description}
             titleSize={32}
             descriptionSize={16}
           />
@@ -472,6 +122,7 @@ function ProvidersPage() {
             Nuevo Proveedor
           </Button>
         </div>
+
         <div className='providers-search'>
           <Input
             placeholder='Buscar proveedores...'
@@ -502,7 +153,7 @@ function ProvidersPage() {
           ))}
         </div>
 
-        {filteredProviders.length > ITEMS_PER_PAGE && (
+        {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -513,7 +164,7 @@ function ProvidersPage() {
           />
         )}
 
-        {filteredProviders.length === 0 && (
+        {currentProviders.length === 0 && (
           <div
             style={{
               textAlign: 'center',
@@ -527,107 +178,75 @@ function ProvidersPage() {
         )}
       </div>
 
-      {/* Modal Agregar Proveedor */}
       {showAddModal && (
         <div className='modalOverlay'>
           <div className='providerModal'>
             <div className='providerModalHeader'>
               <h3>Agregar Nuevo Proveedor</h3>
-              <button
-                className='providerModalClose'
-                onClick={() => setShowAddModal(false)}
-                type='button'
-              >
+              <button className='providerModalClose' onClick={closeAddModal} type='button'>
                 <IoClose size={20} />
               </button>
             </div>
+
             <div className='providerModalBody'>
-              <div className='providerModalField'>
-                <label>Nombre de la Empresa:</label>
-                <Input
-                  type='text'
-                  value={addForm.title}
-                  onChange={(e) => setAddForm({ ...addForm, title: e.target.value })}
-                  placeholder='Ingrese el nombre de la empresa'
-                  className='providerModalInput'
-                />
-              </div>
-              <div className='providerModalField'>
-                <label>Descripción:</label>
-                <Input
-                  type='text'
-                  value={addForm.description}
-                  onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
-                  placeholder='Descripción de productos/servicios'
-                  className='providerModalInput'
-                />
-              </div>
-              <div className='providerModalField'>
-                <label>NIT:</label>
-                <Input
-                  type='text'
-                  value={addForm.nit}
-                  onChange={handleNITChange}
-                  placeholder='Ej: 1234567890'
-                  maxLength='13'
-                  pattern='[0-9]*'
-                  className='providerModalInput'
-                />
-              </div>
-              <div className='providerModalField'>
-                <label>Persona de Contacto:</label>
-                <Input
-                  type='text'
-                  value={addForm.contact}
-                  onChange={(e) => setAddForm({ ...addForm, contact: e.target.value })}
-                  placeholder='Nombre del contacto principal'
-                  className='providerModalInput'
-                />
-              </div>
-              <div className='providerModalField'>
-                <label>Teléfono:</label>
-                <Input
-                  type='text'
-                  value={addForm.phone}
-                  onChange={handlePhoneChange}
-                  placeholder='Ej: 77999888'
-                  maxLength='8'
-                  pattern='[0-9]*'
-                  className='providerModalInput'
-                />
-              </div>
-              <div className='providerModalField'>
-                <label>Email:</label>
-                <Input
-                  type='email'
-                  value={addForm.email}
-                  onChange={handleEmailChange}
-                  placeholder='ejemplo@empresa.bo'
-                  pattern='[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,}$'
-                  className='providerModalInput'
-                />
-              </div>
-              <div className='providerModalField'>
-                <label>Dirección:</label>
-                <Input
-                  type='text'
-                  value={addForm.address}
-                  onChange={(e) => setAddForm({ ...addForm, address: e.target.value })}
-                  placeholder='Dirección física (opcional)'
-                  className='providerModalInput'
-                />
-              </div>
+              {[
+                {
+                  key: 'title',
+                  label: 'Nombre de la Empresa',
+                  placeholder: 'Ingrese el nombre de la empresa',
+                },
+                {
+                  key: 'description',
+                  label: 'Descripción',
+                  placeholder: 'Descripción de productos/servicios',
+                },
+                {
+                  key: 'nit',
+                  label: 'NIT',
+                  placeholder: 'Ej: 1234567890',
+                  maxLength: 13,
+                  pattern: '[0-9]*',
+                },
+                {
+                  key: 'contact',
+                  label: 'Persona de Contacto',
+                  placeholder: 'Nombre del contacto principal',
+                },
+                {
+                  key: 'phone',
+                  label: 'Teléfono',
+                  placeholder: 'Ej: 77999888',
+                  maxLength: 8,
+                  pattern: '[0-9]*',
+                },
+                { key: 'email', label: 'Email', placeholder: 'ejemplo@empresa.bo', type: 'email' },
+                { key: 'address', label: 'Dirección', placeholder: 'Dirección física (opcional)' },
+              ].map(({ key, label, placeholder, maxLength, pattern, type = 'text' }) => (
+                <div key={key} className='providerModalField'>
+                  <label>{label}:</label>
+                  <Input
+                    type={type}
+                    value={form[key as keyof typeof form]}
+                    onChange={handleFormInputChange(key as keyof typeof form)}
+                    placeholder={placeholder}
+                    maxLength={maxLength}
+                    pattern={pattern}
+                    className='providerModalInput'
+                  />
+                </div>
+              ))}
             </div>
+
             <div className='providerModalFooter'>
               <div className='providerModalMainButtons'>
-                <Button
-                  variant='secondary'
-                  onClick={() => setShowAddModal(false)}
-                  className='providerModalButton'
-                >
+                <Button variant='secondary' onClick={closeAddModal} className='providerModalButton'>
                   Cancelar
                 </Button>
-                <Button variant='primary' onClick={handleSaveAdd} className='providerModalButton'>
+                <Button
+                  variant='primary'
+                  onClick={handleSaveProvider}
+                  className='providerModalButton'
+                >
                   Agregar
                 </Button>
               </div>
@@ -636,21 +255,23 @@ function ProvidersPage() {
         </div>
       )}
 
-      {/* Modal Historial Proveedor */}
-      {showHistoryModal && selectedProvider && (
+      {showHistoryModal && getSelectedProvider() && (
         <div className='modalOverlay'>
           <div className='historyModal'>
             <div className='historyModalHeader'>
               <div className='historyModalTitle'>
                 <IoPeople size={24} color='var(--pri-600)' />
                 <div>
-                  <h3>{selectedProvider.title}</h3>
+                  <h3>{getSelectedProvider()?.title}</h3>
                   <p className='historyModalSubtitle'>Historial de Transacciones</p>
                 </div>
               </div>
               <button
                 className='historyModalClose'
-                onClick={() => setShowHistoryModal(false)}
+                onClick={() => {
+                  clearSelection();
+                  closeHistoryModal();
+                }}
                 type='button'
               >
                 <IoClose size={20} />
@@ -670,7 +291,7 @@ function ProvidersPage() {
               <div className='historyStat'>
                 <div className='historyStatIcon'>📦</div>
                 <div className='historyStatContent'>
-                  <div className='historyStatValue'>{filteredHistoryData.length}</div>
+                  <div className='historyStatValue'>{historyData.length}</div>
                   <div className='historyStatLabel'>Transacciones</div>
                 </div>
               </div>
@@ -707,11 +328,7 @@ function ProvidersPage() {
                               color: statusColors.text,
                             }}
                           >
-                            {item.status === 'completed'
-                              ? 'Completado'
-                              : item.status === 'pending'
-                                ? 'Pendiente'
-                                : 'Cancelado'}
+                            {getStatusText(item.status)}
                           </div>
                         </div>
                       </div>
@@ -720,7 +337,7 @@ function ProvidersPage() {
                 })}
               </div>
 
-              {filteredHistoryData.length === 0 && (
+              {historyData.length === 0 && (
                 <div
                   style={{
                     textAlign: 'center',
@@ -732,25 +349,29 @@ function ProvidersPage() {
                   No se encontraron transacciones que coincidan con tu búsqueda.
                 </div>
               )}
-            </div>
 
-            {filteredHistoryData.length > HISTORY_ITEMS_PER_PAGE && (
-              <div className='historyModalPagination'>
-                <Pagination
-                  currentPage={historyCurrentPage}
-                  totalPages={historyTotalPages}
-                  totalItems={filteredHistoryData.length}
-                  itemsPerPage={HISTORY_ITEMS_PER_PAGE}
-                  itemName='transacciones'
-                  onPageChange={handleHistoryPageChange}
-                />
-              </div>
-            )}
+              {/* Paginación movida dentro del área scrolleable */}
+              {historyTotalPages > 1 && (
+                <div className='historyModalPaginationInner'>
+                  <Pagination
+                    currentPage={historyCurrentPage}
+                    totalPages={historyTotalPages}
+                    totalItems={historyData.length}
+                    itemsPerPage={HISTORY_ITEMS_PER_PAGE}
+                    itemName='transacciones'
+                    onPageChange={handleHistoryPageChange}
+                  />
+                </div>
+              )}
+            </div>
 
             <div className='historyModalFooter'>
               <Button
                 variant='secondary'
-                onClick={() => setShowHistoryModal(false)}
+                onClick={() => {
+                  clearSelection();
+                  closeHistoryModal();
+                }}
                 className='historyModalButton'
               >
                 Cerrar
@@ -761,6 +382,6 @@ function ProvidersPage() {
       )}
     </div>
   );
-}
+};
 
 export default ProvidersPage;

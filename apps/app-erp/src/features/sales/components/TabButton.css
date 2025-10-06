@@ -1,0 +1,198 @@
+/* Mobile-first styles for TabButton */
+.tab-button {
+  width: 100% !important;
+  min-width: auto !important;
+  padding: 12px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  border: none !important;
+  outline: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  border-radius: 8px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+/* Override any Button component styles and remove ALL outlines */
+.tab-button,
+.tab-button:hover,
+.tab-button:focus,
+.tab-button:focus-visible,
+.tab-button:active {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Glass effect for inactive buttons */
+.tab-button--inactive {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.tab-button--inactive:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: var(--white) !important;
+  transform: translateY(-1px) !important;
+}
+
+.tab-button--inactive:active {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: translateY(0) !important;
+}
+
+.tab-button--inactive:focus,
+.tab-button--inactive:focus-visible {
+  background: rgba(255, 255, 255, 0.25) !important;
+  outline: none !important;
+  border: none !important;
+}
+
+/* Active button with solid secondary color */
+.tab-button--active {
+  background: linear-gradient(135deg, var(--sec-700) 0%, var(--sec-600) 100%) !important;
+  color: var(--white) !important;
+  transform: translateY(-2px) !important;
+}
+
+.tab-button--active:hover {
+  background: linear-gradient(135deg, var(--sec-600) 0%, var(--sec-500) 100%) !important;
+  transform: translateY(-3px) !important;
+}
+
+.tab-button--active:focus,
+.tab-button--active:focus-visible {
+  background: linear-gradient(135deg, var(--sec-600) 0%, var(--sec-500) 100%) !important;
+  outline: none !important;
+  border: none !important;
+}
+
+/* Icon and text layout */
+.tab-button .btn-icon {
+  margin-right: 6px !important;
+  flex-shrink: 0 !important;
+  opacity: 0.9 !important;
+}
+
+.tab-button--active .btn-icon {
+  opacity: 1 !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1)) !important;
+}
+
+.tab-button .btn-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+  transition: transform 0.3s ease !important;
+}
+
+.tab-button:hover .btn-icon svg {
+  transform: scale(1.05) !important;
+}
+
+/* Tablet styles - 768px and up */
+@media (min-width: 768px) {
+  .tab-button {
+    padding: 14px 20px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+  }
+
+  .tab-button .btn-icon {
+    margin-right: 8px !important;
+  }
+
+  .tab-button .btn-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* Desktop styles - 1024px and up */
+@media (min-width: 1024px) {
+  .tab-button {
+    padding: 16px 24px !important;
+    font-size: 15px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+  }
+
+  .tab-button .btn-icon {
+    margin-right: 10px !important;
+  }
+
+  .tab-button .btn-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .tab-button--active {
+    transform: translateY(-3px) !important;
+  }
+
+  .tab-button--active:hover {
+    transform: translateY(-4px) !important;
+  }
+}
+
+/* Small screens - adjust for very narrow buttons */
+@media (max-width: 480px) {
+  .tab-button {
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+  }
+
+  .tab-button .btn-icon {
+    margin-right: 4px !important;
+  }
+
+  .tab-button .btn-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}
+
+/* Animation for state changes */
+.tab-button {
+  animation: fadeIn 0.3s ease-out !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ripple effect on click */
+.tab-button::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%) !important;
+  border-radius: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  transition:
+    width 0.3s,
+    height 0.3s !important;
+  pointer-events: none !important;
+  border: none !important;
+}
+
+.tab-button:active::before {
+  width: 100px !important;
+  height: 100px !important;
+}

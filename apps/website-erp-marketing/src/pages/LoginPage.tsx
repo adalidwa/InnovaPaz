@@ -9,7 +9,9 @@ import './LoginPage.css';
 import { useNavigate } from 'react-router-dom';
 import { signInWithGoogle } from '../services/auth/firebaseAuthService';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../configs/firebaseConfig';
+import { auth, db } from '../configs/firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import { buildERPUrl } from '../configs/appConfig';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,14 +20,40 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Función para verificar si el usuario tiene empresa configurada y redirigir apropiadamente
+  const checkUserAndRedirect = async (user: any) => {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        if (userData.empresa_id && userData.setup_completed) {
+          // Usuario ya tiene empresa configurada, va al ERP
+          window.location.href = buildERPUrl();
+        } else {
+          // Usuario necesita configurar empresa
+          navigate('/company-setup');
+        }
+      } else {
+        // Usuario nuevo, necesita configurar empresa
+        navigate('/company-setup');
+      }
+    } catch (err) {
+      console.error('Error checking user data:', err);
+      // En caso de error, va al home para no romper el flujo
+      navigate('/');
+    }
+  };
+
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
     try {
       const { user, error } = await signInWithGoogle();
       if (user) {
-        // Usuario logueado con Google
-        navigate('/');
+        // Usuario logueado con Google, verificar si tiene empresa configurada
+        await checkUserAndRedirect(user);
       } else {
         setError('Error al iniciar sesión con Google');
         console.error(error);
@@ -42,9 +70,9 @@ const LoginPage: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Usuario logueado
-      navigate('/');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Usuario logueado, verificar si tiene empresa configurada
+      await checkUserAndRedirect(userCredential.user);
     } catch (err: any) {
       if (err.code === 'auth/user-not-found') {
         setError('No existe una cuenta con ese correo.');

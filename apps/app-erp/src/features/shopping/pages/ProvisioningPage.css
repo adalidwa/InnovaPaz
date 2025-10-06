@@ -66,7 +66,7 @@
   }
 }
 
-.modalOverlay {
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -79,7 +79,7 @@
   z-index: 1000;
 }
 
-.editModal {
+.edit-modal {
   background: var(--white);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
@@ -90,7 +90,7 @@
   margin: 2rem;
 }
 
-.editModalHeader {
+.edit-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -98,14 +98,14 @@
   border-bottom: 1px solid var(--pri-100);
 }
 
-.editModalHeader h3 {
+.edit-modal-header h3 {
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--pri-800);
 }
 
-.editModalClose {
+.edit-modal-close {
   background: none;
   border: none;
   cursor: pointer;
@@ -118,41 +118,41 @@
   transition: all 0.2s ease;
 }
 
-.editModalClose:hover {
+.edit-modal-close:hover {
   background: var(--pri-50);
   color: var(--pri-700);
 }
 
-.editModalBody {
+.edit-modal-body {
   padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.editModalField {
+.edit-modal-field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.editModalField label {
+.edit-modal-field label {
   font-weight: 500;
   color: var(--pri-700);
   font-size: 0.9rem;
 }
 
-.editModalField strong {
+.edit-modal-field strong {
   font-size: 1.1rem;
   color: var(--pri-800);
   padding: 0.5rem 0;
 }
 
-.editModalInput {
+.edit-modal-input {
   width: 100%;
 }
 
-.editModalFooter {
+.edit-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
@@ -161,70 +161,70 @@
   background: var(--pri-25);
 }
 
-.editModalButton {
+.edit-modal-button {
   min-width: 100px;
 }
 
 @media (max-width: 768px) {
-  .editModal {
+  .edit-modal {
     margin: 1rem;
     max-width: none;
     width: calc(100% - 2rem);
   }
 
-  .editModalHeader {
+  .edit-modal-header {
     padding: 1.25rem 1.5rem;
   }
 
-  .editModalBody {
+  .edit-modal-body {
     padding: 1.5rem;
     gap: 1.25rem;
   }
 
-  .editModalFooter {
+  .edit-modal-footer {
     padding: 1.25rem 1.5rem;
     flex-direction: column-reverse;
   }
 
-  .editModalButton {
+  .edit-modal-button {
     width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .editModal {
+  .edit-modal {
     margin: 0.5rem;
     width: calc(100% - 1rem);
     border-radius: 8px;
   }
 
-  .editModalHeader {
+  .edit-modal-header {
     padding: 1rem;
   }
 
-  .editModalBody {
+  .edit-modal-body {
     padding: 1rem;
     gap: 1rem;
   }
 
-  .editModalFooter {
+  .edit-modal-footer {
     padding: 1rem;
   }
 }
 
-.provisioningTitleSection {
+.provisioning-titleSection {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 2rem;
 }
 
-.addProductButton {
+.add-product-button {
   flex-shrink: 0;
   align-self: flex-start;
 }
 
-.editModalFooter {
+.edit-modal-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -234,67 +234,67 @@
   background: var(--pri-25);
 }
 
-.editModalMainButtons {
+.edit-modal-main-muttons {
   display: flex;
   gap: 1rem;
 }
 
-.deleteButton {
+.delete-button {
   margin-right: auto;
 }
 
 @media (max-width: 768px) {
-  .provisioningTitleSection {
+  .provisioning-titleSection {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
 
-  .addProductButton {
+  .add-product-button {
     align-self: stretch;
   }
 
-  .editModalFooter {
+  .edit-modal-footer {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
 
-  .editModalMainButtons {
+  .edit-modal-main-muttons {
     flex-direction: column-reverse;
     width: 100%;
   }
 
-  .deleteButton {
+  .delete-button {
     margin-right: 0;
     order: 3;
   }
 
-  .editModalButton {
+  .edit-modal-button {
     width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .provisioningTitleSection {
+  .provisioning-titleSection {
     gap: 0.75rem;
   }
 }
 
-.productCell {
+.product-cell {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.productName {
+.product-name {
   font-weight: 600;
   color: var(--pri-800);
   font-size: 0.9rem;
   line-height: 1.2;
 }
 
-.productSupplier {
+.product-supplier {
   font-size: 0.75rem;
   color: var(--pri-500);
   font-weight: 400;
@@ -302,11 +302,11 @@
 }
 
 @media (max-width: 768px) {
-  .productName {
+  .product-name {
     font-size: 0.85rem;
   }
 
-  .productSupplier {
+  .product-supplier {
     font-size: 0.7rem;
   }
 }
@@ -317,39 +317,39 @@
   font-family: var(--font);
 }
 
-.modalOverlay,
-.modalOverlay * {
+.modal-overlay,
+.modal-overlay * {
   font-family: var(--font);
 }
 
-.editModal,
-.editModal * {
+.edit-modal,
+.edit-modal * {
   font-family: var(--font);
 }
 
-.editModalHeader h3,
-.editModalField label,
-.editModalField strong {
+.edit-modal-header h3,
+.edit-modal-field label,
+.edit-modal-field strong {
   font-family: var(--font);
 }
 
 /* Ensure buttons, inputs and selects inherit font */
-.editModalButton,
-.editModalInput,
-.addProductButton,
-.deleteButton {
+.edit-modal-button,
+.edit-modal-input,
+.add-product-button,
+.delete-button {
   font-family: var(--font);
 }
 
 /* Table and product cells */
-.productCell,
-.productName,
-.productSupplier {
+.product-cell,
+.product-name,
+.product-supplier {
   font-family: var(--font);
 }
 
 /* Modal specific elements */
-.editModalClose,
-.editModalFooter {
+.edit-modal-close,
+.edit-modal-footer {
   font-family: var(--font);
 }
