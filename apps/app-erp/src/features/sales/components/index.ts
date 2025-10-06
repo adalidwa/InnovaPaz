@@ -12,3 +12,5 @@ export { default as ClientsTable } from './ClientsTable';
 export { default as SalesHistory } from './SalesHistory';
 export { default as QuotesManagement } from './QuotesManagement';
 export { default as QuoteCard } from './QuoteCard';
+export { default as OrdersManagement } from './OrdersManagement';
+export { default as OrderCard } from './OrderCard';

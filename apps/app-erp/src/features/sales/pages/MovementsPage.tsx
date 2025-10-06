@@ -6,6 +6,7 @@ import {
   ClientsTable,
   SalesHistory,
   QuotesManagement,
+  OrdersManagement,
 } from '../components';
 import TitleDescription from '../../../components/common/TitleDescription';
 import './MovementsPage.css';
@@ -28,25 +29,7 @@ function MovementsPage() {
       case 'cotizaciones':
         return <QuotesManagement />;
       case 'pedidos':
-        return (
-          <div
-            style={{
-              padding: '32px',
-              textAlign: 'center',
-              background: 'var(--white)',
-              margin: '32px',
-              borderRadius: '8px',
-              border: '1px solid var(--pri-200)',
-            }}
-          >
-            <h3 style={{ font: 'var(--font-20)', color: 'var(--pri-900)', marginBottom: '16px' }}>
-              Gestión de Pedidos
-            </h3>
-            <p style={{ font: 'var(--font-14)', color: 'var(--pri-600)' }}>
-              Módulo de pedidos en desarrollo...
-            </p>
-          </div>
-        );
+        return <OrdersManagement />;
       default:
         return <PointOfSale />;
     }
