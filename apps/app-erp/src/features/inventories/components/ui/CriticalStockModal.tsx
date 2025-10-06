@@ -274,21 +274,21 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className='modal-overlay' onClick={onClose}>
+    <div className='critical-stock-modal__overlay' onClick={onClose}>
       <div className='critical-stock-modal' onClick={(e) => e.stopPropagation()}>
-        <div className='modal-header'>
-          <h2 className='modal-title'>Gestión de Stock Crítico</h2>
-          <button className='modal-close' onClick={onClose}>
+        <div className='critical-stock-modal__header'>
+          <h2 className='critical-stock-modal__title'>Gestión de Stock Crítico</h2>
+          <button className='critical-stock-modal__close' onClick={onClose}>
             <FaTimes />
           </button>
         </div>
 
-        <div className='modal-body'>
-          <div className='modal-filters'>
-            <div className='filter-group'>
-              <label className='filter-label'>Estado</label>
+        <div className='critical-stock-modal__body'>
+          <div className='critical-stock-modal__filters'>
+            <div className='critical-stock-modal__filter-group'>
+              <label className='critical-stock-modal__filter-label'>Estado</label>
               <select
-                className='filter-select'
+                className='critical-stock-modal__filter-select'
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as 'all' | 'critico' | 'bajo')}
               >
@@ -298,10 +298,10 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
               </select>
             </div>
 
-            <div className='filter-group'>
-              <label className='filter-label'>Categoría</label>
+            <div className='critical-stock-modal__filter-group'>
+              <label className='critical-stock-modal__filter-label'>Categoría</label>
               <select
-                className='filter-select'
+                className='critical-stock-modal__filter-select'
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
               >
@@ -316,69 +316,73 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
           </div>
 
           {filteredProducts.length === 0 ? (
-            <div className='empty-state'>
-              <div className='empty-state-icon'>
+            <div className='critical-stock-modal__empty-state'>
+              <div className='critical-stock-modal__empty-state-icon'>
                 <FaWarehouse />
               </div>
-              <h3 className='empty-state-title'>No hay productos críticos</h3>
-              <p className='empty-state-text'>
+              <h3 className='critical-stock-modal__empty-state-title'>No hay productos críticos</h3>
+              <p className='critical-stock-modal__empty-state-text'>
                 No se encontraron productos que coincidan con los filtros seleccionados.
               </p>
             </div>
           ) : (
-            <div className='critical-products-list'>
+            <div className='critical-stock-modal__products-list'>
               {filteredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className={`critical-product-item critical-product-item--${product.status}`}
+                  className={`critical-stock-modal__product-item critical-stock-modal__product-item--${product.status}`}
                 >
-                  <div className='product-header'>
+                  <div className='critical-stock-modal__product-header'>
                     <div>
-                      <h4 className='product-name'>{product.name}</h4>
-                      <p className='product-category'>{product.category}</p>
+                      <h4 className='critical-stock-modal__product-name'>{product.name}</h4>
+                      <p className='critical-stock-modal__product-category'>{product.category}</p>
                     </div>
-                    <span className={`product-status-tag status-list-card__tag--${product.status}`}>
+                    <span
+                      className={`critical-stock-modal__product-status-tag critical-stock-modal__status-tag--${product.status}`}
+                    >
                       {product.status === 'critico' ? 'Crítico' : 'Bajo'}
                     </span>
                   </div>
 
-                  <div className='product-details'>
-                    <div className='detail-item'>
-                      <p className='detail-label'>Stock Actual</p>
-                      <p className='detail-value'>
+                  <div className='critical-stock-modal__product-details'>
+                    <div className='critical-stock-modal__detail-item'>
+                      <p className='critical-stock-modal__detail-label'>Stock Actual</p>
+                      <p className='critical-stock-modal__detail-value'>
                         {product.currentStock} {product.unit}
                       </p>
                     </div>
-                    <div className='detail-item'>
-                      <p className='detail-label'>Stock Mínimo</p>
-                      <p className='detail-value'>
+                    <div className='critical-stock-modal__detail-item'>
+                      <p className='critical-stock-modal__detail-label'>Stock Mínimo</p>
+                      <p className='critical-stock-modal__detail-value'>
                         {product.minStock} {product.unit}
                       </p>
                     </div>
-                    <div className='detail-item'>
-                      <p className='detail-label'>Ubicación</p>
-                      <p className='detail-value'>{product.location}</p>
+                    <div className='critical-stock-modal__detail-item'>
+                      <p className='critical-stock-modal__detail-label'>Ubicación</p>
+                      <p className='critical-stock-modal__detail-value'>{product.location}</p>
                     </div>
-                    <div className='detail-item'>
-                      <p className='detail-label'>Proveedor</p>
-                      <p className='detail-value'>{product.supplier}</p>
+                    <div className='critical-stock-modal__detail-item'>
+                      <p className='critical-stock-modal__detail-label'>Proveedor</p>
+                      <p className='critical-stock-modal__detail-value'>{product.supplier}</p>
                     </div>
-                    <div className='detail-item'>
-                      <p className='detail-label'>Última Actualización</p>
-                      <p className='detail-value'>{formatDate(product.lastUpdated)}</p>
+                    <div className='critical-stock-modal__detail-item'>
+                      <p className='critical-stock-modal__detail-label'>Última Actualización</p>
+                      <p className='critical-stock-modal__detail-value'>
+                        {formatDate(product.lastUpdated)}
+                      </p>
                     </div>
                   </div>
 
-                  <div className='stock-progress'>
-                    <div className='progress-label'>
-                      <span className='progress-text'>Nivel de stock</span>
-                      <span className='progress-percentage'>
+                  <div className='critical-stock-modal__stock-progress'>
+                    <div className='critical-stock-modal__progress-label'>
+                      <span className='critical-stock-modal__progress-text'>Nivel de stock</span>
+                      <span className='critical-stock-modal__progress-percentage'>
                         {product.currentStock}/{product.minStock} {product.unit}
                       </span>
                     </div>
-                    <div className='progress-bar'>
+                    <div className='critical-stock-modal__progress-bar'>
                       <div
-                        className={`progress-fill progress-fill--${product.status}`}
+                        className={`critical-stock-modal__progress-fill critical-stock-modal__progress-fill--${product.status}`}
                         style={{
                           width: `${getProgressPercentage(product.currentStock, product.minStock, product.maxStock)}%`,
                         }}
@@ -386,15 +390,15 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
                     </div>
                   </div>
 
-                  <div className='product-actions'>
+                  <div className='critical-stock-modal__product-actions'>
                     <button
-                      className='action-button action-button--primary'
+                      className='critical-stock-modal__action-button critical-stock-modal__action-button--primary'
                       onClick={() => handleRestock(product.id)}
                     >
                       Reabastecer
                     </button>
                     <button
-                      className='action-button action-button--secondary'
+                      className='critical-stock-modal__action-button critical-stock-modal__action-button--secondary'
                       onClick={() => handleViewDetails(product.id)}
                     >
                       <FaEye /> Ver Detalles
@@ -406,7 +410,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
           )}
         </div>
 
-        <div className='modal-footer'>
+        <div className='critical-stock-modal__footer'>
           <Button variant='secondary' onClick={onClose}>
             Cerrar
           </Button>
