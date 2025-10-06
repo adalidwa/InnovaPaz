@@ -7,14 +7,13 @@ export const pool = new Pool({
   user: DB_CONFIG.USER,
   password: DB_CONFIG.PASSWORD,
   database: DB_CONFIG.DATABASE,
-  max: DB_CONFIG.CONNECTION_LIMIT, // Límite de conexiones
-  idleTimeoutMillis: 30000, // Timeout idle
-  connectionTimeoutMillis: 2000, // Timeout de conexión
+  max: DB_CONFIG.CONNECTION_LIMIT,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 console.log('🔗 Pool de conexiones a PostgreSQL creado exitosamente');
 
-// Test de conexión inicial
 pool
   .connect()
   .then((client) => {

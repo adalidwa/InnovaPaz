@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import TabButton from './TabButton';
+import { useState } from 'react';
+import Button from '../../../components/common/Button';
 import './SalesNavigation.css';
 
 interface SalesNavigationProps {
@@ -65,20 +65,20 @@ function SalesNavigation({ defaultTab = 'punto-venta', onTabChange }: SalesNavig
 
   return (
     <div className='sales-navigation'>
-      <div className='sales-navigation__container'>
-        <div className='sales-navigation__tabs'>
-          {tabs.map((tab) => (
-            <div key={tab.id} className='sales-navigation__tab-item'>
-              <TabButton
-                isActive={activeTab === tab.id}
-                onClick={() => handleTabClick(tab.id)}
-                icon={tab.icon}
-              >
-                <span className='sales-navigation__tab-label'>{tab.label}</span>
-              </TabButton>
-            </div>
-          ))}
-        </div>
+      <div className='sales-navigation__tabs'>
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant={activeTab === tab.id ? 'primary' : 'outline'}
+            size='medium'
+            icon={tab.icon}
+            iconPosition='left'
+            onClick={() => handleTabClick(tab.id)}
+            className={`sales-navigation__tab ${activeTab === tab.id ? 'sales-navigation__tab--active' : ''}`}
+          >
+            {tab.label}
+          </Button>
+        ))}
       </div>
     </div>
   );

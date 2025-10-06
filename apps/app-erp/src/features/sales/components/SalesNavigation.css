@@ -1,130 +1,43 @@
-/* Mobile-first styles for SalesNavigation */
 .sales-navigation {
   width: 100%;
-  background: linear-gradient(135deg, var(--pri-800) 0%, var(--pri-700) 100%);
-  border-bottom: 2px solid var(--pri-600);
-  padding: 16px 0;
-  box-shadow: 0 2px 8px rgba(36, 34, 49, 0.1);
-}
-
-.sales-navigation__container {
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0 16px;
+  margin-top: 25px;
+  background-color: var(--white);
 }
 
 .sales-navigation__tabs {
   display: flex;
-  gap: 8px;
-  width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  padding-bottom: 2px;
-}
-
-.sales-navigation__tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.sales-navigation__tab-item {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-}
-
-.sales-navigation__tab-item .tab-button {
-  width: 100%;
-  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
   border-radius: 8px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  padding: 0.8rem;
+  border: 1px solid var(--pri-200);
 }
 
-.sales-navigation__tab-label {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: inherit;
-  line-height: 1.2;
-  font-weight: 600;
+.sales-navigation__tab {
+  transition: all 0.2s ease;
+  font-weight: 500;
+  flex: 1;
 }
 
-/* Tablet styles - 768px and up */
-@media (min-width: 768px) {
-  .sales-navigation {
-    padding: 18px 0;
-  }
+.sales-navigation__tab--active {
+  background-color: var(--sec-600);
+  color: var(--white);
+  border-color: var(--sec-600);
+}
 
-  .sales-navigation__container {
-    padding: 0 24px;
-  }
+.sales-navigation__tab svg {
+  flex-shrink: 0;
+}
 
+/* Responsive */
+@media (max-width: 768px) {
   .sales-navigation__tabs {
-    gap: 12px;
-    overflow-x: visible;
+    flex-direction: column;
+    width: 100%;
   }
 
-  .sales-navigation__tab-item {
-    flex: 1;
-  }
-
-  .sales-navigation__tab-label {
-    white-space: normal;
-    text-align: center;
-  }
-}
-
-/* Desktop styles - 1024px and up */
-@media (min-width: 1024px) {
-  .sales-navigation {
-    padding: 24px 0;
-    border-bottom: 3px solid var(--pri-600);
-  }
-
-  .sales-navigation__container {
-    max-width: 1200px;
-    padding: 0 32px;
-  }
-
-  .sales-navigation__tabs {
-    gap: 16px;
-    justify-content: center;
-  }
-
-  .sales-navigation__tab-item {
-    flex: 1;
-  }
-}
-
-/* Large desktop styles - 1200px and up */
-@media (min-width: 1200px) {
-  .sales-navigation__container {
-    padding: 0 40px;
-  }
-
-  .sales-navigation__tabs {
-    gap: 20px;
-  }
-}
-
-/* Focus and accessibility improvements */
-.sales-navigation__tab-item:focus-within {
-  outline: 3px solid var(--sec-400);
-  outline-offset: 3px;
-  border-radius: 12px;
-}
-
-/* Hover effect for the entire navigation */
-.sales-navigation:hover {
-  box-shadow: 0 4px 16px rgba(36, 34, 49, 0.15);
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .sales-navigation {
-    background: linear-gradient(135deg, var(--pri-900) 0%, var(--pri-800) 100%);
-    border-bottom-color: var(--pri-700);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  .sales-navigation__tab {
+    width: 100%;
+    justify-content: flex-start;
   }
 }

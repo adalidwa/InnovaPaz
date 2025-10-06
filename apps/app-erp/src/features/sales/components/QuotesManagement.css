@@ -1,0 +1,362 @@
+/* Mobile-first styles for QuotesManagement */
+.quotes-management {
+  width: 100%;
+  min-height: calc(100vh - 200px);
+}
+
+.quotes-management__container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.quotes-management__header {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 20px;
+  background-color: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--pri-200);
+  box-shadow: 0 2px 8px rgba(36, 34, 49, 0.08);
+}
+
+.quotes-management__title-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.quotes-management__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--var-700) 0%, var(--var-600) 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+}
+
+.quotes-management__title-desc {
+  flex: 1;
+  min-width: 0;
+}
+
+.quotes-management__actions {
+  display: flex;
+  width: 100%;
+}
+
+.quotes-management__new-quote-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Filter Tabs */
+.quotes-management__filters {
+  margin-bottom: 24px;
+}
+
+.quotes-management__filter-tabs {
+  display: flex;
+  gap: 2px;
+  background-color: var(--pri-100);
+  border-radius: 8px;
+  padding: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.quotes-management__filter-tab {
+  flex: 1;
+  min-width: max-content;
+  background: transparent;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font: var(--font-14);
+  font-weight: 500;
+  color: var(--pri-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.quotes-management__filter-tab:hover {
+  background-color: var(--pri-50);
+  color: var(--pri-800);
+}
+
+.quotes-management__filter-tab--active {
+  background-color: var(--white);
+  color: var(--pri-900);
+  box-shadow: 0 1px 3px rgba(36, 34, 49, 0.1);
+}
+
+/* Content Area */
+.quotes-management__content {
+  background-color: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--pri-200);
+  box-shadow: 0 2px 8px rgba(36, 34, 49, 0.08);
+  min-height: 400px;
+}
+
+/* Empty State */
+.quotes-management__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.quotes-management__empty-icon {
+  margin-bottom: 20px;
+  color: var(--pri-400);
+}
+
+.quotes-management__empty-title {
+  font: var(--font-20);
+  font-weight: 600;
+  color: var(--pri-700);
+  margin: 0 0 8px 0;
+}
+
+.quotes-management__empty-message {
+  font: var(--font-14);
+  color: var(--pri-500);
+  margin: 0;
+  max-width: 300px;
+}
+
+/* Quotes Grid */
+.quotes-management__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* Tablet styles - 768px and up */
+@media (min-width: 768px) {
+  .quotes-management__container {
+    padding: 24px;
+  }
+
+  .quotes-management__header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding: 24px;
+    border-radius: 10px;
+  }
+
+  .quotes-management__title-section {
+    flex: 1;
+    align-items: center;
+  }
+
+  .quotes-management__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  .quotes-management__actions {
+    width: auto;
+  }
+
+  .quotes-management__new-quote-btn {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .quotes-management__content {
+    border-radius: 10px;
+  }
+
+  .quotes-management__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    padding: 24px;
+  }
+
+  .quotes-management__filter-tabs {
+    overflow-x: visible;
+  }
+
+  .quotes-management__filter-tab {
+    flex: none;
+    min-width: 120px;
+  }
+}
+
+/* Desktop styles - 1024px and up */
+@media (min-width: 1024px) {
+  .quotes-management__container {
+    padding: 32px;
+    max-width: 1600px;
+  }
+
+  .quotes-management__header {
+    margin-bottom: 40px;
+    padding: 32px;
+    border-radius: 12px;
+  }
+
+  .quotes-management__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+  }
+
+  .quotes-management__content {
+    border-radius: 12px;
+  }
+
+  .quotes-management__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+    padding: 32px;
+  }
+}
+
+/* Large desktop styles - 1200px and up */
+@media (min-width: 1200px) {
+  .quotes-management__container {
+    max-width: 1800px;
+  }
+
+  .quotes-management__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+  }
+}
+
+/* Extra large screens - 1600px and up */
+@media (min-width: 1600px) {
+  .quotes-management__container {
+    max-width: 2000px;
+  }
+}
+
+/* Animation for container */
+.quotes-management__container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus improvements */
+.quotes-management__new-quote-btn:focus-visible,
+.quotes-management__filter-tab:focus-visible {
+  outline: 3px solid var(--sec-400);
+  outline-offset: 2px;
+}
+
+/* Very small screens adjustments */
+@media (max-width: 480px) {
+  .quotes-management__container {
+    padding: 12px;
+  }
+
+  .quotes-management__header {
+    padding: 16px;
+    gap: 16px;
+    border-radius: 6px;
+  }
+
+  .quotes-management__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+
+  .quotes-management__content {
+    border-radius: 6px;
+  }
+
+  .quotes-management__grid {
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .quotes-management__filter-tab {
+    padding: 8px 12px;
+    font: var(--font-13);
+  }
+}
+
+/* Print styles */
+@media print {
+  .quotes-management__filters,
+  .quotes-management__actions {
+    display: none;
+  }
+
+  .quotes-management__header {
+    box-shadow: none;
+    border: 1px solid var(--pri-300);
+  }
+
+  .quotes-management__content {
+    box-shadow: none;
+    border: 1px solid var(--pri-300);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .quotes-management__filter-tab--active {
+    border: 2px solid var(--pri-700);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .quotes-management__container {
+    animation: none;
+  }
+
+  .quotes-management__filter-tab {
+    transition: none;
+  }
+}
+
+/* Hover effects */
+.quotes-management__new-quote-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Loading states */
+.quotes-management--loading .quotes-management__content {
+  background: linear-gradient(90deg, var(--pri-100) 25%, var(--pri-50) 50%, var(--pri-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
