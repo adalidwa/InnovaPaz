@@ -19,20 +19,11 @@ pool
   .connect()
   .then((client) => {
     console.log('✅ Conexión de prueba a PostgreSQL exitosa');
+    console.log(`📊 Conectado a la base de datos: ${DB_CONFIG.DATABASE}`);
+    console.log(`🏠 Host: ${DB_CONFIG.HOST}:${DB_CONFIG.PORT}`);
     client.release();
   })
   .catch((error) => {
     console.error('❌ Error en conexión de prueba:', error.message);
-  });
-console.log('🔗 Pool de conexiones a la base de datos remota creado exitosamente');
-
-// Test de conexión inicial
-pool
-  .getConnection()
-  .then((connection) => {
-    console.log('✅ Conexión de prueba a la base de datos exitosa');
-    connection.release();
-  })
-  .catch((error) => {
-    console.error('❌ Error en conexión de prueba:', error.message);
+    console.error('� Verifica que PostgreSQL esté ejecutándose y las credenciales sean correctas');
   });

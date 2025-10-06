@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { SERVER_CONFIG } from './utils/env.js';
 import { encodingMiddleware } from './utils/encoding.js';
+import './db.js'; // Importar para inicializar la conexión a PostgreSQL
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
