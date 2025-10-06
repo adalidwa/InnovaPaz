@@ -64,9 +64,8 @@ un archivo llamado `.env` en la raíz del directorio del backend (es decir, en
 
 #### En WSL/Linux:
 
-1. Navega al directorio del backend: `cd tu-proyecto/app/app-erp-backend/`.
-2. Crea el archivo `.env` usando un editor de texto (por ejemplo, `nano .env` o
-   `vim .env`).
+1. Navega al directorio del backend: `cd innovapaz/app/app-erp-backend/`.
+2. Crea el archivo `.env`.
 3. Agrega las siguientes variables de ejemplo, ajustándolas según tu
    configuración de PostgreSQL:
 
@@ -87,38 +86,6 @@ un archivo llamado `.env` en la raíz del directorio del backend (es decir, en
 4. Guarda el archivo y asegúrate de que esté incluido en `.gitignore` para
    evitar subir contraseñas a repositorios públicos.
 5. Reinicia tu aplicación backend para que cargue las nuevas variables.
-
-#### En Windows (desde la interfaz):
-
-1. Abre el Explorador de Archivos (File Explorer) y navega a la carpeta del
-   backend.
-2. Haz clic derecho en un espacio vacío dentro de la carpeta, selecciona
-   "Nuevo" > "Documento de texto".
-3. Renombra el archivo a `.env` (asegúrate de que la extensión sea exactamente
-   `.env`, no `.env.txt`).
-4. Haz doble clic en el archivo `.env` para abrirlo con el Bloc de notas
-   (Notepad) o cualquier editor de texto.
-5. Copia y pega las siguientes variables de ejemplo, ajustándolas según tu
-   configuración de PostgreSQL:
-
-   ```
-   # Configuración de la base de datos
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=innova_paz_erp_db
-   DB_USER=postgres  # O 'erp_user' si creaste un usuario específico
-   DB_PASSWORD=tu_contraseña_segura  # Deja vacío si usas autenticación por peer o similar
-
-   # Otras configuraciones (ajusta según las necesidades de tu aplicación)
-   NODE_ENV=development
-   PORT=3000
-   JWT_SECRET=tu_jwt_secret_seguro
-   ```
-
-6. Guarda el archivo (Archivo > Guardar) y ciérralo.
-7. Asegúrate de que el archivo `.env` esté incluido en `.gitignore` para evitar
-   subir contraseñas a repositorios públicos.
-8. Reinicia tu aplicación backend para que cargue las nuevas variables.
 
 ## Pasos de Configuración
 
@@ -155,7 +122,7 @@ un archivo llamado `.env` en la raíz del directorio del backend (es decir, en
 
 ## Script SQL
 
-Ejecuta el siguiente SQL en tu base de datos PostgreSQL:
+Ejecuta el siguiente SQL en tu base de datos PostgreSQL.
 
 ```sql
 -- ==============================================
@@ -193,9 +160,9 @@ CREATE TABLE usuarios (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE tipo_negocio (
+CREATE TABLE tipo_empresa (
   tipo_id SERIAL PRIMARY KEY,
-  tipo_negocio VARCHAR(100),
+  tipo_empresa VARCHAR(100),
   descripcion TEXT,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -211,7 +178,7 @@ CREATE TABLE planes (
 CREATE TABLE empresas (
   empresa_id SERIAL PRIMARY KEY,
   nombre VARCHAR(150) NOT NULL,
-  tipo_negocio VARCHAR(100),
+  tipo_empresa_id INT REFERENCES tipo_empresa(tipo_id),
   ajustes JSONB,
   plan_id INT REFERENCES planes(plan_id),
   estado_suscripcion VARCHAR(50) DEFAULT 'en_prueba',
@@ -650,6 +617,7 @@ CREATE TABLE devoluciones_compra (
   fecha_devolucion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   observaciones TEXT
 );
+
 ```
 
 ## Notas
