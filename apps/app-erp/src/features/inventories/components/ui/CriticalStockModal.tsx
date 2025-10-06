@@ -242,7 +242,12 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
   }, [statusFilter, categoryFilter]);
 
   const getProgressPercentage = (current: number, min: number, max: number) => {
-    return Math.min((current / min) * 100, 100);
+    // Calculate percentage based on current stock relative to minimum stock
+    // If current >= min, show 100%, otherwise show percentage of minimum reached
+    if (current >= min) {
+      return 100;
+    }
+    return Math.max((current / min) * 100, 5); // Minimum 5% for visibility
   };
 
   const formatDate = (dateString: string) => {
@@ -264,11 +269,6 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
   const handleViewDetails = (productId: string | number) => {
     console.log('View details for product:', productId);
     // TODO: Implement view details functionality
-  };
-
-  const handleTransfer = (productId: string | number) => {
-    console.log('Transfer product:', productId);
-    // TODO: Implement transfer functionality
   };
 
   if (!isOpen) return null;
@@ -372,13 +372,8 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
                   <div className='stock-progress'>
                     <div className='progress-label'>
                       <span className='progress-text'>Nivel de stock</span>
-                      <span className='progress-text'>
-                        {getProgressPercentage(
-                          product.currentStock,
-                          product.minStock,
-                          product.maxStock
-                        ).toFixed(0)}
-                        %
+                      <span className='progress-percentage'>
+                        {product.currentStock}/{product.minStock} {product.unit}
                       </span>
                     </div>
                     <div className='progress-bar'>
@@ -404,12 +399,6 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
                     >
                       <FaEye /> Ver Detalles
                     </button>
-                    {/* <button
-                      className='action-button action-button--secondary'
-                      onClick={() => handleTransfer(product.id)}
-                    >
-                      Transferir
-                    </button> */}
                   </div>
                 </div>
               ))}
