@@ -129,9 +129,35 @@ Ejecuta el siguiente SQL en tu base de datos PostgreSQL.
 --         TABLAS PRINCIPALES DE CONFIGURACIÓN
 -- ==============================================
 
--- ==============================================
---         TABLAS PRINCIPALES DE CONFIGURACIÓN
--- ==============================================
+CREATE TABLE tipo_empresa (
+  tipo_id SERIAL PRIMARY KEY,
+  tipo_empresa VARCHAR(100),
+  descripcion TEXT,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE planes (
+  plan_id SERIAL PRIMARY KEY,
+  nombre_plan VARCHAR(100) NOT NULL,
+  precio_mensual INT NOT NULL,
+  limites JSONB,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE empresas (
+  empresa_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre VARCHAR(150) NOT NULL,
+  tipo_empresa_id INT REFERENCES tipo_empresa(tipo_id),
+  ajustes JSONB,
+  plan_id INT REFERENCES planes(plan_id),
+  estado_suscripcion VARCHAR(50) DEFAULT 'en_prueba',
+  fecha_fin_prueba TIMESTAMP,
+  fecha_fin_periodo_actual TIMESTAMP,
+  id_cliente_procesador_pago VARCHAR(150),
+  tamano_empresa VARCHAR(20),
+  email VARCHAR(100),
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 CREATE TABLE roles (
   rol_id SERIAL PRIMARY KEY,
@@ -154,36 +180,6 @@ CREATE TABLE usuarios (
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE tipo_empresa (
-  tipo_id SERIAL PRIMARY KEY,
-  tipo_empresa VARCHAR(100),
-  descripcion TEXT,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE planes (
-  plan_id SERIAL PRIMARY KEY,
-  nombre_plan VARCHAR(100) NOT NULL,
-  precio_mensual INT NOT NULL,
-  limites JSONB,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE empresas (
-  empresa_id SERIAL PRIMARY KEY,
-  nombre VARCHAR(150) NOT NULL,
-  tipo_empresa_id INT REFERENCES tipo_empresa(tipo_id),
-  ajustes JSONB,
-  plan_id INT REFERENCES planes(plan_id),
-  estado_suscripcion VARCHAR(50) DEFAULT 'en_prueba',
-  fecha_fin_prueba TIMESTAMP,
-  fecha_fin_periodo_actual TIMESTAMP,
-  id_cliente_procesador_pago VARCHAR(150),
-  tamano_empresa VARCHAR(20),
-  email VARCHAR(100),
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- ==============================================
 --                TABLAS DE VENTAS
 -- ==============================================
@@ -196,7 +192,7 @@ CREATE TABLE vendedores (
   direccion TEXT,
   fecha_contratacion DATE,
   estado VARCHAR(50),
-  empresa_id INT REFERENCES empresas(empresa_id)
+  empresa_id UUID REFERENCES empresas(empresa_id)
 );
 
 CREATE TABLE estado_producto (
@@ -254,11 +250,11 @@ CREATE TABLE producto (
   stock INT,
   cantidad_vendidos INT,
   categoria_id INT REFERENCES categorias(categoria_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   marca_id INT REFERENCES marca(marca_id),
   estado_id INT REFERENCES estado_producto(estado_id),
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  fecha_modificacion TIMESTAMP
+  fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE atributos_productos (
@@ -280,7 +276,7 @@ CREATE TABLE proveedores (
   telefono VARCHAR(20),
   email VARCHAR(100),
   direccion TEXT,
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   estado VARCHAR(50)
 );
@@ -293,7 +289,7 @@ CREATE TABLE estado_recepcion (
 
 CREATE TABLE almacenes (
   almacen_id SERIAL PRIMARY KEY,
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   nombre VARCHAR(100),
   direccion TEXT,
   descripcion TEXT,
@@ -358,7 +354,7 @@ CREATE TABLE clientes (
   nit_ci VARCHAR(50),
   direccion TEXT,
   categoria_cliente_id INT REFERENCES categorias_cliente(categoria_cliente_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   estado VARCHAR(50)
 );
@@ -376,6 +372,18 @@ CREATE TABLE estado_venta (
   descripcion TEXT
 );
 
+CREATE TABLE estado_cotizacion (
+  estado_cotizacion_id SERIAL PRIMARY KEY,
+  nombre VARCHAR(100),
+  descripcion TEXT
+);
+
+CREATE TABLE estado_pedido (
+  estado_pedido_id SERIAL PRIMARY KEY,
+  nombre VARCHAR(100),
+  descripcion TEXT
+);
+
 -- ==============================================
 --               PROCESO DE VENTAS
 -- ==============================================
@@ -385,13 +393,13 @@ CREATE TABLE cotizaciones (
   numero_cotizacion VARCHAR(50) UNIQUE,
   cliente_id INT REFERENCES clientes(cliente_id),
   vendedor_id INT REFERENCES vendedores(vendedor_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   fecha_cotizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_validez DATE,
   subtotal DECIMAL(10,2),
   impuesto DECIMAL(10,2),
   total DECIMAL(10,2),
-  estado_cotizacion_id INT,
+  estado_cotizacion_id INT REFERENCES estado_cotizacion(estado_cotizacion_id),
   observaciones TEXT,
   convertida_pedido BOOLEAN DEFAULT FALSE
 );
@@ -411,14 +419,14 @@ CREATE TABLE pedidos (
   numero_pedido VARCHAR(50) UNIQUE,
   cliente_id INT REFERENCES clientes(cliente_id),
   vendedor_id INT REFERENCES vendedores(vendedor_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   cotizacion_id INT REFERENCES cotizaciones(cotizacion_id),
   fecha_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_entrega_estimada DATE,
   subtotal DECIMAL(10,2),
   impuesto DECIMAL(10,2),
   total DECIMAL(10,2),
-  estado_pedido_id INT,
+  estado_pedido_id INT REFERENCES estado_pedido(estado_pedido_id),
   observaciones TEXT,
   completado BOOLEAN DEFAULT FALSE
 );
@@ -438,7 +446,7 @@ CREATE TABLE ventas (
   numero_venta VARCHAR(50) UNIQUE,
   cliente_id INT REFERENCES clientes(cliente_id),
   vendedor_id INT REFERENCES vendedores(vendedor_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   cotizacion_id INT REFERENCES cotizaciones(cotizacion_id),
   pedido_id INT REFERENCES pedidos(pedido_id),
   fecha_venta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -474,7 +482,7 @@ CREATE TABLE ordenes_compra (
   orden_compra_id SERIAL PRIMARY KEY,
   numero_orden VARCHAR(50) UNIQUE,
   proveedor_id INT REFERENCES proveedores(proveedor_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   fecha_orden TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_entrega_esperada DATE,
   subtotal DECIMAL(10,2),
@@ -529,7 +537,7 @@ CREATE TABLE cotizaciones_compra (
   cotizacion_compra_id SERIAL PRIMARY KEY,
   numero_cotizacion VARCHAR(50) UNIQUE,
   proveedor_id INT REFERENCES proveedores(proveedor_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   fecha_cotizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_validez DATE,
   subtotal DECIMAL(10,2),
@@ -558,7 +566,7 @@ CREATE TABLE contratos_compra (
   contrato_id SERIAL PRIMARY KEY,
   numero_contrato VARCHAR(50) UNIQUE,
   proveedor_id INT REFERENCES proveedores(proveedor_id),
-  empresa_id INT REFERENCES empresas(empresa_id),
+  empresa_id UUID REFERENCES empresas(empresa_id),
   fecha_inicio TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_fin DATE,
   monto_total DECIMAL(10,2),
@@ -597,7 +605,7 @@ CREATE TABLE movimientos_inventario (
   entidad_tipo VARCHAR(50),
   fecha_movimiento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   almacen_id INT REFERENCES almacenes(almacen_id),
-  empresa_id INT REFERENCES empresas(empresa_id)
+  empresa_id UUID REFERENCES empresas(empresa_id)
 );
 
 CREATE TABLE devoluciones_compra (
