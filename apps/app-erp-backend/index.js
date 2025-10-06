@@ -22,7 +22,7 @@ app.use(express.static('public'));
 // Basic routes
 app.get('/', (req, res) => {
   res.json({
-    message: 'Academia Boliviana de Historia Militar - API Server',
+    message: 'ERP - API Server',
     status: 'running',
     environment: SERVER_CONFIG.NODE_ENV,
     timestamp: new Date().toISOString(),
