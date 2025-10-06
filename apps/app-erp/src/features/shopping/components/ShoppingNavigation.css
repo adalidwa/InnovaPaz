@@ -11,29 +11,29 @@
   border-radius: 8px;
   padding: 0.8rem;
   border: 1px solid var(--pri-200);
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .shopping-navigation__tab {
   transition: all 0.2s ease;
   font-weight: 500;
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto; /* No flex grow/shrink, auto width */
+  min-width: auto;
+  width: auto;
   height: auto;
   min-height: 40px;
   display: flex !important;
   align-items: center;
   justify-content: center;
-  padding: 8px 12px !important;
-  overflow: hidden;
+  padding: 8px 16px !important;
+  white-space: nowrap;
 }
 
 .shopping-navigation__tab-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  flex: 1;
-  min-width: 0;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .shopping-navigation__tab--active {
@@ -51,26 +51,25 @@
 .shopping-navigation__tab > * {
   display: flex;
   align-items: center;
-  min-width: 0;
-  overflow: hidden;
+  white-space: nowrap;
 }
 
 /* Responsive */
 @media (max-width: 1200px) {
   .shopping-navigation__tab {
     font-size: 0.875rem;
-    padding: 8px 8px !important;
+    padding: 8px 12px !important;
   }
 
   .shopping-navigation__tab svg {
-    margin-right: 4px;
+    margin-right: 5px;
   }
 }
 
 @media (max-width: 992px) {
   .shopping-navigation__tab {
     font-size: 0.8rem;
-    padding: 8px 6px !important;
+    padding: 8px 10px !important;
   }
 
   .shopping-navigation__tab svg {
@@ -85,10 +84,12 @@
     flex-direction: column;
     width: 100%;
     gap: 0.25rem;
+    overflow: visible;
   }
 
   .shopping-navigation__tab {
     width: 100% !important;
+    flex: 1 1 auto;
     justify-content: flex-start !important;
     min-height: 44px;
     padding: 12px 16px !important;
@@ -96,9 +97,6 @@
   }
 
   .shopping-navigation__tab-text {
-    white-space: normal;
-    text-overflow: unset;
-    overflow: visible;
     text-align: left;
   }
 
@@ -118,4 +116,23 @@
     padding: 10px 12px !important;
     font-size: 0.85rem;
   }
+}
+
+/* Custom scrollbar for horizontal overflow if needed */
+.shopping-navigation__tabs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.shopping-navigation__tabs::-webkit-scrollbar-track {
+  background: var(--pri-100);
+  border-radius: 3px;
+}
+
+.shopping-navigation__tabs::-webkit-scrollbar-thumb {
+  background: var(--pri-300);
+  border-radius: 3px;
+}
+
+.shopping-navigation__tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--pri-400);
 }
