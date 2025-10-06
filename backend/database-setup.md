@@ -44,13 +44,17 @@ aplicación ERP y ejecutar el script SQL para crear las tablas necesarias.
      instalación.
    - En WSL: Usa `psql -U postgres -h localhost -p 5432` e ingresa la
      contraseña.
-2. Crea una nueva base de datos: Ejecuta `CREATE DATABASE erp_db;` (reemplaza
-   'erp_db' con tu nombre preferido).
+2. Crea una nueva base de datos: Ejecuta `CREATE DATABASE innova_paz_erp_db;`
+   (este es un nombre sugerido; asegúrate de que no sea 'postgres' para evitar
+   conflictos con el usuario predeterminado).
 3. Crea un usuario (opcional, por seguridad):
-   `CREATE USER erp_user WITH PASSWORD 'tu_contraseña'; GRANT ALL PRIVILEGES ON DATABASE erp_db TO erp_user;`
+   `CREATE USER erp_user WITH PASSWORD 'tu_contraseña'; GRANT ALL PRIVILEGES ON DATABASE innova_paz_erp_db TO erp_user;`
 4. Nota: El puerto predeterminado es 5432. Si se cambia, actualiza las cadenas
    de conexión de tu aplicación en consecuencia. Asegúrate de que la contraseña
-   sea fuerte y se almacene de forma segura.
+   sea fuerte y se almacene de forma segura. Para la configuración en el archivo
+   .env de tu aplicación, si deseas usar la misma contraseña para el usuario de
+   la base de datos, puedes dejar el campo de contraseña vacío en el .env,
+   dependiendo de cómo esté configurado tu sistema de autenticación.
 
 ## Pasos de Configuración
 
@@ -567,4 +571,4 @@ CREATE TABLE devoluciones_compra (
 - Realiza una copia de seguridad de tu base de datos antes de ejecutar el
   script.
 - Si ocurren errores, verifica si hay nombres de tabla duplicados o dependencias
-  faltantes.
+  faltantes. faltantes.
