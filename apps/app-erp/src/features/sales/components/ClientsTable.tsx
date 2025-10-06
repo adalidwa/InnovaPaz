@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
+import Modal from '../../../components/common/Modal';
 import './ClientsTable.css';
 
 export interface Client {
@@ -15,6 +16,7 @@ export interface Client {
 
 interface ClientsTableProps {
   onAddClient?: () => void;
+  onManageCategories?: () => void;
 }
 
 // Datos de ejemplo basados en la imagen
@@ -45,8 +47,10 @@ const mockClients: Client[] = [
   },
 ];
 
-function ClientsTable({ onAddClient }: ClientsTableProps) {
+function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
   const [clients, setClients] = useState<Client[]>(mockClients);
+  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
+  const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
 
   const handleEditClient = (client: Client) => {
     console.log('Editando cliente:', client);
@@ -62,8 +66,24 @@ function ClientsTable({ onAddClient }: ClientsTableProps) {
     if (onAddClient) {
       onAddClient();
     } else {
-      console.log('Agregando nuevo cliente');
+      setIsAddClientModalOpen(true);
     }
+  };
+
+  const handleManageCategories = () => {
+    if (onManageCategories) {
+      onManageCategories();
+    } else {
+      setIsCategoriesModalOpen(true);
+    }
+  };
+
+  const handleCloseAddClientModal = () => {
+    setIsAddClientModalOpen(false);
+  };
+
+  const handleCloseCategoriesModal = () => {
+    setIsCategoriesModalOpen(false);
   };
 
   const renderCategoryTag = (category: Client['category']) => {
@@ -121,59 +141,121 @@ function ClientsTable({ onAddClient }: ClientsTableProps) {
   ];
 
   return (
-    <div className='clients-table'>
-      <div className='clients-table__container'>
-        {/* Header Section */}
-        <div className='clients-table__header'>
-          <div className='clients-table__title-section'>
-            <div className='clients-table__icon'>
-              <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor'>
-                <path d='M16 4C18.21 4 20 5.79 20 8S18.21 12 16 12 12 10.21 12 8 13.79 4 16 4M16 14C20.42 14 24 15.79 24 18V20H8V18C8 15.79 11.58 14 16 14M6 6H2V4H6V6M6 10H2V8H6V10M6 14H2V12H6V14Z' />
-              </svg>
+    <>
+      <div className='clients-table'>
+        <div className='clients-table__container'>
+          {/* Header Section */}
+          <div className='clients-table__header'>
+            <div className='clients-table__title-section'>
+              <div className='clients-table__icon'>
+                <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor'>
+                  <path d='M16 4C18.21 4 20 5.79 20 8S18.21 12 16 12 12 10.21 12 8 13.79 4 16 4M16 14C20.42 14 24 15.79 24 18V20H8V18C8 15.79 11.58 14 16 14M6 6H2V4H6V6M6 10H2V8H6V10M6 14H2V12H6V14Z' />
+                </svg>
+              </div>
+              <TitleDescription
+                title='Clientes Registrados'
+                description='Gestión completa de ventas, clientes, cotizaciones y pedidos'
+                titleSize={24}
+                descriptionSize={14}
+                titleWeight='semibold'
+                descriptionWeight='normal'
+                titleColor='var(--pri-900)'
+                descriptionColor='var(--pri-600)'
+                className='clients-table__title-desc'
+              />
             </div>
-            <TitleDescription
-              title='Clientes Registrados'
-              description='Gestión completa de ventas, clientes, cotizaciones y pedidos'
-              titleSize={24}
-              descriptionSize={14}
-              titleWeight='semibold'
-              descriptionWeight='normal'
-              titleColor='var(--pri-900)'
-              descriptionColor='var(--pri-600)'
-              className='clients-table__title-desc'
+
+            <div className='clients-table__actions'>
+              {/* Management Buttons Group */}
+              <div className='clients-table__management-buttons'>
+                <Button
+                  variant='primary'
+                  size='medium'
+                  onClick={handleAddNewClient}
+                  icon={
+                    <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
+                      <path d='M16 4C18.21 4 20 5.79 20 8S18.21 12 16 12 12 10.21 12 8 13.79 4 16 4M16 14C20.42 14 24 15.79 24 18V20H8V18C8 15.79 11.58 14 16 14M6 6H2V4H6V6M6 10H2V8H6V10M6 14H2V12H6V14Z' />
+                    </svg>
+                  }
+                  iconPosition='left'
+                  className='clients-table__management-btn'
+                >
+                  Gestión de Clientes
+                </Button>
+
+                <Button
+                  variant='outline'
+                  size='medium'
+                  onClick={handleManageCategories}
+                  icon={
+                    <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
+                      <path d='M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM7.5 18H9.5V16H7.5V18ZM7.5 8H9.5V6H7.5V8ZM7.5 13H9.5V11H7.5V13ZM11.5 18H16V16H11.5V18ZM11.5 8H16V6H11.5V8ZM11.5 13H16V11H11.5V13Z' />
+                    </svg>
+                  }
+                  iconPosition='left'
+                  className='clients-table__management-btn'
+                >
+                  Gestión de Categorías
+                </Button>
+              </div>
+
+              {/* Quick Action Button */}
+              <div className='clients-table__quick-actions'>
+                <Button
+                  variant='secondary'
+                  size='medium'
+                  onClick={handleAddNewClient}
+                  icon={
+                    <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
+                      <path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' />
+                    </svg>
+                  }
+                  iconPosition='left'
+                  className='clients-table__add-btn'
+                >
+                  Agregar Cliente
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Table Section */}
+          <div className='clients-table__content'>
+            <Table
+              data={clients}
+              columns={columns}
+              actions={actions}
+              className='clients-table__table'
+              emptyMessage='No hay clientes registrados'
             />
           </div>
-
-          <div className='clients-table__actions'>
-            <Button
-              variant='primary'
-              size='medium'
-              onClick={handleAddNewClient}
-              icon={
-                <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
-                  <path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' />
-                </svg>
-              }
-              iconPosition='left'
-              className='clients-table__add-btn'
-            >
-              Agregar Cliente
-            </Button>
-          </div>
-        </div>
-
-        {/* Table Section */}
-        <div className='clients-table__content'>
-          <Table
-            data={clients}
-            columns={columns}
-            actions={actions}
-            className='clients-table__table'
-            emptyMessage='No hay clientes registrados'
-          />
         </div>
       </div>
-    </div>
+
+      {/* Add Client Modal */}
+      <Modal
+        isOpen={isAddClientModalOpen}
+        onClose={handleCloseAddClientModal}
+        title='Agregar Nuevo Cliente'
+        message='Funcionalidad de agregar cliente en desarrollo...'
+        modalType='info'
+        confirmButtonText='Entendido'
+        size='large'
+        showCancelButton={false}
+      />
+
+      {/* Categories Management Modal */}
+      <Modal
+        isOpen={isCategoriesModalOpen}
+        onClose={handleCloseCategoriesModal}
+        title='Gestión de Categorías'
+        message='Funcionalidad de gestión de categorías en desarrollo...'
+        modalType='info'
+        confirmButtonText='Entendido'
+        size='medium'
+        showCancelButton={false}
+      />
+    </>
   );
 }
 
