@@ -5,8 +5,6 @@ import Dashboard from '../features/inventories/pages/Dashboard';
 import ReportsRoutes from './reports/ReportsRoutes';
 import SalesRoutes from './sales/SalesRoutes';
 import UserRoutes from './users/UserRoutes';
-import SalesRoutes from './sales/SalesRoutes';
-import Dashboard from '../features/inventories/pages/Dashboard';
 
 const AppRoutes = () => (
   <Routes>
