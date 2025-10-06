@@ -294,9 +294,9 @@ export const useShoppingModules = () => {
       case 2: // Proveedores
         return dbData.providers.length;
       case 3: // Órdenes de Compra
-        return 24; // Placeholder
+        return 2; // Número de órdenes de ejemplo en PurchaseOrdersPage
       case 4: // Recepciones
-        return 18; // Placeholder
+        return (dbData.receptions?.length || 0) + (dbData.returns?.length || 0); // Total de movimientos
       case 5: // Cotizaciones
         return 12; // Placeholder
       case 6: // Contratos
@@ -550,5 +550,529 @@ export const useProductForm = () => {
     resetForm,
     loadProduct,
     validateProduct,
+  };
+};
+
+// Tipos para Purchase Orders
+export interface PurchaseOrderItem {
+  id: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  orderNumber: string;
+  date: string;
+  supplierId: number;
+  supplierName: string;
+  items: PurchaseOrderItem[];
+  totalItems: number;
+  totalAmount: number;
+  status: 'Pendiente' | 'Recibido';
+  createdBy: string;
+  notes?: string;
+  receivedDate?: string;
+  receivedBy?: string;
+}
+
+// Hook para Purchase Orders
+export const usePurchaseOrders = () => {
+  const [orders, setOrders] = useState<PurchaseOrder[]>(dbData.purchaseOrders as PurchaseOrder[]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Filtrado de órdenes
+  const filteredOrders = useMemo(() => {
+    return orders.filter(
+      (order) =>
+        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [orders, searchTerm]);
+
+  // Paginación
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentOrders = filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const generateNewOrderId = (): number => {
+    return Math.max(...orders.map((o) => o.id), 0) + 1;
+  };
+
+  const generateOrderNumber = (): string => {
+    const maxNumber = Math.max(
+      ...orders.map((o) => parseInt(o.orderNumber.replace('#', '')) || 0),
+      0
+    );
+    return `#${maxNumber + 1}`;
+  };
+
+  // Obtener opciones de proveedores
+  const getSupplierOptions = () => {
+    return dbData.providers.map((provider) => ({
+      value: provider.id.toString(),
+      label: provider.title,
+    }));
+  };
+
+  const getSupplierName = (supplierId: number): string => {
+    const supplier = dbData.providers.find((p) => p.id === supplierId);
+    return supplier ? supplier.title : 'Proveedor desconocido';
+  };
+
+  // Agregar nueva orden
+  const addOrder = (newOrderData: {
+    supplierId: number;
+    items: Omit<PurchaseOrderItem, 'id'>[];
+    notes?: string;
+  }): void => {
+    const totalAmount = newOrderData.items.reduce((sum, item) => sum + item.total, 0);
+    const totalItems = newOrderData.items.length;
+
+    const newOrder: PurchaseOrder = {
+      id: generateNewOrderId(),
+      orderNumber: generateOrderNumber(),
+      date: new Date().toISOString().split('T')[0],
+      supplierId: newOrderData.supplierId,
+      supplierName: getSupplierName(newOrderData.supplierId),
+      items: newOrderData.items.map((item, index) => ({ ...item, id: index + 1 })),
+      totalItems,
+      totalAmount,
+      status: 'Pendiente',
+      createdBy: 'Admin',
+      notes: newOrderData.notes || '',
+    };
+
+    setOrders((prev) => [newOrder, ...prev]);
+  };
+
+  // Recibir orden (cambiar estado)
+  const receiveOrder = (orderId: number): void => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId
+          ? {
+              ...order,
+              status: 'Recibido' as const,
+              receivedDate: new Date().toISOString().split('T')[0],
+              receivedBy: 'Admin',
+            }
+          : order
+      )
+    );
+  };
+
+  // Handlers
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
+  };
+
+  return {
+    orders,
+    currentOrders,
+    filteredOrders,
+    searchTerm,
+    currentPage,
+    totalPages,
+    addOrder,
+    receiveOrder,
+    getSupplierOptions,
+    getSupplierName,
+    generateOrderNumber,
+    handleSearchChange,
+    handlePageChange,
+    formatCurrency,
+    formatDate,
+    ITEMS_PER_PAGE,
+  };
+};
+
+// Hook para formulario de nueva orden
+export const usePurchaseOrderForm = () => {
+  const initialFormState = {
+    supplierId: 0,
+    notes: '',
+    items: [] as Array<{
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      total: number;
+    }>,
+  };
+
+  const [form, setForm] = useState(initialFormState);
+  const [currentItem, setCurrentItem] = useState({
+    productName: '',
+    quantity: 1,
+    unitPrice: 0,
+  });
+
+  const updateField = (field: keyof typeof form, value: any): void => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateCurrentItem = (field: keyof typeof currentItem, value: any): void => {
+    setCurrentItem((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addItem = (): void => {
+    if (!currentItem.productName || currentItem.quantity <= 0 || currentItem.unitPrice <= 0) {
+      return;
+    }
+
+    const total = currentItem.quantity * currentItem.unitPrice;
+    const newItem = {
+      productName: currentItem.productName,
+      quantity: currentItem.quantity,
+      unitPrice: currentItem.unitPrice,
+      total,
+    };
+
+    setForm((prev) => ({
+      ...prev,
+      items: [...prev.items, newItem],
+    }));
+
+    setCurrentItem({
+      productName: '',
+      quantity: 1,
+      unitPrice: 0,
+    });
+  };
+
+  const removeItem = (index: number): void => {
+    setForm((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  const getTotalAmount = (): number => {
+    return form.items.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  const resetForm = (): void => {
+    setForm(initialFormState);
+    setCurrentItem({
+      productName: '',
+      quantity: 1,
+      unitPrice: 0,
+    });
+  };
+
+  const validateForm = (): string | null => {
+    if (!form.supplierId) return 'Debe seleccionar un proveedor';
+    if (form.items.length === 0) return 'Debe agregar al menos un producto';
+    return null;
+  };
+
+  return {
+    form,
+    currentItem,
+    updateField,
+    updateCurrentItem,
+    addItem,
+    removeItem,
+    getTotalAmount,
+    resetForm,
+    validateForm,
+  };
+};
+
+// Hook para modales de Purchase Orders
+export const usePurchaseOrderModals = () => {
+  const [showNewOrderModal, setShowNewOrderModal] = useState(false);
+  const [showViewOrderModal, setShowViewOrderModal] = useState(false);
+  const [showReceiveModal, setShowReceiveModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<PurchaseOrder | null>(null);
+
+  const openNewOrderModal = () => setShowNewOrderModal(true);
+  const closeNewOrderModal = () => setShowNewOrderModal(false);
+
+  const openViewOrderModal = (order: PurchaseOrder) => {
+    setSelectedOrder(order);
+    setShowViewOrderModal(true);
+  };
+  const closeViewOrderModal = () => {
+    setShowViewOrderModal(false);
+    setSelectedOrder(null);
+  };
+
+  const openReceiveModal = (order: PurchaseOrder) => {
+    setSelectedOrder(order);
+    setShowReceiveModal(true);
+  };
+  const closeReceiveModal = () => {
+    setShowReceiveModal(false);
+    setSelectedOrder(null);
+  };
+
+  return {
+    showNewOrderModal,
+    showViewOrderModal,
+    showReceiveModal,
+    selectedOrder,
+    openNewOrderModal,
+    closeNewOrderModal,
+    openViewOrderModal,
+    closeViewOrderModal,
+    openReceiveModal,
+    closeReceiveModal,
+  };
+};
+
+// Interfaces para recepciones
+export interface PurchaseOrder {
+  id: number;
+  orderNumber: string;
+  supplierId: number;
+  supplierName: string;
+  date: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  items: PurchaseOrderItem[];
+}
+
+export interface PurchaseOrderItem {
+  productId: number;
+  productName: string;
+  quantityOrdered: number;
+  quantityReceived: number;
+}
+
+export interface Reception {
+  id: number;
+  purchaseOrderId: number;
+  orderNumber: string;
+  supplierId: number;
+  supplierName: string;
+  date: string;
+  items: ReceptionItem[];
+  status: 'completed' | 'pending';
+}
+
+export interface ReceptionItem {
+  productId: number;
+  productName: string;
+  quantity: number;
+  lotNumber: string;
+  expiryDate: string;
+}
+
+export interface Return {
+  id: number;
+  productId: number;
+  productName: string;
+  supplierId: number;
+  supplierName: string;
+  quantity: number;
+  reason: string;
+  reasonText: string;
+  observations: string;
+  date: string;
+  status: 'completed' | 'pending';
+}
+
+export interface ReturnReason {
+  value: string;
+  label: string;
+}
+
+// Hook para recepciones
+export const useReceptions = () => {
+  const [receptions, setReceptions] = useState<Reception[]>(dbData.receptions as Reception[]);
+  const [returns, setReturns] = useState<Return[]>(dbData.returns as Return[]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Obtener opciones para formularios
+  const getPurchaseOrderOptions = () => {
+    return [
+      { value: '', label: 'Seleccionar orden...' },
+      ...(dbData.purchaseOrders as PurchaseOrder[]).map((order) => ({
+        value: order.id.toString(),
+        label: `${order.orderNumber} - ${order.supplierName}`,
+      })),
+    ];
+  };
+
+  const getProductOptions = () => {
+    return [
+      { value: '', label: 'Buscar producto...' },
+      ...dbData.products.map((product) => ({
+        value: product.id.toString(),
+        label: `${product.product}`,
+      })),
+    ];
+  };
+
+  const getSupplierOptions = () => {
+    return [
+      { value: '', label: 'Seleccionar proveedor...' },
+      ...dbData.providers.map((provider) => ({
+        value: provider.id.toString(),
+        label: provider.title,
+      })),
+    ];
+  };
+
+  const getReturnReasonOptions = () => {
+    return [
+      { value: '', label: 'Seleccionar motivo...' },
+      ...(dbData.returnReasons as ReturnReason[]).map((reason) => ({
+        value: reason.value,
+        label: reason.label,
+      })),
+    ];
+  };
+
+  // Generar ID único
+  const generateNewReceptionId = (): number => {
+    return Math.max(...receptions.map((r) => r.id)) + 1;
+  };
+
+  const generateNewReturnId = (): number => {
+    return Math.max(...returns.map((r) => r.id)) + 1;
+  };
+
+  // Agregar nueva recepción
+  const addReception = (receptionData: {
+    purchaseOrderId: number;
+    date: string;
+    items: Omit<ReceptionItem, 'productName'>[];
+  }): void => {
+    const purchaseOrder = (dbData.purchaseOrders as PurchaseOrder[]).find(
+      (po) => po.id === receptionData.purchaseOrderId
+    );
+
+    if (!purchaseOrder) return;
+
+    const newReception: Reception = {
+      id: generateNewReceptionId(),
+      purchaseOrderId: receptionData.purchaseOrderId,
+      orderNumber: purchaseOrder.orderNumber,
+      supplierId: purchaseOrder.supplierId,
+      supplierName: purchaseOrder.supplierName,
+      date: receptionData.date,
+      items: receptionData.items.map((item) => {
+        const product = dbData.products.find((p) => p.id === item.productId);
+        return {
+          ...item,
+          productName: product?.product || 'Producto desconocido',
+        };
+      }),
+      status: 'completed',
+    };
+
+    setReceptions((prev) => [...prev, newReception]);
+  };
+
+  // Agregar nueva devolución
+  const addReturn = (returnData: {
+    productId: number;
+    supplierId: number;
+    quantity: number;
+    reason: string;
+    observations: string;
+  }): void => {
+    const product = dbData.products.find((p) => p.id === returnData.productId);
+    const supplier = dbData.providers.find((p) => p.id === returnData.supplierId);
+    const reasonInfo = (dbData.returnReasons as ReturnReason[]).find(
+      (r) => r.value === returnData.reason
+    );
+
+    if (!product || !supplier || !reasonInfo) return;
+
+    const newReturn: Return = {
+      id: generateNewReturnId(),
+      productId: returnData.productId,
+      productName: product.product,
+      supplierId: returnData.supplierId,
+      supplierName: supplier.title,
+      quantity: returnData.quantity,
+      reason: returnData.reason,
+      reasonText: reasonInfo.label,
+      observations: returnData.observations,
+      date: new Date().toISOString().split('T')[0],
+      status: 'pending',
+    };
+
+    setReturns((prev) => [...prev, newReturn]);
+  };
+
+  // Combinar recepciones y devoluciones para el historial
+  const getMovementHistory = () => {
+    const receptionHistory = receptions.map((reception) => ({
+      id: `reception-${reception.id}`,
+      type: 'reception' as const,
+      title: `Recepción - ${reception.orderNumber}`,
+      description: `${reception.supplierName} - ${reception.items.reduce((sum, item) => sum + item.quantity, 0)} unidades`,
+      date: formatDate(reception.date),
+      icon: '📦',
+      data: reception,
+    }));
+
+    const returnHistory = returns.map((returnItem) => ({
+      id: `return-${returnItem.id}`,
+      type: 'return' as const,
+      title: `Devolución - ${returnItem.productName}`,
+      description: `${returnItem.reasonText} - ${returnItem.quantity} unidades`,
+      date: formatDate(returnItem.date),
+      icon: '↩️',
+      data: returnItem,
+    }));
+
+    return [...receptionHistory, ...returnHistory].sort(
+      (a, b) =>
+        new Date(b.data.date || b.date).getTime() - new Date(a.data.date || a.date).getTime()
+    );
+  };
+
+  // Obtener detalles de un movimiento
+  const getMovementDetails = (movementId: string) => {
+    if (movementId.startsWith('reception-')) {
+      const id = parseInt(movementId.split('-')[1]);
+      return receptions.find((r) => r.id === id);
+    } else if (movementId.startsWith('return-')) {
+      const id = parseInt(movementId.split('-')[1]);
+      return returns.find((r) => r.id === id);
+    }
+    return null;
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
+  };
+
+  return {
+    receptions,
+    returns,
+    searchTerm,
+    currentPage,
+    getPurchaseOrderOptions,
+    getProductOptions,
+    getSupplierOptions,
+    getReturnReasonOptions,
+    addReception,
+    addReturn,
+    getMovementHistory,
+    getMovementDetails,
+    handleSearchChange,
+    handlePageChange,
+    formatDate,
+    formatCurrency,
   };
 };

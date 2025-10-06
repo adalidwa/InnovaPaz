@@ -380,7 +380,7 @@
       "description": "Gestiona tus órdenes de compra y recepciones",
       "type": "Órdenes",
       "icon": "doc",
-      "route": "",
+      "route": "purchase-orders",
       "isActive": false,
       "priority": "low"
     },
@@ -390,9 +390,9 @@
       "description": "Registra recepciones de mercadería y gestiona devoluciones",
       "type": "Recepciones",
       "icon": "download",
-      "route": "",
-      "isActive": false,
-      "priority": "low"
+      "route": "receptions",
+      "isActive": true,
+      "priority": "medium"
     },
     {
       "id": 5,
@@ -400,9 +400,9 @@
       "description": "Compara precios entre proveedores para mejores decisiones",
       "type": "Cotizaciones",
       "icon": "tag",
-      "route": "",
-      "isActive": false,
-      "priority": "low"
+      "route": "quotes",
+      "isActive": true,
+      "priority": "medium"
     },
     {
       "id": 6,
@@ -410,7 +410,7 @@
       "description": "Administra contratos comerciales con proveedores",
       "type": "Contratos",
       "icon": "contract",
-      "route": "",
+      "route": "contracts",
       "isActive": false,
       "priority": "medium"
     },
@@ -420,7 +420,7 @@
       "description": "Dashboard ejecutivo y reportes operativos de compras",
       "type": "Compras",
       "icon": "analytics",
-      "route": "",
+      "route": "reports",
       "isActive": false,
       "priority": "low"
     }
@@ -542,5 +542,161 @@
         "status": "completed"
       }
     ]
-  }
+  },
+  "purchaseOrders": [
+    {
+      "id": 1,
+      "orderNumber": "#1",
+      "date": "2025-09-28",
+      "supplierId": 1,
+      "supplierName": "Embotelladora Boliviana",
+      "items": [
+        {
+          "id": 1,
+          "productName": "CocaCola 2L",
+          "quantity": 50,
+          "unitPrice": 12.5,
+          "total": 625.0
+        }
+      ],
+      "totalItems": 1,
+      "totalAmount": 625.0,
+      "status": "Pendiente",
+      "createdBy": "Admin",
+      "notes": "Orden urgente para restock de bebidas"
+    },
+    {
+      "id": 2,
+      "orderNumber": "#2",
+      "date": "2025-09-25",
+      "supplierId": 2,
+      "supplierName": "Distribuidora Altiplano",
+      "items": [
+        {
+          "id": 1,
+          "productName": "Detergente Ace Polvo 1kg",
+          "quantity": 30,
+          "unitPrice": 15.5,
+          "total": 465.0
+        },
+        {
+          "id": 2,
+          "productName": "Jabón Bolívar Multiuso",
+          "quantity": 24,
+          "unitPrice": 8.75,
+          "total": 210.0
+        },
+        {
+          "id": 3,
+          "productName": "Arroz Carolina Extra 1kg",
+          "quantity": 10,
+          "unitPrice": 15.0,
+          "total": 150.0
+        }
+      ],
+      "totalItems": 3,
+      "totalAmount": 825.0,
+      "status": "Recibido",
+      "createdBy": "Admin",
+      "notes": "Orden mensual de productos de limpieza",
+      "receivedDate": "2025-09-26",
+      "receivedBy": "Supervisor"
+    }
+  ],
+  "receptions": [
+    {
+      "id": 1,
+      "purchaseOrderId": 1,
+      "orderNumber": "OC-001",
+      "supplierId": 1,
+      "supplierName": "Embotelladora Boliviana",
+      "date": "2025-09-25",
+      "items": [
+        {
+          "productId": 1,
+          "productName": "CocaCola 2L",
+          "quantity": 150,
+          "lotNumber": "CBN-2025-001",
+          "expiryDate": "2025-12-15"
+        }
+      ],
+      "status": "completed"
+    },
+    {
+      "id": 2,
+      "purchaseOrderId": 2,
+      "orderNumber": "OC-002",
+      "supplierId": 9,
+      "supplierName": "PIL Andina S.A.",
+      "date": "2025-09-26",
+      "items": [
+        {
+          "productId": 4,
+          "productName": "Leche Pil Entera 1L",
+          "quantity": 100,
+          "lotNumber": "PIL-2025-B12",
+          "expiryDate": "2025-10-20"
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "returns": [
+    {
+      "id": 1,
+      "productId": 2,
+      "productName": "Coca Cola 2L",
+      "supplierId": 1,
+      "supplierName": "Embotelladora Boliviana",
+      "quantity": 5,
+      "reason": "expired",
+      "reasonText": "Producto vencido",
+      "observations": "Productos con fecha de vencimiento próxima detectados en inventario",
+      "date": "2025-09-22",
+      "status": "completed"
+    },
+    {
+      "id": 2,
+      "productId": 5,
+      "productName": "Pan Blanco Grande",
+      "supplierId": 10,
+      "supplierName": "Panadería Ideal",
+      "quantity": 3,
+      "reason": "damaged",
+      "reasonText": "Producto dañado",
+      "observations": "Pan llegó con moho durante la recepción",
+      "date": "2025-09-20",
+      "status": "pending"
+    }
+  ],
+  "returnReasons": [
+    {
+      "value": "expired",
+      "label": "Producto vencido"
+    },
+    {
+      "value": "damaged",
+      "label": "Producto dañado"
+    },
+    {
+      "value": "defective",
+      "label": "Producto defectuoso"
+    },
+    {
+      "value": "wrong_product",
+      "label": "Producto incorrecto"
+    },
+    {
+      "value": "quality_issues",
+      "label": "Problemas de calidad"
+    },
+    {
+      "value": "quantity_mismatch",
+      "label": "Cantidad incorrecta"
+    },
+    {
+      "value": "packaging_issues",
+      "label": "Problemas de empaque"
+    }
+  ]
 }
