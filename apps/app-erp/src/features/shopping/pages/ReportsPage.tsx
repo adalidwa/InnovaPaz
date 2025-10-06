@@ -222,7 +222,6 @@ const ReportsPage: React.FC = () => {
           </div>
           {filteredProducts.map((product) => {
             const percentage = getStockPercentage(product.currentStock, product.minStock);
-            const percentage = getStockPercentage(product.currentStock, product.minStock);
             const status = percentage < 100 ? 'Crítico' : 'Normal';
             const statusStyle = getStockStatusStyle(status);
 
