@@ -4,7 +4,7 @@ import PersonalInfoSection from '../components/PersonalInfoSection';
 import PreferencesSection from '../components/PreferencesSection';
 import SecuritySection from '../components/SecuritySection';
 import { currentUser, currentCompany } from '../config/mockData';
-import { validateTokenAndLogin } from '../../../services/authService';
+
 import './ProfilePage.css';
 
 type TabType = 'personal' | 'preferences' | 'security';
@@ -40,27 +40,10 @@ function ProfilePage() {
   const [loading, setLoading] = useState(!currentUser);
 
   useEffect(() => {
-    const loadUserData = async () => {
-      if (!currentUser) {
-        setLoading(true);
-        try {
-          await validateTokenAndLogin();
-          // Después de la validación, los datos estarán en currentUser y currentCompany
-          setUserData(currentUser);
-          setCompanyData(currentCompany);
-        } catch (error) {
-          console.error('Error cargando datos del usuario:', error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setUserData(currentUser);
-        setCompanyData(currentCompany);
-        setLoading(false);
-      }
-    };
-
-    loadUserData();
+    // Simplemente usar los datos mockeados sin validación de token
+    setUserData(currentUser);
+    setCompanyData(currentCompany);
+    setLoading(false);
   }, []);
 
   const renderTabContent = () => {
