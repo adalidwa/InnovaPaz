@@ -6,6 +6,7 @@ import ProvidersPage from '../../features/shopping/pages/ProvidersPage';
 import PurchaseOrdersPage from '../../features/shopping/pages/PurchaseOrdersPage';
 import ReceptionsPage from '../../features/shopping/pages/ReceptionsPage';
 import QuotesPage from '../../features/shopping/pages/QuotesPage';
+import ContractsPage from '../../features/shopping/pages/ContractsPage';
 
 const ShoppingRoutes: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const ShoppingRoutes: React.FC = () => {
       <Route path='purchase-orders' element={<PurchaseOrdersPage />} />
       <Route path='receptions' element={<ReceptionsPage />} />
       <Route path='quotes' element={<QuotesPage />} />
+      <Route path='contracts' element={<ContractsPage />} />
     </Routes>
   );
 };

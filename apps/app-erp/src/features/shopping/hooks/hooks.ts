@@ -300,9 +300,13 @@ export const useShoppingModules = () => {
       case 5: // Cotizaciones
         return 12; // Placeholder
       case 6: // Contratos
-        return 8; // Placeholder
+        return (dbData.contracts || []).length; // Número de contratos
       case 7: // Reportes
-        return 15; // Placeholder
+        return (
+          (dbData.reports?.purchasesByProvider?.length || 0) +
+          (dbData.reports?.providerPerformance?.length || 0) +
+          (dbData.reports?.stockAnalysis?.length || 0)
+        ); // Total elementos de reportes
       default:
         return 0;
     }
@@ -1073,6 +1077,557 @@ export const useReceptions = () => {
     handleSearchChange,
     handlePageChange,
     formatDate,
+    formatCurrency,
+  };
+};
+
+// Tipos para Contracts
+export interface Contract {
+  id: number;
+  title: string;
+  description: string;
+  supplierId: number;
+  supplierName: string;
+  type: string;
+  status: 'active' | 'expired' | 'pending';
+  startDate: string;
+  endDate: string;
+  terms: {
+    discount?: string;
+    paymentDays: number;
+    fixedPrice?: string;
+  };
+  daysUntilExpiration: number;
+  alertsEnabled: boolean;
+  documentPath?: string;
+  createdBy: string;
+  createdDate: string;
+  notes?: string;
+}
+
+export interface ContractType {
+  value: string;
+  label: string;
+}
+
+// Hook para Contracts
+export const useContracts = () => {
+  const [contracts, setContracts] = useState<Contract[]>((dbData.contracts as Contract[]) || []);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Filtrado de contratos
+  const filteredContracts = useMemo(() => {
+    return contracts.filter(
+      (contract) =>
+        contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contract.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contract.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contract.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [contracts, searchTerm]);
+
+  // Paginación
+  const totalPages = Math.ceil(filteredContracts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentContracts = filteredContracts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+  const generateNewContractId = (): number => {
+    return Math.max(...contracts.map((c) => c.id), 0) + 1;
+  };
+
+  // Obtener opciones de proveedores
+  const getSupplierOptions = () => {
+    return dbData.providers.map((provider) => ({
+      value: provider.id.toString(),
+      label: provider.title,
+    }));
+  };
+
+  // Obtener tipos de contrato
+  const getContractTypeOptions = () => {
+    return (dbData.contractTypes as ContractType[]) || [];
+  };
+
+  const getSupplierName = (supplierId: number): string => {
+    const supplier = dbData.providers.find((p) => p.id === supplierId);
+    return supplier ? supplier.title : 'Proveedor desconocido';
+  };
+
+  // Calcular días hasta vencimiento
+  const calculateDaysUntilExpiration = (endDate: string): number => {
+    const today = new Date();
+    const expirationDate = new Date(endDate);
+    const diffTime = expirationDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  // Agregar nuevo contrato
+  const addContract = (newContractData: {
+    title: string;
+    description: string;
+    supplierId: number;
+    type: string;
+    startDate: string;
+    endDate: string;
+    terms: {
+      discount?: string;
+      paymentDays: number;
+      fixedPrice?: string;
+    };
+    alertsEnabled: boolean;
+    notes?: string;
+  }): void => {
+    const daysUntilExpiration = calculateDaysUntilExpiration(newContractData.endDate);
+    const status = daysUntilExpiration < 0 ? 'expired' : 'active';
+
+    const newContract: Contract = {
+      id: generateNewContractId(),
+      title: newContractData.title,
+      description: newContractData.description,
+      supplierId: newContractData.supplierId,
+      supplierName: getSupplierName(newContractData.supplierId),
+      type: newContractData.type,
+      status,
+      startDate: newContractData.startDate,
+      endDate: newContractData.endDate,
+      terms: newContractData.terms,
+      daysUntilExpiration,
+      alertsEnabled: newContractData.alertsEnabled,
+      createdBy: 'Admin',
+      createdDate: new Date().toISOString().split('T')[0],
+      notes: newContractData.notes || '',
+    };
+
+    setContracts((prev) => [newContract, ...prev]);
+  };
+
+  // Renovar contrato
+  const renewContract = (contractId: number, newEndDate: string): void => {
+    setContracts((prev) =>
+      prev.map((contract) =>
+        contract.id === contractId
+          ? {
+              ...contract,
+              endDate: newEndDate,
+              status: 'active' as const,
+              daysUntilExpiration: calculateDaysUntilExpiration(newEndDate),
+            }
+          : contract
+      )
+    );
+  };
+
+  // Obtener contratos por estado
+  const getContractsByStatus = (status: Contract['status']) => {
+    return contracts.filter((contract) => contract.status === status);
+  };
+
+  // Obtener contratos próximos a vencer (30 días o menos)
+  const getExpiringContracts = () => {
+    return contracts.filter(
+      (contract) =>
+        contract.status === 'active' &&
+        contract.daysUntilExpiration <= 30 &&
+        contract.daysUntilExpiration > 0
+    );
+  };
+
+  // Handlers
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number): void => {
+    setCurrentPage(page);
+  };
+
+  return {
+    contracts,
+    currentContracts,
+    filteredContracts,
+    searchTerm,
+    currentPage,
+    totalPages,
+    addContract,
+    renewContract,
+    getContractsByStatus,
+    getExpiringContracts,
+    getSupplierOptions,
+    getContractTypeOptions,
+    getSupplierName,
+    calculateDaysUntilExpiration,
+    handleSearchChange,
+    handlePageChange,
+    formatCurrency,
+    formatDate,
+    ITEMS_PER_PAGE,
+  };
+};
+
+// Hook para formulario de nuevo contrato
+export const useContractForm = () => {
+  const initialFormState = {
+    title: '',
+    description: '',
+    supplierId: 0,
+    type: '',
+    startDate: '',
+    endDate: '',
+    terms: {
+      discount: '',
+      paymentDays: 30,
+      fixedPrice: '',
+    },
+    alertsEnabled: true,
+    notes: '',
+    documentFile: null as File | null,
+  };
+
+  const [form, setForm] = useState(initialFormState);
+
+  const updateField = (field: keyof typeof form, value: any): void => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateTermsField = (field: keyof typeof form.terms, value: any): void => {
+    setForm((prev) => ({
+      ...prev,
+      terms: { ...prev.terms, [field]: value },
+    }));
+  };
+
+  const resetForm = (): void => {
+    setForm(initialFormState);
+  };
+
+  const validateForm = (): string | null => {
+    if (!form.title.trim()) return 'El título es obligatorio';
+    if (!form.description.trim()) return 'La descripción es obligatoria';
+    if (!form.supplierId) return 'Debe seleccionar un proveedor';
+    if (!form.type) return 'Debe seleccionar un tipo de contrato';
+    if (!form.startDate) return 'La fecha de inicio es obligatoria';
+    if (!form.endDate) return 'La fecha de vencimiento es obligatoria';
+    if (new Date(form.startDate) >= new Date(form.endDate)) {
+      return 'La fecha de vencimiento debe ser posterior a la fecha de inicio';
+    }
+    if (form.terms.paymentDays <= 0) return 'Los días de pago deben ser mayor a 0';
+    return null;
+  };
+
+  return {
+    form,
+    updateField,
+    updateTermsField,
+    resetForm,
+    validateForm,
+  };
+};
+
+// Hook para modales de Contracts
+export const useContractModals = () => {
+  const [showNewContractModal, setShowNewContractModal] = useState(false);
+  const [showViewDocumentModal, setShowViewDocumentModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showRenewModal, setShowRenewModal] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+
+  const openNewContractModal = () => setShowNewContractModal(true);
+  const closeNewContractModal = () => setShowNewContractModal(false);
+
+  const openViewDocumentModal = (contract: Contract) => {
+    setSelectedContract(contract);
+    setShowViewDocumentModal(true);
+  };
+  const closeViewDocumentModal = () => {
+    setShowViewDocumentModal(false);
+    setSelectedContract(null);
+  };
+
+  const openHistoryModal = (contract: Contract) => {
+    setSelectedContract(contract);
+    setShowHistoryModal(true);
+  };
+  const closeHistoryModal = () => {
+    setShowHistoryModal(false);
+    setSelectedContract(null);
+  };
+
+  const openRenewModal = (contract: Contract) => {
+    setSelectedContract(contract);
+    setShowRenewModal(true);
+  };
+  const closeRenewModal = () => {
+    setShowRenewModal(false);
+    setSelectedContract(null);
+  };
+
+  return {
+    showNewContractModal,
+    showViewDocumentModal,
+    showHistoryModal,
+    showRenewModal,
+    selectedContract,
+    openNewContractModal,
+    closeNewContractModal,
+    openViewDocumentModal,
+    closeViewDocumentModal,
+    openHistoryModal,
+    closeHistoryModal,
+    openRenewModal,
+    closeRenewModal,
+  };
+};
+
+// Interfaces para reportes
+export interface ReportKPIs {
+  monthlyPurchases: {
+    amount: number;
+    percentage: number;
+    trend: 'up' | 'down';
+  };
+  accumulatedSavings: {
+    amount: number;
+    description: string;
+  };
+  averageDeliveryTime: {
+    days: number;
+    change: number;
+    trend: 'up' | 'down';
+  };
+}
+
+export interface PurchasesByProvider {
+  id: number;
+  name: string;
+  amount: number;
+  percentage: number;
+}
+
+export interface ProviderPerformance {
+  id: number;
+  name: string;
+  rating: number;
+  compliance: number;
+}
+
+export interface StockAnalysis {
+  productId: number;
+  productName: string;
+  currentStock: number;
+  minStock: number;
+  percentage: number;
+  status: 'Normal' | 'Crítico';
+}
+
+export interface ReportsData {
+  kpis: ReportKPIs;
+  purchasesByProvider: PurchasesByProvider[];
+  providerPerformance: ProviderPerformance[];
+  stockAnalysis: StockAnalysis[];
+}
+
+// Hook para reportes
+export const useReports = () => {
+  const [reports] = useState<ReportsData>(dbData.reports as ReportsData);
+  const [stockFilter, setStockFilter] = useState<'all' | 'critical' | 'normal'>('all');
+
+  // Formatear moneda
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('es-BO', {
+      style: 'currency',
+      currency: 'BOB',
+    }).format(amount);
+  };
+
+  // Obtener KPIs
+  const getKPIs = () => {
+    return reports.kpis;
+  };
+
+  // Obtener compras por proveedor
+  const getPurchasesByProvider = () => {
+    return reports.purchasesByProvider;
+  };
+
+  // Obtener desempeño de proveedores
+  const getProviderPerformance = () => {
+    return reports.providerPerformance;
+  };
+
+  // Obtener análisis de stock con filtros
+  const getStockAnalysis = () => {
+    let filteredStock = reports.stockAnalysis;
+
+    if (stockFilter === 'critical') {
+      filteredStock = reports.stockAnalysis.filter((item) => item.status === 'Crítico');
+    } else if (stockFilter === 'normal') {
+      filteredStock = reports.stockAnalysis.filter((item) => item.status === 'Normal');
+    }
+
+    return filteredStock;
+  };
+
+  // Generar CSV para exportación
+  const generateCSV = (data: any[], filename: string) => {
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+    const csvContent = [
+      headers.join(','),
+      ...data.map((row) =>
+        headers
+          .map((header) => {
+            const value = row[header];
+            // Escapar valores que contengan comas
+            return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+          })
+          .join(',')
+      ),
+    ].join('\n');
+
+    // Crear y descargar archivo
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Exportar compras por proveedor
+  const exportPurchasesByProvider = () => {
+    const data = reports.purchasesByProvider.map((item) => ({
+      Proveedor: item.name,
+      Monto: item.amount,
+      Porcentaje: `${item.percentage}%`,
+    }));
+    generateCSV(data, 'compras-por-proveedor.csv');
+  };
+
+  // Exportar desempeño de proveedores
+  const exportProviderPerformance = () => {
+    const data = reports.providerPerformance.map((item) => ({
+      Proveedor: item.name,
+      Rating: item.rating,
+      Cumplimiento: `${item.compliance}%`,
+    }));
+    generateCSV(data, 'desempeno-proveedores.csv');
+  };
+
+  // Exportar análisis de stock
+  const exportStockAnalysis = () => {
+    const data = getStockAnalysis().map((item) => ({
+      Producto: item.productName,
+      'Stock Actual': item.currentStock,
+      'Stock Mínimo': item.minStock,
+      'Porcentaje Disponible': `${item.percentage}%`,
+      Estado: item.status,
+    }));
+    generateCSV(data, 'analisis-stock.csv');
+  };
+
+  // Exportar todo
+  const exportAll = () => {
+    exportPurchasesByProvider();
+    setTimeout(() => exportProviderPerformance(), 500);
+    setTimeout(() => exportStockAnalysis(), 1000);
+  };
+
+  // Generar reporte mensual (simulado)
+  const generateMonthlyReport = () => {
+    const reportData = {
+      fecha: new Date().toLocaleDateString('es-BO'),
+      kpis: reports.kpis,
+      totalProveedores: reports.providerPerformance.length,
+      productosEnStock: reports.stockAnalysis.filter((p) => p.status === 'Normal').length,
+      productosCriticos: reports.stockAnalysis.filter((p) => p.status === 'Crítico').length,
+    };
+
+    const content = `
+REPORTE MENSUAL DE COMPRAS
+========================
+
+Fecha: ${reportData.fecha}
+
+INDICADORES CLAVE:
+- Compras del mes: Bs. ${reports.kpis.monthlyPurchases.amount.toLocaleString()}
+- Ahorro acumulado: Bs. ${reports.kpis.accumulatedSavings.amount.toLocaleString()}
+- Tiempo promedio entrega: ${reports.kpis.averageDeliveryTime.days} días
+
+RESUMEN PROVEEDORES:
+- Total proveedores activos: ${reportData.totalProveedores}
+- Proveedor top: ${reports.purchasesByProvider[0].name}
+
+ESTADO INVENTARIO:
+- Productos normales: ${reportData.productosEnStock}
+- Productos críticos: ${reportData.productosCriticos}
+
+========================
+Generado automáticamente
+    `.trim();
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'reporte-mensual-compras.txt');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Análisis de precios (simulado - modal)
+  const analyzePrices = () => {
+    const analysis = {
+      totalProducts: reports.stockAnalysis.length,
+      averageVariation: 5.2,
+      bestDeals: reports.purchasesByProvider.slice(0, 2).map((p) => p.name),
+      recommendation: 'Revisar precios de productos críticos para optimizar costos',
+    };
+    return analysis;
+  };
+
+  // Evaluación de proveedores (simulado - modal)
+  const evaluateProviders = () => {
+    const evaluation = {
+      topPerformer: reports.providerPerformance.reduce((prev, current) =>
+        prev.rating > current.rating ? prev : current
+      ),
+      improvementNeeded: reports.providerPerformance.filter((p) => p.compliance < 95),
+      averageRating: (
+        reports.providerPerformance.reduce((sum, p) => sum + p.rating, 0) /
+        reports.providerPerformance.length
+      ).toFixed(1),
+    };
+    return evaluation;
+  };
+
+  // Cambiar filtro de stock
+  const handleStockFilterChange = (filter: 'all' | 'critical' | 'normal') => {
+    setStockFilter(filter);
+  };
+
+  return {
+    getKPIs,
+    getPurchasesByProvider,
+    getProviderPerformance,
+    getStockAnalysis,
+    stockFilter,
+    handleStockFilterChange,
+    exportPurchasesByProvider,
+    exportProviderPerformance,
+    exportStockAnalysis,
+    exportAll,
+    generateMonthlyReport,
+    analyzePrices,
+    evaluateProviders,
     formatCurrency,
   };
 };

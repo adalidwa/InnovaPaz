@@ -199,6 +199,16 @@
       "phone": "76888999",
       "email": "elena@ceibo.bo",
       "address": "Valle Alto, Cochabamba"
+    },
+    {
+      "id": 21,
+      "title": "CBN",
+      "description": "Cadena Boliviana de Negocios",
+      "nit": "9999888777",
+      "contact": "Pedro Martinez",
+      "phone": "78555444",
+      "email": "pedro@cbn.bo",
+      "address": "Centro Financiero, La Paz"
     }
   ],
   "products": [
@@ -353,6 +363,68 @@
       "status": "Normal"
     }
   ],
+  "contracts": [
+    {
+      "id": 1,
+      "title": "Contrato Anual - Embotelladora Boliviana",
+      "description": "Acuerdo de Suministro 2025",
+      "providerId": 1,
+      "providerName": "Embotelladora Boliviana",
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-31",
+      "status": "active",
+      "type": "supply",
+      "terms": {
+        "discount": "5% en compras > Bs. 5,000",
+        "paymentTerm": "30 días",
+        "description": "Contrato de suministro anual con descuentos por volumen. Incluye todos los productos de bebidas gaseosas y agua mineral."
+      },
+      "documentPath": "/contracts/contract_embotelladora_2025.pdf",
+      "renewalAlert": true,
+      "createdDate": "2024-12-15",
+      "daysUntilExpiry": 92
+    },
+    {
+      "id": 2,
+      "title": "Contrato Trimestral - CBN",
+      "description": "Acuerdo de Precios Fijos",
+      "providerId": 21,
+      "providerName": "CBN",
+      "startDate": "2025-07-01",
+      "endDate": "2025-09-30",
+      "status": "expired",
+      "type": "fixed_price",
+      "terms": {
+        "fixedPrice": "Cerveza Paceña a Bs. 5.50",
+        "paymentTerm": "15 días",
+        "description": "Contrato trimestral con precios fijos para cerveza. Precio garantizado durante todo el período."
+      },
+      "documentPath": "/contracts/contract_cbn_q3_2025.pdf",
+      "renewalAlert": false,
+      "createdDate": "2025-06-15",
+      "daysUntilExpiry": 0
+    },
+    {
+      "id": 3,
+      "title": "Acuerdo Marco - PIL Andina",
+      "description": "Contrato de Productos Lácteos",
+      "providerId": 9,
+      "providerName": "PIL Andina S.A.",
+      "startDate": "2025-03-01",
+      "endDate": "2026-02-28",
+      "status": "active",
+      "type": "framework",
+      "terms": {
+        "discount": "3% descuento en pedidos > 100 unidades",
+        "paymentTerm": "45 días",
+        "description": "Acuerdo marco para suministro de productos lácteos. Incluye leche, yogurt y derivados."
+      },
+      "documentPath": "/contracts/contract_pil_framework_2025.pdf",
+      "renewalAlert": true,
+      "createdDate": "2025-02-10",
+      "daysUntilExpiry": 180
+    }
+  ],
   "shoppingModules": [
     {
       "id": 1,
@@ -411,7 +483,7 @@
       "type": "Contratos",
       "icon": "contract",
       "route": "contracts",
-      "isActive": false,
+      "isActive": true,
       "priority": "medium"
     },
     {
@@ -542,161 +614,5 @@
         "status": "completed"
       }
     ]
-  },
-  "purchaseOrders": [
-    {
-      "id": 1,
-      "orderNumber": "#1",
-      "date": "2025-09-28",
-      "supplierId": 1,
-      "supplierName": "Embotelladora Boliviana",
-      "items": [
-        {
-          "id": 1,
-          "productName": "CocaCola 2L",
-          "quantity": 50,
-          "unitPrice": 12.5,
-          "total": 625.0
-        }
-      ],
-      "totalItems": 1,
-      "totalAmount": 625.0,
-      "status": "Pendiente",
-      "createdBy": "Admin",
-      "notes": "Orden urgente para restock de bebidas"
-    },
-    {
-      "id": 2,
-      "orderNumber": "#2",
-      "date": "2025-09-25",
-      "supplierId": 2,
-      "supplierName": "Distribuidora Altiplano",
-      "items": [
-        {
-          "id": 1,
-          "productName": "Detergente Ace Polvo 1kg",
-          "quantity": 30,
-          "unitPrice": 15.5,
-          "total": 465.0
-        },
-        {
-          "id": 2,
-          "productName": "Jabón Bolívar Multiuso",
-          "quantity": 24,
-          "unitPrice": 8.75,
-          "total": 210.0
-        },
-        {
-          "id": 3,
-          "productName": "Arroz Carolina Extra 1kg",
-          "quantity": 10,
-          "unitPrice": 15.0,
-          "total": 150.0
-        }
-      ],
-      "totalItems": 3,
-      "totalAmount": 825.0,
-      "status": "Recibido",
-      "createdBy": "Admin",
-      "notes": "Orden mensual de productos de limpieza",
-      "receivedDate": "2025-09-26",
-      "receivedBy": "Supervisor"
-    }
-  ],
-  "receptions": [
-    {
-      "id": 1,
-      "purchaseOrderId": 1,
-      "orderNumber": "OC-001",
-      "supplierId": 1,
-      "supplierName": "Embotelladora Boliviana",
-      "date": "2025-09-25",
-      "items": [
-        {
-          "productId": 1,
-          "productName": "CocaCola 2L",
-          "quantity": 150,
-          "lotNumber": "CBN-2025-001",
-          "expiryDate": "2025-12-15"
-        }
-      ],
-      "status": "completed"
-    },
-    {
-      "id": 2,
-      "purchaseOrderId": 2,
-      "orderNumber": "OC-002",
-      "supplierId": 9,
-      "supplierName": "PIL Andina S.A.",
-      "date": "2025-09-26",
-      "items": [
-        {
-          "productId": 4,
-          "productName": "Leche Pil Entera 1L",
-          "quantity": 100,
-          "lotNumber": "PIL-2025-B12",
-          "expiryDate": "2025-10-20"
-        }
-      ],
-      "status": "completed"
-    }
-  ],
-  "returns": [
-    {
-      "id": 1,
-      "productId": 2,
-      "productName": "Coca Cola 2L",
-      "supplierId": 1,
-      "supplierName": "Embotelladora Boliviana",
-      "quantity": 5,
-      "reason": "expired",
-      "reasonText": "Producto vencido",
-      "observations": "Productos con fecha de vencimiento próxima detectados en inventario",
-      "date": "2025-09-22",
-      "status": "completed"
-    },
-    {
-      "id": 2,
-      "productId": 5,
-      "productName": "Pan Blanco Grande",
-      "supplierId": 10,
-      "supplierName": "Panadería Ideal",
-      "quantity": 3,
-      "reason": "damaged",
-      "reasonText": "Producto dañado",
-      "observations": "Pan llegó con moho durante la recepción",
-      "date": "2025-09-20",
-      "status": "pending"
-    }
-  ],
-  "returnReasons": [
-    {
-      "value": "expired",
-      "label": "Producto vencido"
-    },
-    {
-      "value": "damaged",
-      "label": "Producto dañado"
-    },
-    {
-      "value": "defective",
-      "label": "Producto defectuoso"
-    },
-    {
-      "value": "wrong_product",
-      "label": "Producto incorrecto"
-    },
-    {
-      "value": "quality_issues",
-      "label": "Problemas de calidad"
-    },
-    {
-      "value": "quantity_mismatch",
-      "label": "Cantidad incorrecta"
-    },
-    {
-      "value": "packaging_issues",
-      "label": "Problemas de empaque"
-    }
-  ]
+  }
 }
