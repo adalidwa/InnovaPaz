@@ -1,7 +1,6 @@
 /* Mobile-first styles for SalesHistory */
 .sales-history {
   width: 100%;
-  background-color: var(--white);
   min-height: calc(100vh - 200px);
 }
 

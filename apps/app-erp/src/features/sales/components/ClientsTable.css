@@ -1,7 +1,6 @@
 /* Mobile-first styles for ClientsTable */
 .clients-table {
   width: 100%;
-  background-color: var(--white);
   min-height: calc(100vh - 200px);
 }
 
