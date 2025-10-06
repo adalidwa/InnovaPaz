@@ -3,13 +3,18 @@ import ProductsHeader from '../components/ProductsHeader';
 import ProductosSearchBar from '../components/ProductosSearchBar';
 import ProductsCardCrud from '../components/ProductsCardCrud';
 import ModalImputs from '../components/ModalImputs';
+import EditProductModal from '../components/EditProductModal';
 import { useProductsContext } from '../context/ProductsContext';
 import type { ProductFormData } from '../hooks/useProducts';
+import type { Product } from '../types/inventory';
 import './ProductManagement.css';
 
 function ProductManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { products, loading, addProduct, deactivateProduct } = useProductsContext();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const { products, searchTerm, loading, addProduct, updateProduct, deactivateProduct } =
+    useProductsContext();
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -32,9 +37,26 @@ function ProductManagement() {
     return result;
   };
 
-  const handleEditProduct = (product: any) => {
-    // TODO: Implementar edición de productos
-    console.log('Editar producto:', product);
+  const handleEditProduct = (product: Product) => {
+    setProductToEdit(product);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setProductToEdit(null);
+  };
+
+  const handleUpdateProduct = (productData: ProductFormData) => {
+    if (!productToEdit) return { success: false, error: 'No hay producto seleccionado' };
+
+    const result = updateProduct(productToEdit.id, productData);
+    if (result.success) {
+      console.log('Producto actualizado exitosamente');
+    } else {
+      console.error('Error al actualizar producto:', result.error);
+    }
+    return result;
   };
 
   const handleDeleteProduct = (productId: string) => {
@@ -63,7 +85,14 @@ function ProductManagement() {
       <div className='products-container'>
         {products.length === 0 ? (
           <div className='no-products'>
-            <p>No hay productos registrados. ¡Agrega tu primer producto!</p>
+            {searchTerm ? (
+              <p>
+                No se encontraron productos que coincidan con "{searchTerm}". Intenta con otro
+                término de búsqueda.
+              </p>
+            ) : (
+              <p>No hay productos registrados. ¡Agrega tu primer producto!</p>
+            )}
           </div>
         ) : (
           products.map((product) => (
@@ -90,6 +119,27 @@ function ProductManagement() {
               <ModalImputs
                 onSave={handleSaveProduct}
                 onCancel={handleCloseModal}
+                loading={loading}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && productToEdit && (
+        <div className='modal-overlay' onClick={handleCloseEditModal}>
+          <div className='modal-container' onClick={(e) => e.stopPropagation()}>
+            <div className='modal-header'>
+              <h2 className='modal-title'>Editar Producto - {productToEdit.name}</h2>
+              <button className='modal-close' onClick={handleCloseEditModal}>
+                ×
+              </button>
+            </div>
+            <div className='modal-body'>
+              <EditProductModal
+                product={productToEdit}
+                onSave={handleUpdateProduct}
+                onCancel={handleCloseEditModal}
                 loading={loading}
               />
             </div>

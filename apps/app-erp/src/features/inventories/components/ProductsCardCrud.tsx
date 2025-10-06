@@ -1,7 +1,6 @@
 import Invetarios from '../../../assets/icons/Inventarios.png';
 import Ojo from '../../../assets/images/Ojo.png';
 import Editar from '../../../assets/images/Editar.png';
-import Eliminar from '../../../assets/images/Delete.png';
 import { Button, StatusTag } from '../../../components/common';
 import TitleDescription from '../../../components/common/TitleDescription';
 import type { Product } from '../types/inventory';
@@ -120,11 +119,11 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
         >
           Ver
         </Button>
-        <Button variant='ghost' size='small' iconPosition='left' onClick={handleEdit}>
+        <Button variant='secondary' size='small' iconPosition='left' onClick={handleEdit}>
           <img src={Editar} alt='Editar' />
         </Button>
-        <Button variant='ghost' size='small' iconPosition='left' onClick={handleDeactivate}>
-          <img src={Eliminar} alt='Desactivar' />
+        <Button variant='warning' size='small' iconPosition='left' onClick={handleDeactivate}>
+          cambiar estado
         </Button>
       </div>
     </div>
