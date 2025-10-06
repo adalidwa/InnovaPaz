@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import '../../../assets/styles/theme.css';
-import { SalesNavigation, PointOfSale, ClientsTable, SalesHistory } from '../components';
+import {
+  SalesNavigation,
+  PointOfSale,
+  ClientsTable,
+  SalesHistory,
+  QuotesManagement,
+} from '../components';
 import TitleDescription from '../../../components/common/TitleDescription';
 import './MovementsPage.css';
 
@@ -20,25 +26,7 @@ function MovementsPage() {
       case 'historial':
         return <SalesHistory />;
       case 'cotizaciones':
-        return (
-          <div
-            style={{
-              padding: '32px',
-              textAlign: 'center',
-              background: 'var(--white)',
-              margin: '32px',
-              borderRadius: '8px',
-              border: '1px solid var(--pri-200)',
-            }}
-          >
-            <h3 style={{ font: 'var(--font-20)', color: 'var(--pri-900)', marginBottom: '16px' }}>
-              Cotizaciones
-            </h3>
-            <p style={{ font: 'var(--font-14)', color: 'var(--pri-600)' }}>
-              Módulo de cotizaciones en desarrollo...
-            </p>
-          </div>
-        );
+        return <QuotesManagement />;
       case 'pedidos':
         return (
           <div

@@ -10,3 +10,5 @@ export { default as ProductCard } from './ProductCard';
 export { default as PointOfSale } from './PointOfSale';
 export { default as ClientsTable } from './ClientsTable';
 export { default as SalesHistory } from './SalesHistory';
+export { default as QuotesManagement } from './QuotesManagement';
+export { default as QuoteCard } from './QuoteCard';
