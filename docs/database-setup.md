@@ -144,16 +144,6 @@ CREATE TABLE roles (
 );
 
 CREATE TABLE usuarios (
-  usuario_id SERIAL PRIMARY KEY,
-  nombre_usuario VARCHAR(100) UNIQUE NOT NULL,
-  contrasena VARCHAR(255) NOT NULL,
-  email VARCHAR(150),
-  rol_id INT REFERENCES roles(rol_id),
-  estado BOOLEAN DEFAULT TRUE,
-  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE usuarios (
   uid VARCHAR(100) PRIMARY KEY,
   empresa_id UUID REFERENCES empresas(empresa_id),
   rol_id INT REFERENCES roles(rol_id),
