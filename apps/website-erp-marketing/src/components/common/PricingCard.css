@@ -1,4 +1,5 @@
 .pricing-card {
+  position: relative;
   background: var(--white);
   border-radius: 8px;
   padding: 1.5rem 3rem;
@@ -11,6 +12,7 @@
   width: 100%;
   max-width: 340px;
   box-sizing: border-box;
+  min-height: 580px;
 }
 
 .pricing-card--highlight {
@@ -30,11 +32,48 @@
   width: 100% !important;
 }
 
+.pricing-card__badge {
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  background: var(--var-300);
+  color: var(--black);
+  font-weight: bold;
+  padding: 8px 22px 8px 18px;
+  border-radius: 0 0 18px 0;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+  letter-spacing: 0.5px;
+  transform: none;
+  border-top-left-radius: 8px;
+  border-bottom-right-radius: 18px;
+}
+
+.pricing-card__price {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--acc-500);
+  margin: 1.2rem 0 1.2rem 0;
+  line-height: 1.1;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pricing-card__price-comment {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--pri-400);
+  margin-left: 0.2rem;
+}
+
 @media (min-width: 768px) {
   .pricing-card {
     width: 100%;
     max-width: 340px;
-    min-height: 500px;
+    min-height: 580px;
     box-sizing: border-box;
     padding: 2rem 3rem;
   }
@@ -54,5 +93,6 @@
   .pricing-card {
     max-width: 360px;
     padding: 2rem 4rem;
+    min-height: 580px;
   }
 }

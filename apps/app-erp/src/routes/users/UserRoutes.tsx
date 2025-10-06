@@ -1,12 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { ProfilePage, TeamManagementPage } from '../../features/users';
-import {
-  currentUser,
-  teamUsers,
-  availableRoles,
-  planInfo,
-} from '../../features/users/config/mockData';
+import ProfilePage from '../../features/users/pages/ProfilePage';
+import CompanySettingsPage from '../../features/users/pages/CompanySettingsPage';
 
 /**
  * Rutas del módulo de usuarios
@@ -28,67 +23,24 @@ const UserRoutes: React.FC = () => {
     // Aquí iría la lógica real de cambio de contraseña
   };
 
-  const handleEditRole = async (userId: number, newRole: string) => {
-    console.log(`Cambiando rol del usuario ${userId} a:`, newRole);
-    // Aquí iría la lógica real de cambio de rol
-  };
-
-  const handleDeleteUser = async (userId: number) => {
-    console.log('Eliminando usuario:', userId);
-    // Aquí iría la lógica real de eliminación
-  };
-
-  const handleInviteUser = async (inviteData: any) => {
-    console.log('Invitando usuario:', inviteData);
-    // Aquí iría la lógica real de invitación
-  };
-
-  const handleNavigateToInvite = () => {
-    // En la aplicación real, esto usaría useNavigate de React Router
-    console.log('Navegando a invitar usuario');
-  };
-
-  const handleCancel = () => {
-    // En la aplicación real, esto usaría useNavigate de React Router
-    console.log('Cancelando y volviendo al equipo');
-  };
-
-  // Simulación de verificación de permisos
-  const isAdmin = currentUser.rol === 'Administrador';
-
   return (
     <Routes>
+      {/* Página de Configuración Empresa (Tabs Internas) */}
+      <Route path='empresa' element={<CompanySettingsPage />} />
+
       {/* Perfil del usuario - Accesible para todos */}
       <Route
         path='perfil'
         element={
           <ProfilePage
-            currentUser={currentUser}
             onUpdateProfile={handleUpdateProfile}
             onChangePassword={handleChangePassword}
           />
         }
       />
 
-      {/* Gestión de equipo - Solo administradores */}
-      <Route
-        path='equipo'
-        element={
-          isAdmin ? (
-            <TeamManagementPage
-              users={teamUsers}
-              availableRoles={availableRoles}
-              onEditRole={handleEditRole}
-              onDeleteUser={handleDeleteUser}
-            />
-          ) : (
-            <Navigate to='/configuracion/perfil' replace />
-          )
-        }
-      />
-
-      {/* Redirección por defecto */}
-      <Route path='' element={<Navigate to='perfil' replace />} />
+      {/* Redirección por defecto ahora a empresa */}
+      <Route path='' element={<Navigate to='empresa' replace />} />
     </Routes>
   );
 };
