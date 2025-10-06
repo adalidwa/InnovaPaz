@@ -9,7 +9,7 @@ function App() {
 
   const getCurrentModule = (): string => {
     const path = location.pathname;
-    if (path.startsWith('/shopping')) return 'ventas';
+    if (path.startsWith('/ventas')) return 'ventas';
     return 'inventario';
   };
 
