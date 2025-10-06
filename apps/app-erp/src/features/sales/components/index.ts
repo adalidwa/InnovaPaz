@@ -9,3 +9,4 @@ export { default as ProductList } from './ProductList';
 export { default as ProductCard } from './ProductCard';
 export { default as PointOfSale } from './PointOfSale';
 export { default as ClientsTable } from './ClientsTable';
+export { default as SalesHistory } from './SalesHistory';
