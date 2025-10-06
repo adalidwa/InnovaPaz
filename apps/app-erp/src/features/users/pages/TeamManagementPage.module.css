@@ -1,0 +1,189 @@
+.teamWrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  font-family: var(--font);
+  background: var(--card-bg, var(--white));
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+  font-family: var(--font);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+  font-family: var(--font);
+}
+
+.statsCard {
+  background: var(--card-bg, var(--white));
+  border-radius: 12px;
+  box-shadow: var(--card-shadow, 0 1px 2px 0 #0000000d);
+  border: 1px solid var(--card-border, var(--pri-100));
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: var(--font);
+}
+.statsIcon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.statsLabel {
+  color: var(--pri-500);
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+.statsValue {
+  color: var(--pri-900);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.bgBlue {
+  background: var(--pri-100);
+}
+.bgGreen {
+  background: var(--sec-100);
+}
+.bgYellow {
+  background: var(--var-100);
+}
+.bgPurple {
+  background: var(--pri-100);
+}
+
+.tableWrapper {
+  background: var(--card-bg, var(--white));
+  border-radius: 12px;
+  box-shadow: var(--card-shadow, 0 1px 2px 0 #0000000d);
+  border: 1px solid var(--card-border, var(--pri-100));
+  overflow-x: auto;
+}
+.tableHeader {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--card-border, var(--pri-100));
+}
+.tableTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--pri-900);
+  margin: 0;
+}
+.tableSubtitle {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--pri-500);
+}
+.tableContent {
+  padding: 1.5rem;
+}
+
+/* Modales */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(75, 85, 99, 0.5);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: var(--card-bg, var(--white));
+  border-radius: 12px;
+  box-shadow: var(--card-shadow, 0 4px 24px 0 #0000001a);
+  padding: 2rem 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--card-border, var(--pri-100));
+}
+.modalTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--pri-900);
+  margin-bottom: 1rem;
+}
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+.modalCenter {
+  text-align: center;
+}
+.modalIconDanger {
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  width: 48px;
+  border-radius: 9999px;
+  background: var(--acc-100);
+}
+.modalTitleDanger {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modalSubtitleDanger {
+  color: var(--pri-500);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* Botones */
+.primaryButton,
+.dangerButton,
+.secondaryButton {
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+  font-family: var(--font);
+}
+.primaryButton {
+  background: var(--pri-700);
+  color: var(--white);
+}
+.primaryButton:hover {
+  background: var(--pri-900);
+}
+.dangerButton {
+  background: var(--acc-800);
+  color: var(--white);
+}
+.dangerButton:hover {
+  background: var(--acc-900);
+}
+.secondaryButton {
+  background: var(--white);
+  color: var(--pri-700);
+  border: 1px solid var(--pri-200);
+}
+.secondaryButton:hover {
+  background: var(--pri-100);
+}
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}

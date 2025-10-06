@@ -1,0 +1,15 @@
+.selectorWrapper {
+  margin-bottom: 8px;
+  font-family: var(--font);
+}
+
+.selectedRoleInfo {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5rem;
+  background: var(--pri-50);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-family: var(--font);
+}

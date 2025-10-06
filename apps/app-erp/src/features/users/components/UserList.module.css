@@ -1,0 +1,155 @@
+.tableWrapper {
+  background: var(--card-bg, var(--white));
+  border-radius: 8px;
+  border: 1px solid var(--card-border, var(--pri-100));
+  overflow: hidden;
+  box-shadow: var(--card-shadow, 0 1px 4px 0 #0001);
+  font-family: var(--font);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font);
+}
+.thead {
+  background: var(--pri-50, #f9fafb);
+}
+.th,
+.td {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font: var(--font-14);
+  font-family: var(--font);
+}
+.th {
+  color: var(--pri-500);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tr {
+  transition: background var(--transition-fast, 0.2s);
+  font-family: var(--font);
+}
+.tr:hover {
+  background: var(--pri-100, #f3f4f6);
+}
+
+.avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--pri-100);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--pri-500);
+  font-family: var(--font);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font: var(--font-13);
+  font-weight: 500;
+  margin-right: 0.25rem;
+  font-family: var(--font);
+}
+.badgeAdmin {
+  background: var(--pri-100);
+  color: var(--pri-800);
+  border: 1px solid var(--pri-300);
+}
+.badgeVendedor {
+  background: var(--sec-100);
+  color: var(--sec-900);
+  border: 1px solid var(--sec-300);
+}
+.badgeAlmacen {
+  background: var(--var-100);
+  color: var(--var-900);
+  border: 1px solid var(--var-300);
+}
+.badgeActivo {
+  background: var(--sec-100);
+  color: var(--sec-900);
+  border: 1px solid var(--sec-300);
+}
+.badgePendiente {
+  background: var(--var-100);
+  color: var(--var-900);
+  border: 1px solid var(--var-300);
+}
+.actionButton {
+  color: var(--pri-700);
+  background: none;
+  border: none;
+  font: var(--font-13);
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition-fast, 0.2s);
+  font-family: var(--font);
+}
+.actionButton:hover {
+  color: var(--pri-900);
+}
+.actionButtonDelete {
+  color: var(--acc-800);
+}
+.actionButtonDelete:hover {
+  color: var(--acc-900);
+}
+
+.loadingList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 0;
+}
+.loadingItem {
+  height: 64px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--pri-100) 25%, var(--pri-200) 50%, var(--pri-100) 75%);
+  animation: loading-skeleton 1.2s infinite linear;
+}
+@keyframes loading-skeleton {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  color: var(--pri-500);
+  font-family: var(--font);
+}
+.emptyIcon {
+  margin-bottom: 12px;
+}
+.emptyTitle {
+  font: var(--font-16);
+  font-weight: 600;
+  color: var(--pri-900);
+  margin-bottom: 4px;
+  font-family: var(--font);
+}
+.emptyText {
+  font: var(--font-14);
+  color: var(--pri-500);
+  font-family: var(--font);
+}
+.compactList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
