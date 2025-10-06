@@ -17,6 +17,16 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import Button from '../../../components/common/Button';
 import StatusTag from '../../../components/common/StatusTag';
 import Modal from '../../../components/common/Modal';
+import Table from '../../../components/common/Table';
+
+// Interfaces for table data
+interface StockProduct {
+  id: number;
+  product: string;
+  currentStock: number;
+  minStock: number;
+  status: string;
+}
 
 const PAGE_INFO = {
   title: 'Reportes y Análisis de Compras',
@@ -52,18 +62,17 @@ const ReportsPage: React.FC = () => {
   const [stockFilter, setStockFilter] = useState('all');
 
   // Filter products based on stock status
-  const filteredProducts =
-    stockFilter === 'all'
-      ? stockProducts
-      : stockProducts.filter((product) =>
-          stockFilter === 'critical'
-            ? getStockPercentage(product.currentStock, product.minStock) < 100
-            : product.status === 'Normal'
-        );
-
   const getStockPercentage = (current: number, min: number) => {
     return Math.round((current / min) * 100);
   };
+
+  const filteredProducts =
+    stockFilter === 'all'
+      ? stockProducts
+      : stockProducts.filter((product) => {
+          const percentage = getStockPercentage(product.currentStock, product.minStock);
+          return stockFilter === 'critical' ? percentage < 100 : percentage >= 100;
+        });
 
   const getStockStatusStyle = (status: string) => {
     if (status === 'Crítico') {
@@ -89,6 +98,102 @@ const ReportsPage: React.FC = () => {
     alert(`Generando reporte ${type}...`);
     closeReportModal();
   };
+
+  // Configure supplier purchases table
+  const supplierPurchasesColumns = [
+    {
+      key: 'name',
+      header: 'Proveedor',
+      width: '40%',
+    },
+    {
+      key: 'amount',
+      header: 'Monto',
+      width: '30%',
+      className: 'text-center',
+      render: (value: number) => formatCurrency(value),
+    },
+    {
+      key: 'percentage',
+      header: '% del Total',
+      width: '30%',
+      className: 'text-center',
+      render: (value: number) => `${value}%`,
+    },
+  ];
+
+  // Configure supplier performance table
+  const supplierPerformanceColumns = [
+    {
+      key: 'name',
+      header: 'Proveedor',
+      width: '50%',
+    },
+    {
+      key: 'rating',
+      header: 'Rating',
+      width: '25%',
+      className: 'text-center',
+      render: (value: number) => <div className='rating'>{value} ★</div>,
+    },
+    {
+      key: 'compliance',
+      header: 'Cumplimiento',
+      width: '25%',
+      className: 'text-center',
+      render: (value: number) => `${value}%`,
+    },
+  ];
+
+  // Configure stock products table
+  const stockProductsColumns = [
+    {
+      key: 'product',
+      header: 'Producto',
+      width: '30%',
+    },
+    {
+      key: 'currentStock',
+      header: 'Stock Actual',
+      width: '15%',
+      className: 'text-center',
+    },
+    {
+      key: 'minStock',
+      header: 'Stock Mínimo',
+      width: '15%',
+      className: 'text-center',
+    },
+    {
+      key: 'percentage',
+      header: '% Disponible',
+      width: '15%',
+      className: 'text-center',
+      render: (_: unknown, row: StockProduct) => {
+        const percentage = getStockPercentage(row.currentStock, row.minStock);
+        return <div className='percentage'>{percentage}%</div>;
+      },
+    },
+    {
+      key: 'status',
+      header: 'Estado',
+      width: '25%',
+      className: 'text-center',
+      render: (_: unknown, row: StockProduct) => {
+        const percentage = getStockPercentage(row.currentStock, row.minStock);
+        const status = percentage < 100 ? 'Crítico' : 'Normal';
+        const statusStyle = getStockStatusStyle(status);
+
+        return (
+          <StatusTag
+            text={status}
+            backgroundColor={statusStyle.backgroundColor}
+            textColor={statusStyle.textColor}
+          />
+        );
+      },
+    },
+  ];
 
   return (
     <div className='reports-page'>
@@ -148,17 +253,11 @@ const ReportsPage: React.FC = () => {
             Exportar
           </Button>
         </div>
-        <div className='supplier-spending'>
-          {supplierPurchases.map((supplier) => (
-            <div key={supplier.id} className='supplier-spending-item'>
-              <div className='supplier-info'>
-                <div className='supplier-name'>{supplier.name}</div>
-                <div className='supplier-amount'>{formatCurrency(supplier.amount)}</div>
-              </div>
-              <div className='supplier-percentage'>{supplier.percentage}% del total</div>
-            </div>
-          ))}
-        </div>
+        <Table
+          data={supplierPurchases}
+          columns={supplierPurchasesColumns}
+          emptyMessage='No se encontraron datos de compras por proveedor'
+        />
       </div>
 
       {/* Supplier Performance Section */}
@@ -169,22 +268,11 @@ const ReportsPage: React.FC = () => {
             Exportar
           </Button>
         </div>
-        <div className='supplier-performance-table'>
-          <div className='table-header'>
-            <div className='header-cell'>Proveedor</div>
-            <div className='header-cell'>Rating</div>
-            <div className='header-cell'>Cumplimiento</div>
-          </div>
-          {supplierPerformance.map((supplier) => (
-            <div key={supplier.id} className='table-row'>
-              <div className='table-cell supplier-name'>{supplier.name}</div>
-              <div className='table-cell'>
-                <div className='rating'>{supplier.rating} ★</div>
-              </div>
-              <div className='table-cell'>{supplier.compliance}%</div>
-            </div>
-          ))}
-        </div>
+        <Table
+          data={supplierPerformance}
+          columns={supplierPerformanceColumns}
+          emptyMessage='No se encontraron datos de desempeño de proveedores'
+        />
       </div>
 
       {/* Stock Products Section */}
@@ -212,38 +300,11 @@ const ReportsPage: React.FC = () => {
           </div>
         </div>
 
-        <div className='stock-products-table'>
-          <div className='table-header'>
-            <div className='header-cell'>Producto</div>
-            <div className='header-cell'>Stock Actual</div>
-            <div className='header-cell'>Stock Mínimo</div>
-            <div className='header-cell'>% Disponible</div>
-            <div className='header-cell'>Estado</div>
-          </div>
-          {filteredProducts.map((product) => {
-            const percentage = getStockPercentage(product.currentStock, product.minStock);
-            const status = percentage < 100 ? 'Crítico' : 'Normal';
-            const statusStyle = getStockStatusStyle(status);
-
-            return (
-              <div key={product.id} className='table-row'>
-                <div className='table-cell'>{product.product}</div>
-                <div className='table-cell text-center'>{product.currentStock}</div>
-                <div className='table-cell text-center'>{product.minStock}</div>
-                <div className='table-cell text-center'>
-                  <div className='percentage'>{percentage}%</div>
-                </div>
-                <div className='table-cell'>
-                  <StatusTag
-                    text={status}
-                    backgroundColor={statusStyle.backgroundColor}
-                    textColor={statusStyle.textColor}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <Table
+          data={filteredProducts}
+          columns={stockProductsColumns}
+          emptyMessage='No se encontraron productos que coincidan con el filtro'
+        />
       </div>
 
       {/* Quick Actions Section */}

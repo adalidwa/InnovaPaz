@@ -43,12 +43,12 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
         icon: FaBox,
       },
       {
-        label: 'Ventas',
+        label: 'Compras',
         href: '/shopping',
         icon: FaShoppingCart,
       },
       {
-        label: 'Movimientos',
+        label: 'Ventas',
         href: '/movimientos',
         icon: FaShoppingCart,
       },
@@ -57,16 +57,7 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
         href: '/reportes',
         icon: FaChartLine,
       },
-      {
-        label: 'Alertas',
-        href: '/alertas',
-        icon: FaExclamationTriangle,
-      },
-      {
-        label: 'Documentos',
-        href: '/documentos',
-        icon: FaFileAlt,
-      },
+
       {
         label: 'Configuración',
         href: '/configuracion/empresa',
