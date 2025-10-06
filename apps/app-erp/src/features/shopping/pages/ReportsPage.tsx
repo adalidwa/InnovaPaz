@@ -1,416 +1,351 @@
 import React, { useState } from 'react';
-import '../../../assets/styles/theme.css';
-import './ReportsPage.css';
-import TitleDescription from '../../../components/common/TitleDescription';
-import Button from '../../../components/common/Button';
-import Select from '../../../components/common/Select';
-import StatusTag from '../../../components/common/StatusTag';
-import Modal from '../../../components/common/Modal';
-import Table from '../../../components/common/Table';
 import {
   IoAnalytics,
   IoDownload,
+  IoDocument,
   IoTrendingUp,
   IoTrendingDown,
-  IoClose,
-  IoTime,
-  IoStar,
+  IoCheckmarkCircle,
 } from 'react-icons/io5';
-import {
-  useReports,
-  type StockAnalysis,
-  type PurchasesByProvider,
-  type ProviderPerformance,
-} from '../hooks/hooks';
 
-const pageInfo = {
+// Imports locales
+import './ReportsPage.css';
+import { useReports, useReportModals } from '../hooks/hooks';
+
+// Imports de componentes
+import TitleDescription from '../../../components/common/TitleDescription';
+import Button from '../../../components/common/Button';
+import StatusTag from '../../../components/common/StatusTag';
+import Modal from '../../../components/common/Modal';
+
+const PAGE_INFO = {
   title: 'Reportes y Análisis de Compras',
   description: 'Dashboard ejecutivo y reportes operativos del módulo',
 };
 
-function ReportsPage() {
-  // Hook para reportes
+const ReportsPage: React.FC = () => {
   const {
-    getKPIs,
-    getPurchasesByProvider,
-    getProviderPerformance,
-    getStockAnalysis,
-    stockFilter,
-    handleStockFilterChange,
-    exportPurchasesByProvider,
-    exportProviderPerformance,
-    exportStockAnalysis,
-    exportAll,
-    generateMonthlyReport,
-    analyzePrices,
-    evaluateProviders,
+    monthlyPurchases,
+    accumulatedSavings,
+    averageDeliveryTime,
+    supplierPurchases,
+    supplierPerformance,
+    stockProducts,
     formatCurrency,
   } = useReports();
 
-  // Estados para modales
-  const [showPriceAnalysisModal, setShowPriceAnalysisModal] = useState(false);
-  const [showProviderEvaluationModal, setShowProviderEvaluationModal] = useState(false);
-  const [priceAnalysis, setPriceAnalysis] = useState<any>(null);
-  const [providerEvaluation, setProviderEvaluation] = useState<any>(null);
+  const {
+    showExportModal,
+    showReportModal,
+    showAnalysisModal,
+    showEvaluationModal,
+    openExportModal,
+    closeExportModal,
+    openReportModal,
+    closeReportModal,
+    openAnalysisModal,
+    closeAnalysisModal,
+    openEvaluationModal,
+    closeEvaluationModal,
+  } = useReportModals();
 
-  // Obtener datos
-  const kpis = getKPIs();
-  const purchasesByProvider = getPurchasesByProvider();
-  const providerPerformance = getProviderPerformance();
-  const stockAnalysis = getStockAnalysis();
+  const [stockFilter, setStockFilter] = useState('all');
 
-  // Opciones para filtro de stock
-  const stockFilterOptions = [
-    { value: 'all', label: 'Todos los productos' },
-    { value: 'critical', label: 'Solo críticos' },
-    { value: 'normal', label: 'Solo normales' },
-  ];
-
-  // Handlers para análisis
-  const handlePriceAnalysis = () => {
-    const analysis = analyzePrices();
-    setPriceAnalysis(analysis);
-    setShowPriceAnalysisModal(true);
-  };
-
-  const handleProviderEvaluation = () => {
-    const evaluation = evaluateProviders();
-    setProviderEvaluation(evaluation);
-    setShowProviderEvaluationModal(true);
-  };
-
-  // Configuración de tabla para stock
-  const stockTableColumns = [
-    {
-      key: 'productName',
-      header: 'Producto',
-      width: '30%',
-    },
-    {
-      key: 'currentStock',
-      header: 'Stock Actual',
-      width: '15%',
-      className: 'text-center',
-    },
-    {
-      key: 'minStock',
-      header: 'Stock Mínimo',
-      width: '15%',
-      className: 'text-center',
-    },
-    {
-      key: 'percentage',
-      header: '% Disponible',
-      width: '15%',
-      className: 'text-center',
-      render: (value: number) => `${value}%`,
-    },
-    {
-      key: 'status',
-      header: 'Estado',
-      width: '25%',
-      className: 'text-center',
-      render: (value: string) => {
-        const isCritical = value === 'Crítico';
-        return (
-          <StatusTag
-            text={value}
-            backgroundColor={isCritical ? 'var(--acc-100)' : 'var(--sec-100)'}
-            textColor={isCritical ? 'var(--acc-800)' : 'var(--sec-800)'}
-          />
+  // Filter products based on stock status
+  const filteredProducts =
+    stockFilter === 'all'
+      ? stockProducts
+      : stockProducts.filter((product) =>
+          stockFilter === 'critical'
+            ? getStockPercentage(product.currentStock, product.minStock) < 100
+            : product.status === 'Normal'
         );
-      },
-    },
-  ];
+
+  const getStockPercentage = (current: number, min: number) => {
+    return Math.round((current / min) * 100);
+  };
+
+  const getStockStatusStyle = (status: string) => {
+    if (status === 'Crítico') {
+      return {
+        backgroundColor: 'var(--danger-100)',
+        textColor: 'var(--danger-800)',
+      };
+    }
+    return {
+      backgroundColor: 'var(--sec-100)',
+      textColor: 'var(--sec-800)',
+    };
+  };
+
+  const handleExportData = (type: string) => {
+    // Export functionality - replaced with alert for demo
+    alert(`Exportando datos de ${type}...`);
+    closeExportModal();
+  };
+
+  const handleGenerateReport = (type: string) => {
+    // Report generation functionality - replaced with alert for demo
+    alert(`Generando reporte ${type}...`);
+    closeReportModal();
+  };
 
   return (
     <div className='reports-page'>
+      {/* Header without action button */}
       <div className='reports-header'>
-        <div className='reports-titleSection'>
-          <TitleDescription
-            title={pageInfo.title}
-            description={pageInfo.description}
-            titleSize={32}
-            descriptionSize={16}
-          />
-        </div>
+        <TitleDescription
+          title={PAGE_INFO.title}
+          description={PAGE_INFO.description}
+          titleSize={32}
+          descriptionSize={16}
+        />
       </div>
 
-      <div className='reports-content'>
-        {/* KPIs Section */}
-        <div className='kpis-section'>
-          <div className='kpi-card'>
+      {/* KPI Cards Section */}
+      <div className='reports-kpi-section'>
+        <div className='kpi-card'>
+          <div className='kpi-content'>
             <div className='kpi-header'>
               <h3>Compras del Mes</h3>
-              {kpis.monthlyPurchases.trend === 'up' ? (
-                <IoTrendingUp size={24} color='var(--sec-600)' />
-              ) : (
-                <IoTrendingDown size={24} color='var(--acc-600)' />
-              )}
+              <IoTrendingUp size={24} className='kpi-icon positive' />
             </div>
-            <div className='kpi-value'>{formatCurrency(kpis.monthlyPurchases.amount)}</div>
-            <div className='kpi-trend'>↑ {kpis.monthlyPurchases.percentage}% vs mes anterior</div>
+            <div className='kpi-value'>{formatCurrency(monthlyPurchases.amount)}</div>
+            <div className='kpi-trend positive'>↑ {monthlyPurchases.trend}% vs mes anterior</div>
           </div>
+        </div>
 
-          <div className='kpi-card'>
+        <div className='kpi-card'>
+          <div className='kpi-content'>
             <div className='kpi-header'>
               <h3>Ahorro Acumulado</h3>
-              <IoAnalytics size={24} color='var(--pri-600)' />
+              <IoAnalytics size={24} className='kpi-icon secondary' />
             </div>
-            <div className='kpi-value'>{formatCurrency(kpis.accumulatedSavings.amount)}</div>
-            <div className='kpi-description'>{kpis.accumulatedSavings.description}</div>
+            <div className='kpi-value'>{formatCurrency(accumulatedSavings.amount)}</div>
+            <div className='kpi-description'>Por negociación y cotizaciones</div>
           </div>
+        </div>
 
-          <div className='kpi-card'>
+        <div className='kpi-card'>
+          <div className='kpi-content'>
             <div className='kpi-header'>
               <h3>Tiempo Promedio Entrega</h3>
-              <IoTime size={24} color='var(--warning-600)' />
+              <IoTrendingDown size={24} className='kpi-icon positive' />
             </div>
-            <div className='kpi-value'>{kpis.averageDeliveryTime.days} días</div>
-            <div className='kpi-trend'>
-              ↓ {Math.abs(kpis.averageDeliveryTime.change)} días vs promedio
+            <div className='kpi-value'>{averageDeliveryTime.days} días</div>
+            <div className='kpi-trend positive'>
+              ↓ {averageDeliveryTime.improvement} días vs promedio
             </div>
-          </div>
-        </div>
-
-        {/* Compras por Proveedor */}
-        <div className='reports-section'>
-          <div className='section-header'>
-            <h3>Compras por Proveedor</h3>
-            <Button
-              variant='secondary'
-              onClick={exportPurchasesByProvider}
-              icon={<IoDownload />}
-              size='small'
-            >
-              Exportar
-            </Button>
-          </div>
-
-          <div className='provider-purchases-list'>
-            {purchasesByProvider.map((provider) => (
-              <div key={provider.id} className='provider-item'>
-                <div className='provider-info'>
-                  <div className='provider-name'>{provider.name}</div>
-                  <div className='provider-amount'>{formatCurrency(provider.amount)}</div>
-                </div>
-                <div className='provider-percentage'>{provider.percentage}% del total</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Desempeño de Proveedores */}
-        <div className='reports-section'>
-          <div className='section-header'>
-            <h3>Desempeño de Proveedores</h3>
-            <Button
-              variant='secondary'
-              onClick={exportProviderPerformance}
-              icon={<IoDownload />}
-              size='small'
-            >
-              Exportar
-            </Button>
-          </div>
-
-          <div className='performance-table'>
-            <div className='performance-header'>
-              <div>Proveedor</div>
-              <div>Rating</div>
-              <div>Cumplimiento</div>
-            </div>
-            {providerPerformance.map((provider) => (
-              <div key={provider.id} className='performance-row'>
-                <div className='performance-provider'>{provider.name}</div>
-                <div className='performance-rating'>
-                  {provider.rating} <IoStar color='var(--warning-500)' />
-                </div>
-                <div className='performance-compliance'>{provider.compliance}%</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Productos vs Stock Mínimo */}
-        <div className='reports-section'>
-          <div className='section-header'>
-            <h3>Productos vs Stock Mínimo</h3>
-            <div className='section-actions'>
-              <Select
-                value={stockFilter}
-                onChange={(e) => handleStockFilterChange(e.target.value as any)}
-                options={stockFilterOptions}
-                className='filter-select'
-              />
-              <Button
-                variant='secondary'
-                onClick={exportStockAnalysis}
-                icon={<IoDownload />}
-                size='small'
-              >
-                Exportar CSV
-              </Button>
-            </div>
-          </div>
-
-          <div className='stock-table'>
-            <Table
-              data={stockAnalysis}
-              columns={stockTableColumns}
-              emptyMessage='No hay productos que coincidan con el filtro'
-            />
-          </div>
-        </div>
-
-        {/* Acciones Rápidas */}
-        <div className='reports-section'>
-          <div className='section-header'>
-            <h3>Acciones Rápidas</h3>
-          </div>
-
-          <div className='quick-actions'>
-            <Button
-              variant='primary'
-              onClick={exportAll}
-              icon={<IoDownload />}
-              className='action-button'
-            >
-              Exportar Todo
-            </Button>
-
-            <Button
-              variant='secondary'
-              onClick={generateMonthlyReport}
-              icon={<IoAnalytics />}
-              className='action-button'
-            >
-              Reporte Mensual
-            </Button>
-
-            <Button
-              variant='accent'
-              onClick={handlePriceAnalysis}
-              icon={<IoTrendingUp />}
-              className='action-button'
-            >
-              Análisis Precios
-            </Button>
-
-            <Button
-              variant='success'
-              onClick={handleProviderEvaluation}
-              icon={<IoStar />}
-              className='action-button'
-            >
-              Evaluación Proveedores
-            </Button>
           </div>
         </div>
       </div>
 
-      {/* Modal de Análisis de Precios */}
-      {showPriceAnalysisModal && priceAnalysis && (
-        <div className='modal-overlay'>
-          <div className='analysis-modal'>
-            <div className='analysis-modal-header'>
-              <h3>Análisis de Precios</h3>
-              <button
-                className='analysis-modal-close'
-                onClick={() => setShowPriceAnalysisModal(false)}
-                type='button'
-              >
-                <IoClose size={20} />
-              </button>
-            </div>
-
-            <div className='analysis-modal-body'>
-              <div className='analysis-info'>
-                <div className='analysis-row'>
-                  <label>Total de productos analizados:</label>
-                  <span>{priceAnalysis.totalProducts}</span>
-                </div>
-                <div className='analysis-row'>
-                  <label>Variación promedio de precios:</label>
-                  <span>{priceAnalysis.averageVariation}%</span>
-                </div>
-                <div className='analysis-row'>
-                  <label>Mejores ofertas:</label>
-                  <span>{priceAnalysis.bestDeals.join(', ')}</span>
-                </div>
-                <div className='analysis-row'>
-                  <label>Recomendación:</label>
-                  <span>{priceAnalysis.recommendation}</span>
-                </div>
+      {/* Supplier Spending Section */}
+      <div className='reports-section'>
+        <div className='section-header'>
+          <h3>Compras por Proveedor</h3>
+          <Button variant='secondary' onClick={openExportModal} icon={<IoDownload />} size='small'>
+            Exportar
+          </Button>
+        </div>
+        <div className='supplier-spending'>
+          {supplierPurchases.map((supplier) => (
+            <div key={supplier.id} className='supplier-spending-item'>
+              <div className='supplier-info'>
+                <div className='supplier-name'>{supplier.name}</div>
+                <div className='supplier-amount'>{formatCurrency(supplier.amount)}</div>
               </div>
+              <div className='supplier-percentage'>{supplier.percentage}% del total</div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            <div className='analysis-modal-footer'>
-              <Button
-                variant='secondary'
-                onClick={() => setShowPriceAnalysisModal(false)}
-                className='modal-button'
-              >
-                Cerrar
-              </Button>
+      {/* Supplier Performance Section */}
+      <div className='reports-section'>
+        <div className='section-header'>
+          <h3>Desempeño de Proveedores</h3>
+          <Button variant='secondary' onClick={openExportModal} icon={<IoDownload />} size='small'>
+            Exportar
+          </Button>
+        </div>
+        <div className='supplier-performance-table'>
+          <div className='table-header'>
+            <div className='header-cell'>Proveedor</div>
+            <div className='header-cell'>Rating</div>
+            <div className='header-cell'>Cumplimiento</div>
+          </div>
+          {supplierPerformance.map((supplier) => (
+            <div key={supplier.id} className='table-row'>
+              <div className='table-cell supplier-name'>{supplier.name}</div>
+              <div className='table-cell'>
+                <div className='rating'>{supplier.rating} ★</div>
+              </div>
+              <div className='table-cell'>{supplier.compliance}%</div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Stock Products Section */}
+      <div className='reports-section'>
+        <div className='section-header'>
+          <h3>Productos vs Stock Mínimo</h3>
+          <div className='section-actions'>
+            <select
+              value={stockFilter}
+              onChange={(e) => setStockFilter(e.target.value)}
+              className='filter-select'
+            >
+              <option value='all'>Todos</option>
+              <option value='critical'>Críticos</option>
+              <option value='normal'>Normales</option>
+            </select>
+            <Button
+              variant='secondary'
+              onClick={openExportModal}
+              icon={<IoDownload />}
+              size='small'
+            >
+              Exportar CSV
+            </Button>
           </div>
         </div>
-      )}
 
-      {/* Modal de Evaluación de Proveedores */}
-      {showProviderEvaluationModal && providerEvaluation && (
-        <div className='modal-overlay'>
-          <div className='analysis-modal'>
-            <div className='analysis-modal-header'>
-              <h3>Evaluación de Proveedores</h3>
-              <button
-                className='analysis-modal-close'
-                onClick={() => setShowProviderEvaluationModal(false)}
-                type='button'
-              >
-                <IoClose size={20} />
-              </button>
-            </div>
+        <div className='stock-products-table'>
+          <div className='table-header'>
+            <div className='header-cell'>Producto</div>
+            <div className='header-cell'>Stock Actual</div>
+            <div className='header-cell'>Stock Mínimo</div>
+            <div className='header-cell'>% Disponible</div>
+            <div className='header-cell'>Estado</div>
+          </div>
+          {filteredProducts.map((product) => {
+            const percentage = getStockPercentage(product.currentStock, product.minStock);
+            const percentage = getStockPercentage(product.currentStock, product.minStock);
+            const status = percentage < 100 ? 'Crítico' : 'Normal';
+            const statusStyle = getStockStatusStyle(status);
 
-            <div className='analysis-modal-body'>
-              <div className='analysis-info'>
-                <div className='analysis-row'>
-                  <label>Mejor proveedor:</label>
-                  <span>
-                    {providerEvaluation.topPerformer.name} ({providerEvaluation.topPerformer.rating}{' '}
-                    ★)
-                  </span>
+            return (
+              <div key={product.id} className='table-row'>
+                <div className='table-cell'>{product.product}</div>
+                <div className='table-cell text-center'>{product.currentStock}</div>
+                <div className='table-cell text-center'>{product.minStock}</div>
+                <div className='table-cell text-center'>
+                  <div className='percentage'>{percentage}%</div>
                 </div>
-                <div className='analysis-row'>
-                  <label>Rating promedio:</label>
-                  <span>{providerEvaluation.averageRating} ★</span>
-                </div>
-                <div className='analysis-row'>
-                  <label>Proveedores que necesitan mejora:</label>
-                  <span>
-                    {providerEvaluation.improvementNeeded.length === 0
-                      ? 'Ninguno'
-                      : providerEvaluation.improvementNeeded.map((p: any) => p.name).join(', ')}
-                  </span>
+                <div className='table-cell'>
+                  <StatusTag
+                    text={status}
+                    backgroundColor={statusStyle.backgroundColor}
+                    textColor={statusStyle.textColor}
+                  />
                 </div>
               </div>
-            </div>
-
-            <div className='analysis-modal-footer'>
-              <Button
-                variant='secondary'
-                onClick={() => setShowProviderEvaluationModal(false)}
-                className='modal-button'
-              >
-                Cerrar
-              </Button>
-            </div>
-          </div>
+            );
+          })}
         </div>
-      )}
+      </div>
+
+      {/* Quick Actions Section */}
+      <div className='reports-section'>
+        <h3>Acciones Rápidas</h3>
+        <div className='quick-actions'>
+          <Button
+            variant='primary'
+            onClick={openExportModal}
+            icon={<IoDownload />}
+            className='action-button'
+          >
+            Exportar Todo
+          </Button>
+
+          <Button
+            variant='secondary'
+            onClick={openReportModal}
+            icon={<IoDocument />}
+            className='action-button'
+          >
+            Reporte Mensual
+          </Button>
+
+          <Button
+            variant='secondary'
+            onClick={openAnalysisModal}
+            icon={<IoAnalytics />}
+            className='action-button'
+          >
+            Análisis Precios
+          </Button>
+
+          <Button
+            variant='secondary'
+            onClick={openEvaluationModal}
+            icon={<IoCheckmarkCircle />}
+            className='action-button'
+          >
+            Evaluación Proveedores
+          </Button>
+        </div>
+      </div>
+
+      {/* Export Modal */}
+      <Modal
+        isOpen={showExportModal}
+        onClose={closeExportModal}
+        title='Exportar Datos'
+        message='Seleccione el tipo de datos que desea exportar:'
+        modalType='info'
+        showCancelButton={true}
+        confirmButtonText='Exportar'
+        cancelButtonText='Cancelar'
+        onConfirm={() => handleExportData('seleccionados')}
+        onCancel={closeExportModal}
+      />
+
+      {/* Report Modal */}
+      <Modal
+        isOpen={showReportModal}
+        onClose={closeReportModal}
+        title='Generar Reporte Mensual'
+        message='¿Desea generar el reporte mensual de compras? Este incluirá todas las transacciones y análisis del mes actual.'
+        modalType='info'
+        showCancelButton={true}
+        confirmButtonText='Generar'
+        cancelButtonText='Cancelar'
+        onConfirm={() => handleGenerateReport('mensual')}
+        onCancel={closeReportModal}
+      />
+
+      {/* Analysis Modal */}
+      <Modal
+        isOpen={showAnalysisModal}
+        onClose={closeAnalysisModal}
+        title='Análisis de Precios'
+        message='El análisis de precios comparará las cotizaciones actuales con históricos y proveedores alternativos.'
+        modalType='info'
+        showCancelButton={true}
+        confirmButtonText='Iniciar Análisis'
+        cancelButtonText='Cancelar'
+        onConfirm={() => handleGenerateReport('precios')}
+        onCancel={closeAnalysisModal}
+      />
+
+      {/* Evaluation Modal */}
+      <Modal
+        isOpen={showEvaluationModal}
+        onClose={closeEvaluationModal}
+        title='Evaluación de Proveedores'
+        message='Se generará un reporte completo de desempeño de proveedores basado en cumplimiento, calidad y tiempos de entrega.'
+        modalType='info'
+        showCancelButton={true}
+        confirmButtonText='Evaluar'
+        cancelButtonText='Cancelar'
+        onConfirm={() => handleGenerateReport('evaluacion')}
+        onCancel={closeEvaluationModal}
+      />
     </div>
   );
-}
+};
 
 export default ReportsPage;

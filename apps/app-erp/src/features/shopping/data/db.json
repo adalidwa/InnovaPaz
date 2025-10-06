@@ -214,7 +214,7 @@
   "products": [
     {
       "id": 1,
-      "product": "CocaCola 2L",
+      "product": "Coca Cola 2L",
       "supplierId": 1,
       "supplierName": "Embotelladora Boliviana",
       "currentStock": 15,
@@ -264,11 +264,11 @@
     },
     {
       "id": 6,
-      "product": "Arroz Carolina Extra 1kg",
+      "product": "Arroz Grano de Oro 1kg",
       "supplierId": 11,
       "supplierName": "Industrias Carolina",
-      "currentStock": 60,
-      "minStock": 40,
+      "currentStock": 45,
+      "minStock": 25,
       "maxStock": 200,
       "status": "Normal"
     },
@@ -277,7 +277,7 @@
       "product": "Aceite Fino 1L",
       "supplierId": 12,
       "supplierName": "Aceites Fino Ltda.",
-      "currentStock": 18,
+      "currentStock": 12,
       "minStock": 15,
       "maxStock": 75,
       "status": "Normal"
@@ -344,11 +344,11 @@
     },
     {
       "id": 14,
-      "product": "Cerveza Paceña 620ml",
+      "product": "Cerveza Paceña 330ml",
       "supplierId": 19,
       "supplierName": "Cervecería Paceña",
-      "currentStock": 6,
-      "minStock": 24,
+      "currentStock": 8,
+      "minStock": 30,
       "maxStock": 120,
       "status": "Critico"
     },
@@ -453,8 +453,8 @@
       "type": "Órdenes",
       "icon": "doc",
       "route": "purchase-orders",
-      "isActive": false,
-      "priority": "low"
+      "isActive": true,
+      "priority": "medium"
     },
     {
       "id": 4,
@@ -493,8 +493,8 @@
       "type": "Compras",
       "icon": "analytics",
       "route": "reports",
-      "isActive": false,
-      "priority": "low"
+      "isActive": true,
+      "priority": "high"
     }
   ],
   "historyData": {
