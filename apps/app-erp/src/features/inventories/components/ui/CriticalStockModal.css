@@ -291,45 +291,14 @@
   border-radius: 6px;
   transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  background-size: 20px 20px;
-  animation: progress-shimmer 2s linear infinite;
-}
-
-@keyframes progress-shimmer {
-  0% {
-    background-position: -20px 0;
-  }
-  100% {
-    background-position: 40px 0;
-  }
 }
 
 .critical-stock-modal__progress-fill--critico {
   background: linear-gradient(90deg, var(--acc-600) 0%, var(--acc-700) 50%, var(--acc-800) 100%);
-  background-image: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.1) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.1) 75%,
-    transparent 75%,
-    transparent
-  );
 }
 
 .critical-stock-modal__progress-fill--bajo {
   background: linear-gradient(90deg, var(--var-500) 0%, var(--var-600) 50%, var(--var-700) 100%);
-  background-image: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.1) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.1) 75%,
-    transparent 75%,
-    transparent
-  );
 }
 
 .critical-stock-modal__product-actions {
@@ -463,6 +432,24 @@
   .critical-stock-modal__footer {
     padding: 16px 20px;
     flex-direction: column-reverse;
+  }
+}
+
+@media (max-width: 480px) {
+  .critical-stock-modal__overlay {
+    padding: 5px;
+  }
+
+  .critical-stock-modal__title {
+    font: var(--font-22);
+  }
+
+  .critical-stock-modal__product-item {
+    padding: 16px;
+  }
+
+  .critical-stock-modal__product-details {
+    gap: 8px;
   }
 }
 
