@@ -60,12 +60,11 @@ aplicación ERP y ejecutar el script SQL para crear las tablas necesarias.
 
 Para configurar las variables de entorno de la aplicación app-erp-backend, crea
 un archivo llamado `.env` en la raíz del directorio del backend (es decir, en
-`/home/jorian/projects/InnovaPaz/backend/`).
+`tu-proyecto/app/app-erp-backend/`).
 
 #### En WSL/Linux:
 
-1. Navega al directorio del backend:
-   `cd /home/jorian/projects/InnovaPaz/backend/`.
+1. Navega al directorio del backend: `cd tu-proyecto/app/app-erp-backend/`.
 2. Crea el archivo `.env` usando un editor de texto (por ejemplo, `nano .env` o
    `vim .env`).
 3. Agrega las siguientes variables de ejemplo, ajustándolas según tu
