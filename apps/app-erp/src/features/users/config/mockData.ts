@@ -1,15 +1,27 @@
 // Datos simulados para el módulo de usuarios
 
-// Tipos
+// Tipos actualizados con estructura real de Firebase
 export interface User {
-  id: number;
+  id: string;
   nombre_completo: string;
   email: string;
   rol: string;
-  empresa_id: number;
-  fecha_creacion: string;
-  avatar: string | null;
+  empresa_id: string;
+  created_at: Date | string;
+  updated_at: Date | string;
+  setup_completed: boolean;
+  avatar?: string | null;
   estado?: string;
+}
+
+export interface Company {
+  id: string;
+  nombre: string;
+  owner_uid: string;
+  plan_id: string;
+  tipo_negocio: string;
+  created_at: Date | string;
+  updated_at: Date | string;
 }
 
 export interface Role {
@@ -21,68 +33,28 @@ export interface Role {
 }
 
 export interface PlanInfo {
+  id: string;
   name: string;
   maxUsers: number;
   currentUsers: number;
   features: string[];
+  price?: number;
 }
 
-// Usuario actual (simulado)
-export const currentUser: User = {
-  id: 1,
-  nombre_completo: 'Edison Checa',
-  email: 'edison@innovapaz.com',
-  rol: 'Administrador',
-  empresa_id: 1,
-  fecha_creacion: '2024-01-15',
-  avatar: null,
+// Datos reales del usuario actual (se llenarán desde Firebase)
+export let currentUser: User | null = null;
+export let currentCompany: Company | null = null;
+
+// Función para actualizar datos reales
+export const setCurrentUser = (user: User) => {
+  currentUser = user;
 };
 
-// Lista de usuarios del equipo
-export const teamUsers: User[] = [
-  {
-    id: 1,
-    nombre_completo: 'Edison Checa',
-    email: 'edison@innovapaz.com',
-    rol: 'Administrador',
-    empresa_id: 1,
-    fecha_creacion: '2024-01-15',
-    avatar: null,
-    estado: 'Activo',
-  },
-  {
-    id: 2,
-    nombre_completo: 'María González',
-    email: 'maria@innovapaz.com',
-    rol: 'Vendedor',
-    empresa_id: 1,
-    fecha_creacion: '2024-02-10',
-    avatar: null,
-    estado: 'Activo',
-  },
-  {
-    id: 3,
-    nombre_completo: 'Carlos López',
-    email: 'carlos@innovapaz.com',
-    rol: 'Encargado de Almacén',
-    empresa_id: 1,
-    fecha_creacion: '2024-03-05',
-    avatar: null,
-    estado: 'Activo',
-  },
-  {
-    id: 4,
-    nombre_completo: 'Ana Martínez',
-    email: 'ana@innovapaz.com',
-    rol: 'Vendedor',
-    empresa_id: 1,
-    fecha_creacion: '2024-03-20',
-    avatar: null,
-    estado: 'Pendiente',
-  },
-];
+export const setCurrentCompany = (company: Company) => {
+  currentCompany = company;
+};
 
-// Roles disponibles
+// Roles disponibles (configuración estática)
 export const availableRoles: Role[] = [
   {
     id: 'administrador',
@@ -114,18 +86,58 @@ export const availableRoles: Role[] = [
   },
 ];
 
-// Información del plan actual
-export const planInfo: PlanInfo = {
-  name: 'Plan Profesional',
-  maxUsers: 10,
-  currentUsers: 4,
-  features: [
-    'Gestión completa de usuarios',
-    'Roles y permisos personalizados',
-    'Reportes avanzados',
-    'Soporte prioritario',
-  ],
+// Información de planes disponibles
+export const availablePlans: Record<string, PlanInfo> = {
+  basico: {
+    id: 'basico',
+    name: 'Plan Básico',
+    maxUsers: 3,
+    currentUsers: 0,
+    features: ['Gestión básica de usuarios', 'Reportes básicos', 'Soporte estándar'],
+    price: 29,
+  },
+  profesional: {
+    id: 'profesional',
+    name: 'Plan Profesional',
+    maxUsers: 10,
+    currentUsers: 0,
+    features: [
+      'Gestión completa de usuarios',
+      'Roles y permisos personalizados',
+      'Reportes avanzados',
+      'Soporte prioritario',
+    ],
+    price: 79,
+  },
+  empresarial: {
+    id: 'empresarial',
+    name: 'Plan Empresarial',
+    maxUsers: 50,
+    currentUsers: 0,
+    features: [
+      'Gestión ilimitada de usuarios',
+      'Roles y permisos avanzados',
+      'Reportes personalizados',
+      'Soporte 24/7',
+      'API completa',
+    ],
+    price: 199,
+  },
 };
+
+// Si necesitas un export planInfo por compatibilidad, puedes exportar uno por defecto:
+export const planInfo = availablePlans['basico'];
+
+// Tipos de negocio disponibles
+export const tiposNegocio = {
+  restaurante: 'Restaurante',
+  licoreria: 'Licorería',
+  tienda: 'Tienda',
+  farmacia: 'Farmacia',
+  supermercado: 'Supermercado',
+  ferreteria: 'Ferretería',
+  otros: 'Otros',
+} as const;
 
 // Estados de invitación
 export const invitationStates = {
@@ -150,3 +162,24 @@ export const notificationConfig = {
     position: 'top-right',
   },
 } as const;
+
+// Función para obtener información del plan actual
+export const getCurrentPlanInfo = (planId: string, currentUsers: number): PlanInfo => {
+  const plan = availablePlans[planId];
+  if (plan) {
+    return {
+      ...plan,
+      currentUsers,
+    };
+  }
+
+  // Plan por defecto si no se encuentra
+  return {
+    id: 'basico',
+    name: 'Plan Básico',
+    maxUsers: 3,
+    currentUsers,
+    features: ['Gestión básica de usuarios'],
+    price: 29,
+  };
+};
