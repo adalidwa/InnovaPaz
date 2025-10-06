@@ -24,7 +24,7 @@ function App() {
       sidebarTitleIcon={sidebarConfig.titleIcon}
       sidebarMenuItems={sidebarConfig.menuItems}
     >
-      <AppRoutes subtitle={subtitle} />
+      <AppRoutes />
     </Layout>
   );
 }
