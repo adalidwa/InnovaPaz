@@ -8,9 +8,7 @@ import Dashboard from '../features/inventories/pages/Dashboard';
 const AppRoutes = () => (
   <Routes>
     <Route path='/*' element={<SalesRoutes />} />
-    <Route path='/*' element={<SalesRoutes />} />
     <Route path='/shopping/*' element={<ShoppingRoutes />} />
-    <Route path='/*' element={<SalesRoutes />} />
     <Route path='/reportes/*' element={<ReportsRoutes />} />
     <Route path='/configuracion/*' element={<UserRoutes />} />
     <Route path='/dashboard/*' element={<Dashboard />} />
