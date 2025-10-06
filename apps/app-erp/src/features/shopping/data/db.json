@@ -199,12 +199,22 @@
       "phone": "76888999",
       "email": "elena@ceibo.bo",
       "address": "Valle Alto, Cochabamba"
+    },
+    {
+      "id": 21,
+      "title": "CBN",
+      "description": "Cadena Boliviana de Negocios",
+      "nit": "9999888777",
+      "contact": "Pedro Martinez",
+      "phone": "78555444",
+      "email": "pedro@cbn.bo",
+      "address": "Centro Financiero, La Paz"
     }
   ],
   "products": [
     {
       "id": 1,
-      "product": "CocaCola 2L",
+      "product": "Coca Cola 2L",
       "supplierId": 1,
       "supplierName": "Embotelladora Boliviana",
       "currentStock": 15,
@@ -254,11 +264,11 @@
     },
     {
       "id": 6,
-      "product": "Arroz Carolina Extra 1kg",
+      "product": "Arroz Grano de Oro 1kg",
       "supplierId": 11,
       "supplierName": "Industrias Carolina",
-      "currentStock": 60,
-      "minStock": 40,
+      "currentStock": 45,
+      "minStock": 25,
       "maxStock": 200,
       "status": "Normal"
     },
@@ -267,7 +277,7 @@
       "product": "Aceite Fino 1L",
       "supplierId": 12,
       "supplierName": "Aceites Fino Ltda.",
-      "currentStock": 18,
+      "currentStock": 12,
       "minStock": 15,
       "maxStock": 75,
       "status": "Normal"
@@ -334,11 +344,11 @@
     },
     {
       "id": 14,
-      "product": "Cerveza Paceña 620ml",
+      "product": "Cerveza Paceña 330ml",
       "supplierId": 19,
       "supplierName": "Cervecería Paceña",
-      "currentStock": 6,
-      "minStock": 24,
+      "currentStock": 8,
+      "minStock": 30,
       "maxStock": 120,
       "status": "Critico"
     },
@@ -351,6 +361,68 @@
       "minStock": 15,
       "maxStock": 60,
       "status": "Normal"
+    }
+  ],
+  "contracts": [
+    {
+      "id": 1,
+      "title": "Contrato Anual - Embotelladora Boliviana",
+      "description": "Acuerdo de Suministro 2025",
+      "providerId": 1,
+      "providerName": "Embotelladora Boliviana",
+      "startDate": "2025-01-01",
+      "endDate": "2025-12-31",
+      "status": "active",
+      "type": "supply",
+      "terms": {
+        "discount": "5% en compras > Bs. 5,000",
+        "paymentTerm": "30 días",
+        "description": "Contrato de suministro anual con descuentos por volumen. Incluye todos los productos de bebidas gaseosas y agua mineral."
+      },
+      "documentPath": "/contracts/contract_embotelladora_2025.pdf",
+      "renewalAlert": true,
+      "createdDate": "2024-12-15",
+      "daysUntilExpiry": 92
+    },
+    {
+      "id": 2,
+      "title": "Contrato Trimestral - CBN",
+      "description": "Acuerdo de Precios Fijos",
+      "providerId": 21,
+      "providerName": "CBN",
+      "startDate": "2025-07-01",
+      "endDate": "2025-09-30",
+      "status": "expired",
+      "type": "fixed_price",
+      "terms": {
+        "fixedPrice": "Cerveza Paceña a Bs. 5.50",
+        "paymentTerm": "15 días",
+        "description": "Contrato trimestral con precios fijos para cerveza. Precio garantizado durante todo el período."
+      },
+      "documentPath": "/contracts/contract_cbn_q3_2025.pdf",
+      "renewalAlert": false,
+      "createdDate": "2025-06-15",
+      "daysUntilExpiry": 0
+    },
+    {
+      "id": 3,
+      "title": "Acuerdo Marco - PIL Andina",
+      "description": "Contrato de Productos Lácteos",
+      "providerId": 9,
+      "providerName": "PIL Andina S.A.",
+      "startDate": "2025-03-01",
+      "endDate": "2026-02-28",
+      "status": "active",
+      "type": "framework",
+      "terms": {
+        "discount": "3% descuento en pedidos > 100 unidades",
+        "paymentTerm": "45 días",
+        "description": "Acuerdo marco para suministro de productos lácteos. Incluye leche, yogurt y derivados."
+      },
+      "documentPath": "/contracts/contract_pil_framework_2025.pdf",
+      "renewalAlert": true,
+      "createdDate": "2025-02-10",
+      "daysUntilExpiry": 180
     }
   ],
   "shoppingModules": [
@@ -380,9 +452,9 @@
       "description": "Gestiona tus órdenes de compra y recepciones",
       "type": "Órdenes",
       "icon": "doc",
-      "route": "",
-      "isActive": false,
-      "priority": "low"
+      "route": "purchase-orders",
+      "isActive": true,
+      "priority": "medium"
     },
     {
       "id": 4,
@@ -390,9 +462,9 @@
       "description": "Registra recepciones de mercadería y gestiona devoluciones",
       "type": "Recepciones",
       "icon": "download",
-      "route": "",
-      "isActive": false,
-      "priority": "low"
+      "route": "receptions",
+      "isActive": true,
+      "priority": "medium"
     },
     {
       "id": 5,
@@ -400,9 +472,9 @@
       "description": "Compara precios entre proveedores para mejores decisiones",
       "type": "Cotizaciones",
       "icon": "tag",
-      "route": "",
-      "isActive": false,
-      "priority": "low"
+      "route": "quotes",
+      "isActive": true,
+      "priority": "medium"
     },
     {
       "id": 6,
@@ -410,8 +482,8 @@
       "description": "Administra contratos comerciales con proveedores",
       "type": "Contratos",
       "icon": "contract",
-      "route": "",
-      "isActive": false,
+      "route": "contracts",
+      "isActive": true,
       "priority": "medium"
     },
     {
@@ -420,9 +492,9 @@
       "description": "Dashboard ejecutivo y reportes operativos de compras",
       "type": "Compras",
       "icon": "analytics",
-      "route": "",
-      "isActive": false,
-      "priority": "low"
+      "route": "reports",
+      "isActive": true,
+      "priority": "high"
     }
   ],
   "historyData": {
