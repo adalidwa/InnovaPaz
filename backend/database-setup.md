@@ -56,12 +56,103 @@ aplicación ERP y ejecutar el script SQL para crear las tablas necesarias.
    la base de datos, puedes dejar el campo de contraseña vacío en el .env,
    dependiendo de cómo esté configurado tu sistema de autenticación.
 
+### Configurando el Archivo .env
+
+Para configurar las variables de entorno de la aplicación app-erp-backend, crea
+un archivo llamado `.env` en la raíz del directorio del backend (es decir, en
+`/home/jorian/projects/InnovaPaz/backend/`).
+
+#### En WSL/Linux:
+
+1. Navega al directorio del backend:
+   `cd /home/jorian/projects/InnovaPaz/backend/`.
+2. Crea el archivo `.env` usando un editor de texto (por ejemplo, `nano .env` o
+   `vim .env`).
+3. Agrega las siguientes variables de ejemplo, ajustándolas según tu
+   configuración de PostgreSQL:
+
+   ```
+   # Configuración de la base de datos
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=innova_paz_erp_db
+   DB_USER=postgres  # O 'erp_user' si creaste un usuario específico
+   DB_PASSWORD=tu_contraseña_segura  # Deja vacío si usas autenticación por peer o similar
+
+   # Otras configuraciones (ajusta según las necesidades de tu aplicación)
+   NODE_ENV=development
+   PORT=3000
+   JWT_SECRET=tu_jwt_secret_seguro
+   ```
+
+4. Guarda el archivo y asegúrate de que esté incluido en `.gitignore` para
+   evitar subir contraseñas a repositorios públicos.
+5. Reinicia tu aplicación backend para que cargue las nuevas variables.
+
+#### En Windows (desde la interfaz):
+
+1. Abre el Explorador de Archivos (File Explorer) y navega a la carpeta del
+   backend.
+2. Haz clic derecho en un espacio vacío dentro de la carpeta, selecciona
+   "Nuevo" > "Documento de texto".
+3. Renombra el archivo a `.env` (asegúrate de que la extensión sea exactamente
+   `.env`, no `.env.txt`).
+4. Haz doble clic en el archivo `.env` para abrirlo con el Bloc de notas
+   (Notepad) o cualquier editor de texto.
+5. Copia y pega las siguientes variables de ejemplo, ajustándolas según tu
+   configuración de PostgreSQL:
+
+   ```
+   # Configuración de la base de datos
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_NAME=innova_paz_erp_db
+   DB_USER=postgres  # O 'erp_user' si creaste un usuario específico
+   DB_PASSWORD=tu_contraseña_segura  # Deja vacío si usas autenticación por peer o similar
+
+   # Otras configuraciones (ajusta según las necesidades de tu aplicación)
+   NODE_ENV=development
+   PORT=3000
+   JWT_SECRET=tu_jwt_secret_seguro
+   ```
+
+6. Guarda el archivo (Archivo > Guardar) y ciérralo.
+7. Asegúrate de que el archivo `.env` esté incluido en `.gitignore` para evitar
+   subir contraseñas a repositorios públicos.
+8. Reinicia tu aplicación backend para que cargue las nuevas variables.
+
 ## Pasos de Configuración
 
 1. Conéctate a PostgreSQL usando un cliente como `psql` o una herramienta GUI
    (ej. pgAdmin).
 2. Ejecuta el siguiente script SQL para crear todas las tablas. Asegúrate de
    estar conectado a la base de datos objetivo.
+
+### Ejecutando el Script SQL
+
+#### En Windows (usando pgAdmin):
+
+- Abre pgAdmin y conéctate a la base de datos `innova_paz_erp_db` (o la que
+  creaste).
+- Haz clic derecho en la base de datos > Query Tool.
+- Copia y pega el script SQL completo en el editor de consultas.
+- Haz clic en "Execute" (o presiona F5) para ejecutar el script.
+
+#### En Windows (usando psql desde línea de comandos):
+
+- Abre la línea de comandos (cmd o PowerShell).
+- Ejecuta: `psql -U postgres -d innova_paz_erp_db -h localhost -p 5432`
+- Ingresa la contraseña cuando se solicite.
+- Copia y pega el script SQL completo en el prompt de psql.
+- Presiona Enter para ejecutar. Para salir, escribe `\q`.
+
+#### En WSL (usando psql):
+
+- Abre la terminal WSL.
+- Ejecuta: `psql -U postgres -d innova_paz_erp_db -h localhost -p 5432`
+- Ingresa la contraseña cuando se solicite.
+- Copia y pega el script SQL completo en el prompt de psql.
+- Presiona Enter para ejecutar. Para salir, escribe `\q`.
 
 ## Script SQL
 
@@ -129,8 +220,6 @@ CREATE TABLE empresas (
   fecha_fin_periodo_actual TIMESTAMP,
   id_cliente_procesador_pago VARCHAR(150),
   tamano_empresa VARCHAR(20),
-  direccion TEXT,
-  telefono VARCHAR(20),
   email VARCHAR(100),
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
