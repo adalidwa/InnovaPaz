@@ -26,3 +26,6 @@ pool
     console.error('❌ Error en conexión de prueba:', error.message);
     console.error('� Verifica que PostgreSQL esté ejecutándose y las credenciales sean correctas');
   });
+
+// Export default para compatibilidad
+export default pool;

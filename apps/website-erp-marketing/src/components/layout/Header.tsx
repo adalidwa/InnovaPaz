@@ -68,6 +68,11 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
+  const handleERPAccess = () => {
+    // Si hay algún enlace al ERP, usar puerto correcto
+    window.location.href = 'http://localhost:5175/dashboard'; // ✅ CORREGIDO
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {

@@ -7,11 +7,11 @@ import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './LoginPage.css';
 import { useNavigate } from 'react-router-dom';
-import { signInWithGoogle } from '../services/auth/firebaseAuthService';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, db } from '../configs/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
-import { buildERPUrl } from '../configs/appConfig';
+import {
+  loginWithBackend,
+  saveUserSession,
+  buildERPRedirectUrl,
+} from '../services/auth/backendAuthService';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,71 +20,71 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para verificar si el usuario tiene empresa configurada y redirigir apropiadamente
-  const checkUserAndRedirect = async (user: any) => {
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const userData = userSnap.data();
-        if (userData.empresa_id && userData.setup_completed) {
-          // Usuario ya tiene empresa configurada, va al ERP
-          window.location.href = buildERPUrl();
-        } else {
-          // Usuario necesita configurar empresa
-          navigate('/company-setup');
-        }
-      } else {
-        // Usuario nuevo, necesita configurar empresa
-        navigate('/company-setup');
-      }
-    } catch (err) {
-      console.error('Error checking user data:', err);
-      // En caso de error, va al home para no romper el flujo
-      navigate('/');
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { user, error } = await signInWithGoogle();
-      if (user) {
-        // Usuario logueado con Google, verificar si tiene empresa configurada
-        await checkUserAndRedirect(user);
-      } else {
-        setError('Error al iniciar sesión con Google');
-        console.error(error);
-      }
-    } catch (err) {
-      setError('Error inesperado. Inténtalo más tarde.');
-      console.error(err);
-    }
-    setLoading(false);
-  };
-
+  // Función para manejar el login usando el backend coordinador
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password; // (podrías trim si sabes que no lleva espacios válidos)
+
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Usuario logueado, verificar si tiene empresa configurada
-      await checkUserAndRedirect(userCredential.user);
-    } catch (err: any) {
-      if (err.code === 'auth/user-not-found') {
-        setError('No existe una cuenta con ese correo.');
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Contraseña incorrecta.');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Correo inválido.');
+      const result = await loginWithBackend({ email: cleanEmail, password: cleanPassword });
+      console.log('[LOGIN][DEBUG] Respuesta backend:', result);
+
+      if (result.success && result.data) {
+        saveUserSession(result.data.user, result.data.token);
+        const redirectUrl = buildERPRedirectUrl(result.data.user);
+        console.log('[LOGIN][DEBUG] Redirigiendo a:', redirectUrl);
+        window.location.href = redirectUrl;
       } else {
-        setError('Error al iniciar sesión. ' + (err.message || 'Inténtalo de nuevo.'));
+        const errorCode = (result as any).code;
+        if (errorCode === 'USER_NOT_FOUND' || errorCode === 'USER_NOT_FOUND_DB') {
+          setError('Usuario no existe en PostgreSQL. Regístrate o sincroniza primero.');
+        } else if (errorCode === 'INVALID_PASSWORD') {
+          setError('Contraseña incorrecta.');
+        } else if (errorCode === 'MISSING_TOKEN') {
+          setError('Falta token de autenticación (flujo Firebase incompleto).');
+        } else {
+          setError(result.message || 'Credenciales no válidas.');
+        }
       }
-      console.error(err);
+    } catch (err: any) {
+      console.error('[LOGIN][ERROR] Excepción:', err);
+      if (err?.message?.includes('Failed to fetch') || err?.message?.includes('Network')) {
+        setError(
+          'No se puede conectar al backend (puerto 4000). Verifica que el servidor esté encendido.'
+        );
+      } else {
+        setError('Error inesperado. Inténtalo más tarde.');
+      }
     }
+
+    setLoading(false);
+  };
+
+  // TODO: Implementar Google login con backend coordinador
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Por ahora mostrar mensaje de que está en desarrollo
+      setError('Login con Google estará disponible pronto. Usa email y contraseña.');
+
+      // Cuando esté listo, debería ser algo así:
+      // const result = await loginWithGoogleBackend();
+      // if (result.success && result.data) {
+      //   saveUserSession(result.data.user, result.data.token);
+      //   const redirectUrl = buildERPRedirectUrl(result.data.user);
+      //   window.location.href = redirectUrl;
+      // }
+    } catch (err) {
+      setError('Error inesperado. Inténtalo más tarde.');
+      console.error('Error en handleGoogleLogin:', err);
+    }
+
     setLoading(false);
   };
 

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../configs/firebaseConfig';
-import { doc, getDoc, runTransaction, collection, serverTimestamp } from 'firebase/firestore';
+import { auth } from '../configs/firebaseConfig';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Logo from '../components/ui/Logo';
 import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
-import { buildERPUrl } from '../configs/appConfig';
+import { buildERPUrl, buildApiUrl } from '../configs/appConfig';
 import './CompanySetupPage.css';
 
 const CompanySetupPage: React.FC = () => {
@@ -18,7 +17,6 @@ const CompanySetupPage: React.FC = () => {
 
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [userDocLoading, setUserDocLoading] = useState(true);
   const [nombreEmpresa, setNombreEmpresa] = useState('');
   const [tipoNegocio, setTipoNegocio] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -33,41 +31,56 @@ const CompanySetupPage: React.FC = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('CompanySetup - Auth state changed:', currentUser?.email || 'No user');
+      console.log('🛡️ CompanySetup - El Guardia dice:', currentUser?.email || 'Nadie logueado');
 
       setUser(currentUser);
       setLoading(false);
 
       if (!currentUser) {
-        console.log('No user found, redirecting to register');
+        console.log('❌ El Guardia dice: No hay nadie logueado, redirigiendo a register');
         navigate('/register');
         return;
       }
-
       try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (!userSnap.exists()) {
-          console.log('User doc not found, redirecting to register');
-          navigate('/register');
-          return;
+        let checkResponse = await fetch(buildApiUrl(`/api/users/check-company/${currentUser.uid}`));
+        if (checkResponse.status === 404) {
+          console.warn('[COMPANY_SETUP] Usuario no encontrado en PostgreSQL. Intentando sync...');
+          // Intentar sincronizar
+          try {
+            const syncResp = await fetch(buildApiUrl('/api/users/sync'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                firebase_uid: currentUser.uid,
+                email: currentUser.email,
+                nombre: currentUser.displayName || 'Sin Nombre',
+              }),
+            });
+            const syncJson = await syncResp.json();
+            console.log('[COMPANY_SETUP] Resultado sync:', syncJson);
+            if (syncJson.success) {
+              // Reintentar check-company
+              checkResponse = await fetch(
+                buildApiUrl(`/api/users/check-company/${currentUser.uid}`)
+              );
+            } else {
+              console.warn('[COMPANY_SETUP] Sync falló, continuará sin empresa.');
+            }
+          } catch (syncErr) {
+            console.error('[COMPANY_SETUP] Error sincronizando usuario:', syncErr);
+          }
         }
+        const result = await checkResponse.json();
 
-        const userData = userSnap.data();
-        console.log('User data:', userData);
-
-        if (userData.empresa_id && userData.setup_completed) {
-          console.log('User already has company setup, redirecting to ERP dashboard');
+        if (result.success && (result.data.tiene_empresa || result.data.setup_completed)) {
+          console.log('🏢 Usuario ya tiene empresa, redirigiendo al ERP');
           window.location.href = buildERPUrl();
           return;
         }
 
-        console.log('User needs company setup, staying on page');
-        setUserDocLoading(false);
+        console.log('📝 El Coordinador dice: Usuario necesita configurar empresa');
       } catch (error) {
-        console.error('Error checking user data:', error);
-        setUserDocLoading(false);
+        console.error('💥 Error comunicándose con el Coordinador:', error);
       }
     });
 
@@ -90,45 +103,104 @@ const CompanySetupPage: React.FC = () => {
     }
 
     if (!user) {
-      setError('Usuario no autenticado.');
+      setError('Usuario no autenticado con Firebase.');
       return;
     }
 
     setSubmitting(true);
-    console.log('Starting company setup transaction...');
+    console.log('🔄 Iniciando configuración de empresa...');
+    console.log('🛡️ Usuario autenticado por el Guardia (Firebase):', user.uid);
 
     try {
-      await runTransaction(db, async (transaction) => {
-        const empresaRef = doc(collection(db, 'empresas'));
-        transaction.set(empresaRef, {
-          nombre: nombreEmpresa,
-          tipo_negocio: tipoNegocio,
-          plan_id: planSeleccionado || 'basico',
-          owner_uid: user.uid,
-          created_at: serverTimestamp(),
-          updated_at: serverTimestamp(),
-        });
-
-        const userRef = doc(db, 'users', user.uid);
-        transaction.update(userRef, {
-          empresa_id: empresaRef.id,
-          rol: 'administrador',
-          setup_completed: true,
-          updated_at: serverTimestamp(),
-        });
+      const response = await fetch(buildApiUrl('/api/companies/setup'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firebase_uid: user.uid,
+          empresa_nombre: nombreEmpresa,
+          tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+          plan_id: getPlanId(planSeleccionado),
+        }),
       });
 
-      console.log('Company setup completed successfully');
-      setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
-      setTimeout(() => {
-        window.location.href = buildERPUrl();
-      }, 2000);
+      if (response.status === 404) {
+        const txt = await response.text();
+        console.warn('[COMPANY_SETUP] 404 detalle:', txt);
+        setError(
+          'Usuario no sincronizado o ruta /setup no encontrada. Verifica backend y que /api/users/sync se haya ejecutado.'
+        );
+        setSubmitting(false);
+        return;
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('✅ El Coordinador completó la configuración exitosamente');
+        setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
+
+        // 🚀 ARREGLAR: Preparar datos COMPLETOS para el ERP dashboard
+        const erpData = {
+          uid: user.uid,
+          email: user.email,
+          nombre_completo: user.displayName || 'Sin Nombre', // ✅ Agregar nombre completo
+          empresa_id: result.data.empresa_id,
+          empresa_nombre: nombreEmpresa, // ✅ Agregar nombre empresa
+          rol_id: result.data.rol_id,
+          nombre_rol: 'Administrador', // ✅ Agregar nombre del rol
+          setup_completed: result.data.setup_completed ?? true,
+          timestamp: Date.now(),
+        };
+
+        // 📦 Guardar datos para que el ERP los pueda leer
+        localStorage.setItem('erp_user_data', JSON.stringify(erpData));
+        console.log('[COMPANY_SETUP] Datos guardados en localStorage:', erpData);
+
+        // 🚀 Redirigir al ERP dashboard with parámetros de sesión
+        const erpUrl =
+          buildERPUrl() + `?setup=true&uid=${user.uid}&empresa=${result.data.empresa_id}`;
+
+        setTimeout(() => {
+          console.log('🚀 Redirigiendo a:', erpUrl);
+          window.location.href = erpUrl;
+        }, 2000);
+      } else {
+        setError(result.message || 'Error al configurar la empresa.');
+      }
     } catch (err) {
-      console.error('Error configurando empresa:', err);
+      console.error('💥 Error comunicándose con el Coordinador:', err);
       setError('Error al configurar la empresa. Inténtalo de nuevo.');
     }
 
     setSubmitting(false);
+  };
+
+  // Funciones helper para mapear los valores
+  const getBusinessTypeId = (tipo: string) => {
+    switch (tipo) {
+      case 'ferreteria':
+        return 1;
+      case 'licoreria':
+        return 2;
+      case 'minimarket':
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
+  const getPlanId = (plan: string | null) => {
+    switch (plan) {
+      case 'basico':
+        return 1;
+      case 'profesional':
+        return 2;
+      case 'empresarial':
+        return 3;
+      default:
+        return 1;
+    }
   };
 
   const getPlanDisplayName = (plan: string | null) => {
@@ -144,7 +216,7 @@ const CompanySetupPage: React.FC = () => {
     }
   };
 
-  if (loading || userDocLoading) {
+  if (loading) {
     return <div>Cargando...</div>;
   }
 

@@ -8,13 +8,11 @@ import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './RegisterPage.css';
 import { signInWithGoogle } from '../services/auth/firebaseAuthService';
-import { registerUser, registerUserAndCompany } from '../services/auth/registerService';
+import { registerUser } from '../services/auth/registerService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../configs/firebaseConfig';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../configs/firebaseConfig';
-import { buildERPUrl } from '../configs/appConfig';
+import { redirectToERP, buildApiUrl } from '../configs/appConfig';
 
 const getPlanDisplayName = (plan: string | null) => {
   switch (plan) {
@@ -40,18 +38,16 @@ const RegisterPage: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user && planSeleccionado && !isNavigating && !authChecked) {
         try {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
+          console.log('[REGISTER][CHECK] Consultando backend check-company...');
+          const resp = await fetch(buildApiUrl(`/api/users/check-company/${user.uid}`));
+          const result = await resp.json();
+          console.log('[REGISTER][CHECK] Respuesta:', result);
 
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-
-            if (userData.empresa_id && userData.setup_completed) {
-              console.log('Usuario ya tiene empresa configurada, redirigiendo al ERP');
-              setIsNavigating(true);
-              window.location.href = buildERPUrl();
-              return;
-            }
+          if (result.success && result.data.tiene_empresa) {
+            console.log('Usuario ya tiene empresa configurada (PostgreSQL), redirigiendo al ERP');
+            setIsNavigating(true);
+            redirectToERP();
+            return;
           }
 
           console.log('Usuario necesita completar setup, redirigiendo a company-setup');
@@ -62,12 +58,11 @@ const RegisterPage: React.FC = () => {
             }
           }, 400);
         } catch (error) {
-          console.error('Error verificando datos del usuario:', error);
+          console.error('[REGISTER][CHECK] Error verificando empresa en backend:', error);
         }
       }
       setAuthChecked(true);
     });
-
     return () => unsubscribe();
   }, [navigate, planSeleccionado, isNavigating, authChecked]);
 
@@ -104,6 +99,32 @@ const RegisterPage: React.FC = () => {
     setStep(2);
   };
 
+  // Helpers para IDs usados por PostgreSQL (duplicados aquí para no depender de CompanySetupPage)
+  const getBusinessTypeId = (tipo: string) => {
+    switch (tipo) {
+      case 'ferreteria':
+        return 1;
+      case 'licoreria':
+        return 2;
+      case 'minimarket':
+        return 3;
+      default:
+        return 1;
+    }
+  };
+  const getPlanId = (plan: string | null) => {
+    switch (plan) {
+      case 'basico':
+        return 1;
+      case 'profesional':
+        return 2;
+      case 'empresarial':
+        return 3;
+      default:
+        return 1;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -118,35 +139,129 @@ const RegisterPage: React.FC = () => {
 
     try {
       if (planSeleccionado) {
-        const { user, error } = await registerUserAndCompany({
-          nombreCompleto: nombre,
-          email,
-          password,
-          nombreEmpresa,
-          tipoNegocio,
-          planId: planSeleccionado,
-        });
-        if (user) {
-          setSuccess('¡Cuenta y empresa creadas exitosamente!');
-          setTimeout(() => navigate('/dashboard'), 1500);
-        } else {
-          const firebaseError = error as { code?: string; message?: string };
+        const { user: createdUser, error: regError } = await registerUser(nombre, email, password);
+
+        if (regError) {
+          const firebaseError = regError as { code?: string; message?: string };
           if (firebaseError?.code === 'auth/email-already-in-use') {
-            setError(
-              'El correo electrónico ya está registrado. Intenta iniciar sesión o usa otro correo.'
-            );
+            setError('El correo ya está registrado. Usa otro o inicia sesión.');
           } else {
-            setError(
-              'Error al crear la cuenta. ' + (firebaseError?.message || 'Inténtalo de nuevo.')
-            );
+            setError('Error creando usuario: ' + (firebaseError?.message || 'Inténtalo de nuevo.'));
+          }
+          setLoading(false);
+          return;
+        }
+
+        if (createdUser) {
+          console.log('🔥 [REGISTER][FRONTEND] Usuario Firebase creado:', createdUser.uid);
+
+          // 🔄 NUEVO: sincronizar usuario en PostgreSQL antes del setup de empresa
+          try {
+            console.log('🔄 [REGISTER][FRONTEND] Enviando sync a backend:', {
+              firebase_uid: createdUser.uid,
+              email: createdUser.email,
+              nombre_completo: nombre,
+            });
+
+            const syncResp = await fetch(buildApiUrl('/api/users/sync'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                firebase_uid: createdUser.uid,
+                email: createdUser.email,
+                nombre_completo: nombre, // ✅ Usar nombre_completo directamente
+              }),
+            });
+            const syncJson = await syncResp.json();
+            console.log('✅ [REGISTER][FRONTEND] Respuesta sync backend:', syncJson);
+
+            if (!syncJson.success) {
+              setError('No se pudo sincronizar usuario en backend.');
+              setLoading(false);
+              return;
+            }
+          } catch (syncErr) {
+            console.error('❌ [REGISTER][FRONTEND] Error sync usuario:', syncErr);
+            setError('Error sincronizando usuario en backend.');
+            setLoading(false);
+            return;
+          }
+
+          // Crear empresa + relación en PostgreSQL
+          try {
+            console.log('🏢 [REGISTER][FRONTEND] Enviando setup empresa a backend:', {
+              firebase_uid: createdUser.uid,
+              empresa_nombre: nombreEmpresa,
+              tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+              plan_id: getPlanId(planSeleccionado),
+            });
+
+            const response = await fetch(buildApiUrl('/api/companies/setup'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                firebase_uid: createdUser.uid,
+                empresa_nombre: nombreEmpresa,
+                tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+                plan_id: getPlanId(planSeleccionado),
+              }),
+            });
+
+            if (!response.ok) {
+              console.error('❌ [REGISTER][FRONTEND] Error HTTP setup empresa:', response.status);
+              if (response.status === 404) {
+                setError('Endpoint /api/companies/setup (404). Revisa rutas backend.');
+              } else if (response.status === 401) {
+                setError('No autorizado al configurar empresa. Verifica backend.');
+              } else {
+                setError(`Error backend (${response.status}).`);
+              }
+              setLoading(false);
+              return;
+            }
+
+            const json = await response.json();
+            console.log('✅ [REGISTER][FRONTEND] Respuesta setup empresa backend:', json);
+
+            if (json.success) {
+              // 🚀 Guardar datos completos en localStorage
+              const erpData = {
+                uid: createdUser.uid,
+                email: createdUser.email,
+                nombre_completo: nombre,
+                empresa_id: json.data.empresa_id,
+                empresa_nombre: nombreEmpresa,
+                rol_id: json.data.rol_id,
+                nombre_rol: 'Administrador',
+                setup_completed: json.data.setup_completed ?? true,
+                timestamp: Date.now(),
+              };
+              localStorage.setItem('erp_user_data', JSON.stringify(erpData));
+              console.log('💾 [REGISTER][FRONTEND] Datos guardados en localStorage:', erpData);
+              setSuccess('¡Cuenta y empresa creadas exitosamente!');
+              setTimeout(() => redirectToERP(), 800);
+            } else {
+              setError(json.message || 'Error creando la empresa en el backend.');
+            }
+          } catch (beErr: any) {
+            console.error('❌ [REGISTER][FRONTEND] Error backend empresa:', beErr);
+            if (
+              beErr?.message?.includes('Failed to fetch') ||
+              beErr?.message?.includes('Network')
+            ) {
+              setError(
+                'No se pudo conectar al backend (puerto 4000). Verifica que esté ejecutándose.'
+              );
+            } else {
+              setError('Error de red creando empresa.');
+            }
           }
         }
       } else {
-        const { user, error } = await registerUser(nombre, email, password);
-        if (user) {
-          setSuccess('¡Cuenta creada exitosamente!');
-          setTimeout(() => navigate('/'), 1500);
-        } else {
+        // Registro básico sin empresa
+        const cleanEmail = email.trim().toLowerCase();
+        const { user, error } = await registerUser(nombre, cleanEmail, password);
+        if (error) {
           const firebaseError = error as { code?: string; message?: string };
           if (firebaseError?.code === 'auth/email-already-in-use') {
             setError(
@@ -157,6 +272,33 @@ const RegisterPage: React.FC = () => {
               'Error al crear la cuenta. ' + (firebaseError?.message || 'Inténtalo de nuevo.')
             );
           }
+        } else if (user) {
+          console.log('[REGISTER][BASIC] Usuario Firebase creado:', user.uid);
+
+          // 🔄 ARREGLAR: Sincronizar con nombre_completo correcto
+          try {
+            const resp = await fetch(buildApiUrl('/api/users/sync'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                firebase_uid: user.uid,
+                email: user.email,
+                nombre_completo: nombre, // ✅ Cambiar 'nombre' por 'nombre_completo'
+              }),
+            });
+            if (resp.status === 404) {
+              console.warn(
+                '[REGISTER][BASIC] Endpoint /api/users/sync no encontrado (404). Verifica backend.'
+              );
+            } else {
+              const json = await resp.json();
+              console.log('[REGISTER][BASIC] Respuesta sync usuario:', json);
+            }
+          } catch (syncErr) {
+            console.error('[REGISTER][BASIC] Error sincronizando usuario en backend:', syncErr);
+          }
+          setSuccess('¡Cuenta creada exitosamente!');
+          setTimeout(() => navigate('/'), 1500);
         }
       }
     } catch (err: any) {
@@ -180,33 +322,35 @@ const RegisterPage: React.FC = () => {
 
     try {
       const { user } = await signInWithGoogle();
-
       if (user && !isNavigating) {
         if (planSeleccionado) {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
+          try {
+            const resp = await fetch(buildApiUrl(`/api/users/check-company/${user.uid}`));
+            if (resp.status === 404) {
+              setError('Ruta check-company (404). Revisa backend.');
+              setLoading(false);
+              return;
+            }
+            const result = await resp.json();
+            console.log('[REGISTER][GOOGLE] check-company:', result);
 
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-
-            if (userData.empresa_id && userData.setup_completed) {
+            if (result.success && result.data.tiene_empresa) {
               setSuccess('¡Bienvenido de vuelta!');
               setIsNavigating(true);
-              setTimeout(() => navigate('/dashboard'), 1000);
+              setTimeout(() => redirectToERP(), 600);
             } else {
               setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
               setIsNavigating(true);
-              setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 1000);
+              setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 800);
             }
-          } else {
-            setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
-            setIsNavigating(true);
-            setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 1000);
+          } catch (err) {
+            console.error('[REGISTER][GOOGLE] Error consultando backend:', err);
+            setError('Error verificando estado de empresa.');
           }
         } else {
           setSuccess('¡Registro exitoso!');
           setIsNavigating(true);
-          setTimeout(() => navigate('/'), 1000);
+          setTimeout(() => navigate('/'), 800);
         }
       } else {
         setError('Error al registrar con Google. Inténtalo de nuevo.');
