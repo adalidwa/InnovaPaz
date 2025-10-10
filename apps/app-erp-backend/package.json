@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "description": "Academia Boliviana de Historia Militar - Sistema de gestión",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js",
-    "start": "node index.js",
+    "dev": "nodemon apps/app-erp-backend/index.js",
+    "start": "node apps/app-erp-backend/index.js",
     "docker:up": "docker start abh_mysql",
     "docker:down": "docker stop abh_mysql",
     "docker:logs": "docker logs abh_mysql",
@@ -62,6 +61,7 @@
   "dependencies": {
     "@svgdotjs/svg.js": "^3.2.4",
     "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
     "csv-parser": "^3.2.0",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
