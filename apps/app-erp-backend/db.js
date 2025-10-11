@@ -1,31 +1,32 @@
-import { Pool } from 'pg';
-import { DB_CONFIG } from './utils/env.js';
+const { Pool } = require('pg');
+const { db } = require('./config');
 
-export const pool = new Pool({
-  host: DB_CONFIG.HOST,
-  port: DB_CONFIG.PORT,
-  user: DB_CONFIG.USER,
-  password: DB_CONFIG.PASSWORD,
-  database: DB_CONFIG.DATABASE,
-  max: DB_CONFIG.CONNECTION_LIMIT,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+const pool = new Pool({
+  user: db.user,
+  password: db.password,
+  host: db.host,
+  port: db.port,
+  database: db.database,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
-console.log('🔗 Pool de conexiones a PostgreSQL creado exitosamente');
+// Verificar conexión a la base de datos
+pool.connect((err, client, release) => {
+  if (err) {
+    console.error('❌ Error al conectar a la base de datos:', err.message);
+    console.error('Detalles del error:', err.stack);
+  } else {
+    console.log('✅ Conectado exitosamente a la base de datos PostgreSQL');
+    release(); // Liberar el cliente
+  }
+});
 
-pool
-  .connect()
-  .then((client) => {
-    console.log('✅ Conexión de prueba a PostgreSQL exitosa');
-    console.log(`📊 Conectado a la base de datos: ${DB_CONFIG.DATABASE}`);
-    console.log(`🏠 Host: ${DB_CONFIG.HOST}:${DB_CONFIG.PORT}`);
-    client.release();
-  })
-  .catch((error) => {
-    console.error('❌ Error en conexión de prueba:', error.message);
-    console.error('� Verifica que PostgreSQL esté ejecutándose y las credenciales sean correctas');
-  });
+// Manejar errores de conexión del pool
+pool.on('error', (err) => {
+  console.error('❌ Error inesperado en el pool de conexiones:', err);
+  process.exit(-1);
+});
 
-// Export default para compatibilidad
-export default pool;
+module.exports = pool;
