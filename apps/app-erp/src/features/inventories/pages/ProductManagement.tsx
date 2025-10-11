@@ -111,7 +111,7 @@ function ProductManagement() {
         <div className='modal-overlay' onClick={handleCloseModal}>
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
             <div className='modal-header'>
-              <h2 className='modal-title'>Agregar Nuevo Producto - Minimarket</h2>
+              <h2 className='modal-title'>Agregar Nuevo Producto - Licoreria</h2>
               <button className='modal-close' onClick={handleCloseModal}>
                 ×
               </button>
