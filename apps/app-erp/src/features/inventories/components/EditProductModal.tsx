@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
-import type { ProductFormData } from '../hooks/useProducts';
-import type { Product } from '../types/inventory';
+import type { ProductFormData } from '../hooks/useProductsReal';
+import type { ProductLegacy } from '../types/inventory';
 import './ModalImputs.css';
 
 interface EditProductModalProps {
-  product: Product;
-  onSave: (productData: ProductFormData) => { success: boolean; error?: string };
+  product: ProductLegacy;
+  onSave: (productData: ProductFormData) => Promise<{ success: boolean; error?: string }>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -91,10 +91,10 @@ function EditProductModal({ product, onSave, onCancel, loading = false }: EditPr
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const result = onSave(formData);
+      const result = await onSave(formData);
       if (result.success) {
         onCancel(); // Cerrar el modal después de guardar exitosamente
       }

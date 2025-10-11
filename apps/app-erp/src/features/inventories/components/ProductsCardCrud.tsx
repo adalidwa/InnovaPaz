@@ -3,20 +3,20 @@ import Ojo from '../../../assets/images/Ojo.png';
 import Editar from '../../../assets/images/Editar.png';
 import { Button, StatusTag } from '../../../components/common';
 import TitleDescription from '../../../components/common/TitleDescription';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './ProductsCardCrud.css';
 import { useNavigate } from 'react-router-dom';
 
 interface ProductsCardCrudProps {
-  product: Product;
-  onEdit?: (product: Product) => void;
+  product: ProductLegacy;
+  onEdit?: (product: ProductLegacy) => void;
   onDeactivate?: (productId: string) => void;
 }
 
 function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudProps) {
   const navigate = useNavigate();
 
-  const getStatusConfig = (status: Product['status']) => {
+  const getStatusConfig = (status: ProductLegacy['status']) => {
     switch (status) {
       case 'critico':
         return { text: 'Crítico', color: 'var(--error-600)', textColor: 'var(--white)' };

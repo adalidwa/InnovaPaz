@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
-import type { ProductFormData } from '../hooks/useProducts';
+import type { ProductFormData } from '../hooks/useProductsReal';
 import './ModalImputs.css';
 
 interface ModalImputsProps {
-  onSave: (productData: ProductFormData) => { success: boolean; product?: any; error?: string };
+  onSave: (
+    productData: ProductFormData
+  ) => Promise<{ success: boolean; product?: any; error?: string }>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -87,10 +89,10 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const result = onSave(formData);
+      const result = await onSave(formData);
       if (result.success) {
         resetForm();
       }
