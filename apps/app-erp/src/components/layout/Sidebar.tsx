@@ -1,6 +1,6 @@
 import React from 'react';
 import './Sidebar.css';
-import { useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import logoInnovaPaz from '../../assets/icons/logoInnovaPaz.svg';
 
 interface SidebarItem {
@@ -11,6 +11,7 @@ interface SidebarItem {
 
 interface SidebarProps {
   title: string;
+  titleIcon: React.ComponentType<{ className?: string }>;
   menuItems: SidebarItem[];
   logoUrl?: string;
   brandFooter?: string;
@@ -18,12 +19,11 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({
   title,
+  titleIcon: TitleIcon,
   menuItems,
   logoUrl,
   brandFooter = 'INNOVAPAZ',
 }) => {
-  const location = useLocation();
-
   return (
     <div className='sidebar'>
       <div className='sidebar__top'>
@@ -35,23 +35,28 @@ const Sidebar: React.FC<SidebarProps> = ({
               className='sidebar__company-logo-img'
             />
           </div>
-          <h1 className='sidebar__company-name'>{title}</h1>
+          <h1 className='sidebar__company-name'>
+            {/* Muestra el icono junto al título */}
+            {TitleIcon && <TitleIcon className='sidebar__company-title-icon' />} {title}
+          </h1>
         </div>
 
         <div className='sidebar__section-label'>Menú de tareas</div>
         <nav className='sidebar__menu'>
           {menuItems.map((item, index) => {
             const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
             return (
-              <a
+              <NavLink
                 key={index}
-                href={item.href}
-                className={`sidebar__item${isActive ? ' sidebar__item--active' : ''}`}
+                to={item.href}
+                className={({ isActive }) =>
+                  `sidebar__item${isActive ? ' sidebar__item--active' : ''}`
+                }
+                end
               >
                 <IconComponent className='sidebar__item-icon' />
                 <span className='sidebar__item-text'>{item.label}</span>
-              </a>
+              </NavLink>
             );
           })}
         </nav>

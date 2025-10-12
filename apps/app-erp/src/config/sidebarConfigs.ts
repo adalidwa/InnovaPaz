@@ -3,8 +3,6 @@ import {
   FaBox,
   FaShoppingCart,
   FaChartLine,
-  FaExclamationTriangle,
-  FaFileAlt,
   FaCog,
   FaUsers,
   FaMoneyBillWave,
