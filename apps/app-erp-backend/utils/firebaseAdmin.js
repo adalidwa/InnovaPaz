@@ -1,28 +1,30 @@
-import admin from 'firebase-admin';
+const admin = require('firebase-admin');
 
 // Configuración de Firebase Admin
 const initializeFirebaseAdmin = () => {
   if (admin.apps.length === 0) {
     try {
-      // Para desarrollo, usamos credenciales simplificadas
-      // En este caso, necesitamos el archivo de credenciales o variables de entorno
+      // Cargar las credenciales de la cuenta de servicio
+      // DEBES descargar este archivo desde tu consola de Firebase
+      const serviceAccount = require('../serviceAccountKey.json');
 
-      // Configuración mínima para desarrollo
       admin.initializeApp({
-        projectId: 'innovapaz-demo', // Cambia por tu project ID
+        credential: admin.credential.cert(serviceAccount),
       });
 
       console.log('🔥 Firebase Admin inicializado correctamente');
     } catch (error) {
       console.warn('⚠️ Firebase Admin no configurado:', error.message);
-      console.log('💡 Para usar Firebase Auth, configura las credenciales');
+      console.log(
+        '💡 Asegúrate de tener el archivo "serviceAccountKey.json" en la raíz de "app-erp-backend" y que sea válido.'
+      );
     }
   }
   return admin;
 };
 
 // El Coordinador habla con Firebase Auth (El Guardia)
-export const firebaseAuth = {
+const firebaseAuth = {
   // Crear usuario en Firebase Auth
   createUser: async (email, password, displayName) => {
     try {
@@ -140,4 +142,4 @@ export const firebaseAuth = {
   },
 };
 
-export default firebaseAuth;
+module.exports = { firebaseAuth };

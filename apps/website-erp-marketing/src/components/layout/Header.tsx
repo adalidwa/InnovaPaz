@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../configs/firebaseConfig';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../context/UserContext';
 import Button from '../common/ButtonExtra';
@@ -9,6 +7,7 @@ import NavLink from '../ui/NavLink';
 import avatarDefault from '../../assets/images/avatarlogin.png';
 import MobileMenu from './MobileMenu';
 import './Header.css';
+import { redirectToERP } from '../../configs/appConfig'; // Importar la función de redirección
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,7 +15,6 @@ const Header: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const navigate = useNavigate();
   const { user, logout } = useUser();
-  const [nombreFirestore, setNombreFirestore] = useState<string | null>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   const handleNavigationClick = (section: string) => {
@@ -68,9 +66,10 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
-  const handleERPAccess = () => {
-    // Si hay algún enlace al ERP, usar puerto correcto
-    window.location.href = 'http://localhost:5175/dashboard'; // ✅ CORREGIDO
+  // Nueva función para ir al ERP
+  const handleGoToERP = () => {
+    setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
+    redirectToERP();
   };
 
   useEffect(() => {
@@ -85,27 +84,6 @@ const Header: React.FC = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  // Consultar Firestore si el usuario está logueado y no tiene displayName
-  useEffect(() => {
-    const fetchNombre = async () => {
-      if (user && !user.displayName && 'uid' in user && user.uid) {
-        try {
-          const docRef = doc(db, 'usuarios', user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setNombreFirestore(data.nombre || null);
-          }
-        } catch (err) {
-          setNombreFirestore(null);
-        }
-      } else {
-        setNombreFirestore(null);
-      }
-    };
-    fetchNombre();
-  }, [user]);
 
   return (
     <>
@@ -151,12 +129,15 @@ const Header: React.FC = () => {
                     alt='Avatar'
                     className='header__user-avatar'
                   />
-                  <span className='header__user-name'>
-                    {user.displayName || nombreFirestore || user.email}
-                  </span>
+                  <span className='header__user-name'>{user.displayName || user.email}</span>
                 </div>
                 {isUserMenuOpen && (
                   <div className='header__user-menu'>
+                    {user.empresa_id && ( // Mostrar solo si el usuario tiene una empresa
+                      <button className='header__menu-item' onClick={handleGoToERP}>
+                        Ir al ERP
+                      </button>
+                    )}
                     <button className='header__menu-item' onClick={handleLogout}>
                       Cerrar Sesión
                     </button>

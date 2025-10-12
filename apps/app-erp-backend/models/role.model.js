@@ -1,0 +1,68 @@
+const pool = require('../db');
+
+class Role {
+  static async find(query) {
+    if (query.empresa_id) {
+      const result = await pool.query('SELECT * FROM roles WHERE empresa_id = $1', [
+        query.empresa_id,
+      ]);
+      return result.rows;
+    }
+    const result = await pool.query('SELECT * FROM roles');
+    return result.rows;
+  }
+
+  static async findById(id) {
+    const result = await pool.query('SELECT * FROM roles WHERE rol_id = $1', [id]);
+    return result.rows[0];
+  }
+
+  static async findByIdAndCompany(rol_id, empresa_id) {
+    const result = await pool.query('SELECT * FROM roles WHERE rol_id = $1 AND empresa_id = $2', [
+      rol_id,
+      empresa_id,
+    ]);
+    return result.rows[0];
+  }
+
+  static async create(data) {
+    const { empresa_id, nombre_rol, permisos, es_predeterminado, estado } = data;
+    const result = await pool.query(
+      'INSERT INTO roles (empresa_id, nombre_rol, permisos, es_predeterminado, estado, fecha_creacion) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
+      [empresa_id, nombre_rol, JSON.stringify(permisos || {}), es_predeterminado, estado]
+    );
+    return result.rows[0];
+  }
+
+  static async findByIdAndUpdate(id, data) {
+    const fields = Object.keys(data);
+    const values = Object.values(data);
+    if (data.permisos) {
+      const index = fields.indexOf('permisos');
+      values[index] = JSON.stringify(values[index]);
+    }
+    const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(', ');
+
+    const query = `UPDATE roles SET ${setClause} WHERE rol_id = $${fields.length + 1} RETURNING *`;
+    const queryValues = [...values, id];
+
+    const result = await pool.query(query, queryValues);
+    return result.rows[0];
+  }
+
+  static async findByIdAndDelete(id) {
+    const result = await pool.query('DELETE FROM roles WHERE rol_id = $1 RETURNING *', [id]);
+    return result.rows[0];
+  }
+
+  static async updateMany(filter, update) {
+    if (filter.empresa_id && 'es_predeterminado' in update) {
+      await pool.query('UPDATE roles SET es_predeterminado = $1 WHERE empresa_id = $2', [
+        update.es_predeterminado,
+        filter.empresa_id,
+      ]);
+    }
+  }
+}
+
+module.exports = Role;

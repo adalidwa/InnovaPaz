@@ -20,7 +20,11 @@ const CardHeader: React.FC<CardHeaderProps> = ({
 }) => {
   return (
     <div className='card-header'>
-      <div className='card-header__icons'>{icons}</div>
+      <div className='card-header__icons'>
+        {icons.map((icon, idx) => (
+          <span key={idx}>{icon}</span>
+        ))}
+      </div>
       <h3 className='card-header__title'>{title}</h3>
       {description && <div className='card-header__description'>{description}</div>}
       {comment && <div className='card-header__comment'>{comment}</div>}

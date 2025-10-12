@@ -1,5 +1,9 @@
 const { Pool } = require('pg');
-const { db } = require('./config');
+const { db, env } = require('./config'); // Importar 'env'
+
+// Configuración de SSL condicional.
+// Se activa solo en producción (como en Render), no en desarrollo local.
+const sslConfig = env === 'production' ? { ssl: { rejectUnauthorized: false } } : {};
 
 const pool = new Pool({
   user: db.user,
@@ -7,9 +11,7 @@ const pool = new Pool({
   host: db.host,
   port: db.port,
   database: db.database,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ...sslConfig, // Aplicar la configuración de SSL aquí
 });
 
 // Verificar conexión a la base de datos
@@ -18,7 +20,9 @@ pool.connect((err, client, release) => {
     console.error('❌ Error al conectar a la base de datos:', err.message);
     console.error('Detalles del error:', err.stack);
   } else {
-    console.log('✅ Conectado exitosamente a la base de datos PostgreSQL');
+    console.log(
+      `✅ Conectado exitosamente a la base de datos PostgreSQL: "${client.database}" en el host "${client.host}"`
+    );
     release(); // Liberar el cliente
   }
 });

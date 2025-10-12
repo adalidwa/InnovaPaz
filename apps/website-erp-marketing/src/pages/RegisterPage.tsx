@@ -7,12 +7,14 @@ import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
 import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './RegisterPage.css';
-import { signInWithGoogle } from '../services/auth/firebaseAuthService';
-import { registerUser } from '../services/auth/registerService';
+import { signInWithGoogle } from '../services/auth/authService';
+import { registerWithBackend } from '../services/auth/sessionService';
+import { getPlanId, getBusinessTypeId, businessTypeToSlug } from '../services/auth/companyService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../configs/firebaseConfig';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
 import { redirectToERP, buildApiUrl } from '../configs/appConfig';
+import { getBusinessTypes, type BusinessType } from '../services/api/businessTypesService';
 
 const getPlanDisplayName = (plan: string | null) => {
   switch (plan) {
@@ -33,6 +35,48 @@ const RegisterPage: React.FC = () => {
   const planSeleccionado = searchParams.get('plan');
   const [isNavigating, setIsNavigating] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+
+  // Estados existentes
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [nombreEmpresa, setNombreEmpresa] = useState('');
+  const [tipoNegocio, setTipoNegocio] = useState('ferreteria');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
+
+  // Nuevos estados para datos dinámicos
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+  const [businessTypesLoading, setBusinessTypesLoading] = useState(true);
+
+  // Cargar tipos de empresa desde el backend
+  useEffect(() => {
+    const fetchBusinessTypes = async () => {
+      try {
+        const types = await getBusinessTypes();
+        setBusinessTypes(types);
+        // Establecer el primer tipo como default
+        if (types.length > 0 && !tipoNegocio) {
+          setTipoNegocio(businessTypeToSlug(types[0].tipo_empresa));
+        }
+      } catch (error) {
+        console.error('Error cargando tipos de empresa:', error);
+      } finally {
+        setBusinessTypesLoading(false);
+      }
+    };
+
+    fetchBusinessTypes();
+  }, [tipoNegocio]);
+
+  // Convertir tipos de empresa de la BD a opciones para el select
+  const businessOptions = businessTypes.map((type) => ({
+    value: businessTypeToSlug(type.tipo_empresa),
+    label: type.tipo_empresa,
+  }));
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -66,30 +110,35 @@ const RegisterPage: React.FC = () => {
     return () => unsubscribe();
   }, [navigate, planSeleccionado, isNavigating, authChecked]);
 
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [nombreEmpresa, setNombreEmpresa] = useState('');
-  const [tipoNegocio, setTipoNegocio] = useState('ferreteria');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [step, setStep] = useState(1);
-
-  const businessOptions = [
-    { value: 'ferreteria', label: 'Ferretería' },
-    { value: 'licoreria', label: 'Licorería' },
-    { value: 'minimarket', label: 'Minimarket' },
-  ];
-
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    if (!nombre || !email || !password || !confirmPassword) {
-      setError('Por favor, completa todos los campos.');
+    // Validaciones para el primer paso
+    if (!nombre) {
+      setError('El nombre es obligatorio.');
+      return;
+    }
+    if (!email) {
+      setError('El correo electrónico es obligatorio.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('El correo electrónico no es válido.');
+      return;
+    }
+    if (!password) {
+      setError('La contraseña es obligatoria.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (!confirmPassword) {
+      setError('Debes confirmar tu contraseña.');
       return;
     }
     if (password !== confirmPassword) {
@@ -99,39 +148,35 @@ const RegisterPage: React.FC = () => {
     setStep(2);
   };
 
-  // Helpers para IDs usados por PostgreSQL (duplicados aquí para no depender de CompanySetupPage)
-  const getBusinessTypeId = (tipo: string) => {
-    switch (tipo) {
-      case 'ferreteria':
-        return 1;
-      case 'licoreria':
-        return 2;
-      case 'minimarket':
-        return 3;
-      default:
-        return 1;
-    }
-  };
-  const getPlanId = (plan: string | null) => {
-    switch (plan) {
-      case 'basico':
-        return 1;
-      case 'profesional':
-        return 2;
-      case 'empresarial':
-        return 3;
-      default:
-        return 1;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
+    // Validaciones para el segundo paso (empresa)
     if (planSeleccionado && !nombreEmpresa) {
       setError('Por favor, ingresa el nombre de tu empresa.');
+      return;
+    }
+    if (planSeleccionado && !tipoNegocio) {
+      setError('Por favor, selecciona el tipo de negocio.');
+      return;
+    }
+
+    // Validaciones previas
+    if (!email || !password || !nombre) {
+      setError('Por favor, completa todos los campos obligatorios.');
+      return;
+    }
+    // Validación de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('El correo electrónico no es válido.');
+      return;
+    }
+    // Validación de longitud de contraseña
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
@@ -139,176 +184,48 @@ const RegisterPage: React.FC = () => {
 
     try {
       if (planSeleccionado) {
-        const { user: createdUser, error: regError } = await registerUser(nombre, email, password);
+        // Flujo con plan: usar el endpoint /api/auth/register con empresa_data
+        const registrationData = {
+          email: email.trim().toLowerCase(),
+          password,
+          nombre_completo: nombre,
+          empresa_data: {
+            nombre: nombreEmpresa,
+            tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+            plan_id: getPlanId(planSeleccionado),
+          },
+        };
 
-        if (regError) {
-          const firebaseError = regError as { code?: string; message?: string };
-          if (firebaseError?.code === 'auth/email-already-in-use') {
-            setError('El correo ya está registrado. Usa otro o inicia sesión.');
-          } else {
-            setError('Error creando usuario: ' + (firebaseError?.message || 'Inténtalo de nuevo.'));
-          }
-          setLoading(false);
-          return;
-        }
+        const result = await registerWithBackend(registrationData);
 
-        if (createdUser) {
-          console.log('🔥 [REGISTER][FRONTEND] Usuario Firebase creado:', createdUser.uid);
-
-          // 🔄 NUEVO: sincronizar usuario en PostgreSQL antes del setup de empresa
-          try {
-            console.log('🔄 [REGISTER][FRONTEND] Enviando sync a backend:', {
-              firebase_uid: createdUser.uid,
-              email: createdUser.email,
-              nombre_completo: nombre,
-            });
-
-            const syncResp = await fetch(buildApiUrl('/api/users/sync'), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                firebase_uid: createdUser.uid,
-                email: createdUser.email,
-                nombre_completo: nombre, // ✅ Usar nombre_completo directamente
-              }),
-            });
-            const syncJson = await syncResp.json();
-            console.log('✅ [REGISTER][FRONTEND] Respuesta sync backend:', syncJson);
-
-            if (!syncJson.success) {
-              setError('No se pudo sincronizar usuario en backend.');
-              setLoading(false);
-              return;
-            }
-          } catch (syncErr) {
-            console.error('❌ [REGISTER][FRONTEND] Error sync usuario:', syncErr);
-            setError('Error sincronizando usuario en backend.');
-            setLoading(false);
-            return;
-          }
-
-          // Crear empresa + relación en PostgreSQL
-          try {
-            console.log('🏢 [REGISTER][FRONTEND] Enviando setup empresa a backend:', {
-              firebase_uid: createdUser.uid,
-              empresa_nombre: nombreEmpresa,
-              tipo_empresa_id: getBusinessTypeId(tipoNegocio),
-              plan_id: getPlanId(planSeleccionado),
-            });
-
-            const response = await fetch(buildApiUrl('/api/companies/setup'), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                firebase_uid: createdUser.uid,
-                empresa_nombre: nombreEmpresa,
-                tipo_empresa_id: getBusinessTypeId(tipoNegocio),
-                plan_id: getPlanId(planSeleccionado),
-              }),
-            });
-
-            if (!response.ok) {
-              console.error('❌ [REGISTER][FRONTEND] Error HTTP setup empresa:', response.status);
-              if (response.status === 404) {
-                setError('Endpoint /api/companies/setup (404). Revisa rutas backend.');
-              } else if (response.status === 401) {
-                setError('No autorizado al configurar empresa. Verifica backend.');
-              } else {
-                setError(`Error backend (${response.status}).`);
-              }
-              setLoading(false);
-              return;
-            }
-
-            const json = await response.json();
-            console.log('✅ [REGISTER][FRONTEND] Respuesta setup empresa backend:', json);
-
-            if (json.success) {
-              // 🚀 Guardar datos completos en localStorage
-              const erpData = {
-                uid: createdUser.uid,
-                email: createdUser.email,
-                nombre_completo: nombre,
-                empresa_id: json.data.empresa_id,
-                empresa_nombre: nombreEmpresa,
-                rol_id: json.data.rol_id,
-                nombre_rol: 'Administrador',
-                setup_completed: json.data.setup_completed ?? true,
-                timestamp: Date.now(),
-              };
-              localStorage.setItem('erp_user_data', JSON.stringify(erpData));
-              console.log('💾 [REGISTER][FRONTEND] Datos guardados en localStorage:', erpData);
-              setSuccess('¡Cuenta y empresa creadas exitosamente!');
-              setTimeout(() => redirectToERP(), 800);
-            } else {
-              setError(json.message || 'Error creando la empresa en el backend.');
-            }
-          } catch (beErr: any) {
-            console.error('❌ [REGISTER][FRONTEND] Error backend empresa:', beErr);
-            if (
-              beErr?.message?.includes('Failed to fetch') ||
-              beErr?.message?.includes('Network')
-            ) {
-              setError(
-                'No se pudo conectar al backend (puerto 4000). Verifica que esté ejecutándose.'
-              );
-            } else {
-              setError('Error de red creando empresa.');
-            }
-          }
+        if (result.usuario) {
+          setSuccess('¡Empresa y cuenta creadas exitosamente!');
+          setTimeout(() => {
+            // Redirigir al dashboard del ERP
+            redirectToERP();
+          }, 1500);
+        } else {
+          setError('Error creando la empresa.');
         }
       } else {
-        // Registro básico sin empresa
-        const cleanEmail = email.trim().toLowerCase();
-        const { user, error } = await registerUser(nombre, cleanEmail, password);
-        if (error) {
-          const firebaseError = error as { code?: string; message?: string };
-          if (firebaseError?.code === 'auth/email-already-in-use') {
-            setError(
-              'El correo electrónico ya está registrado. Intenta iniciar sesión o usa otro correo.'
-            );
-          } else {
-            setError(
-              'Error al crear la cuenta. ' + (firebaseError?.message || 'Inténtalo de nuevo.')
-            );
-          }
-        } else if (user) {
-          console.log('[REGISTER][BASIC] Usuario Firebase creado:', user.uid);
+        // Flujo normal: solo crear usuario con el backend (sin empresa)
+        const registrationData = {
+          email: email.trim().toLowerCase(),
+          password,
+          nombre_completo: nombre,
+        };
 
-          // 🔄 ARREGLAR: Sincronizar con nombre_completo correcto
-          try {
-            const resp = await fetch(buildApiUrl('/api/users/sync'), {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                firebase_uid: user.uid,
-                email: user.email,
-                nombre_completo: nombre, // ✅ Cambiar 'nombre' por 'nombre_completo'
-              }),
-            });
-            if (resp.status === 404) {
-              console.warn(
-                '[REGISTER][BASIC] Endpoint /api/users/sync no encontrado (404). Verifica backend.'
-              );
-            } else {
-              const json = await resp.json();
-              console.log('[REGISTER][BASIC] Respuesta sync usuario:', json);
-            }
-          } catch (syncErr) {
-            console.error('[REGISTER][BASIC] Error sincronizando usuario en backend:', syncErr);
-          }
+        const result = await registerWithBackend(registrationData);
+
+        if (result.usuario) {
           setSuccess('¡Cuenta creada exitosamente!');
-          setTimeout(() => navigate('/'), 1500);
+          setTimeout(() => redirectToERP(), 1500); // Redirigir al dashboard del ERP
+        } else {
+          setError('Error al crear la cuenta.');
         }
       }
     } catch (err: any) {
-      if (err?.code === 'auth/email-already-in-use') {
-        setError(
-          'El correo electrónico ya está registrado. Intenta iniciar sesión o usa otro correo.'
-        );
-      } else {
-        setError('Error inesperado. Inténtalo más tarde.');
-      }
+      setError(err?.message || 'Error inesperado al registrar usuario. Inténtalo más tarde.');
     }
 
     setLoading(false);
@@ -362,6 +279,11 @@ const RegisterPage: React.FC = () => {
 
     setLoading(false);
   };
+
+  // Mostrar loading si aún se están cargando los tipos de empresa
+  if (businessTypesLoading) {
+    return <div>Cargando tipos de empresa...</div>;
+  }
 
   return (
     <div className='register-bg'>
@@ -504,7 +426,7 @@ const RegisterPage: React.FC = () => {
                   disabled={loading}
                   theme='dark'
                   size='medium'
-                  options={businessOptions}
+                  options={businessOptions} // Usar las opciones dinámicas
                   textColor='var(--pri-100)'
                   optionTextColor='var(--pri-100)'
                   optionBackgroundColor='var(--pri-900)'

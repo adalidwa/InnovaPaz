@@ -1,58 +1,103 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
-import { auth, db } from '../configs/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from '../configs/firebaseConfig';
 import avatarDefault from '../assets/images/avatarlogin.png';
+import { redirectToERP } from '../configs/appConfig'; // Importar la función de redirección
 
 interface User {
   displayName: string;
   photoURL: string;
   email?: string;
   uid?: string;
+  // Datos adicionales del backend (PostgreSQL)
+  empresa_id?: string;
+  rol_id?: number;
+  estado?: string;
+  backendSynced?: boolean; // Indica si los datos del backend están sincronizados
 }
 
 interface UserContextProps {
   user: User | null;
   logout: () => Promise<void>;
+  refreshUserData: () => Promise<void>; // Nueva función para recargar datos del backend
 }
 
-const UserContext = createContext<UserContextProps>({
+export const UserContext = createContext<UserContextProps>({
   user: null,
   logout: async () => {},
+  refreshUserData: async () => {},
 });
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Función para obtener datos del backend
+  const fetchBackendUserData = async (firebaseUser: any) => {
+    try {
+      const idToken = await firebaseUser.getIdToken();
+      const response = await fetch('http://localhost:4000/api/auth/login-firebase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (response.ok) {
+        const backendData = await response.json();
+        return {
+          ...backendData.usuario,
+          backendSynced: true,
+        };
+      }
+    } catch (error) {
+      console.error('Error obteniendo datos del backend:', error);
+    }
+    return { backendSynced: false };
+  };
+
+  const refreshUserData = async () => {
+    if (auth.currentUser) {
+      const backendData = await fetchBackendUserData(auth.currentUser);
+      setUser((prevUser) => (prevUser ? { ...prevUser, ...backendData } : null));
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        let displayName = firebaseUser.displayName;
-        // Si no hay displayName, buscar en Firestore y actualizar el perfil
-        if (!displayName && firebaseUser.uid) {
-          try {
-            const docRef = doc(db, 'users', firebaseUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              if (data.nombre) {
-                await updateProfile(firebaseUser, { displayName: data.nombre });
-                displayName = data.nombre;
-              }
-            }
-          } catch {
-            // Si falla, dejar displayName como null
-          }
-        }
         const userData = {
-          displayName: displayName || 'Usuario Anónimo',
+          displayName: firebaseUser.displayName || 'Usuario Anónimo',
           photoURL: firebaseUser.photoURL || avatarDefault,
           email: firebaseUser.email || '',
           uid: firebaseUser.uid,
         };
-        setUser(userData);
+
+        // Intentar obtener datos del backend
+        const backendData = await fetchBackendUserData(firebaseUser);
+
+        const fullUser = { ...userData, ...backendData };
+        setUser(fullUser);
+
+        // --- LÓGICA DE REDIRECCIÓN AUTOMÁTICA ---
+        // Si el usuario está sincronizado con el backend y tiene una empresa...
+        if (fullUser.backendSynced && fullUser.empresa_id) {
+          // ...y se encuentra en una página pública del sitio de marketing...
+          const publicMarketingPaths = [
+            '/',
+            '/about',
+            '/privacy',
+            '/contacto',
+            '/login',
+            '/register',
+          ];
+          if (publicMarketingPaths.includes(window.location.pathname)) {
+            // ...lo redirigimos al ERP.
+            redirectToERP();
+          }
+        }
       } else {
         setUser(null);
       }
@@ -68,10 +113,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error al cerrar sesión:', error);
     }
   };
+
   if (loading) {
     return <div>Cargando aplicación...</div>;
   }
-  return <UserContext.Provider value={{ user, logout }}>{children}</UserContext.Provider>;
+
+  return (
+    <UserContext.Provider value={{ user, logout, refreshUserData }}>
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 export const useUser = () => useContext(UserContext);

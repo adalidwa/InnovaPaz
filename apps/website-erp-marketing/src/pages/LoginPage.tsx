@@ -7,79 +7,54 @@ import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './LoginPage.css';
 import { useNavigate } from 'react-router-dom';
-import {
-  loginWithBackend,
-  saveUserSession,
-  buildERPRedirectUrl,
-} from '../services/auth/backendAuthService';
+import { loginWithBackend } from '../services/auth/sessionService';
+import { signInWithGoogle } from '../services/auth/authService';
+import { useUser } from '../context/UserContext';
+import { redirectToERP } from '../configs/appConfig'; // Importar la función de redirección
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para manejar el login usando el backend coordinador
+  // Función para manejar el login usando Firebase + Backend
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password; // (podrías trim si sabes que no lleva espacios válidos)
-
     try {
-      const result = await loginWithBackend({ email: cleanEmail, password: cleanPassword });
-      console.log('[LOGIN][DEBUG] Respuesta backend:', result);
-
-      if (result.success && result.data) {
-        saveUserSession(result.data.user, result.data.token);
-        const redirectUrl = buildERPRedirectUrl(result.data.user);
-        console.log('[LOGIN][DEBUG] Redirigiendo a:', redirectUrl);
-        window.location.href = redirectUrl;
+      const result = await loginWithBackend(email.trim().toLowerCase(), password);
+      if (result && result.userData) {
+        console.log('Usuario logueado desde PostgreSQL:', result.userData);
+        // Redirigir a la aplicación ERP
+        redirectToERP();
       } else {
-        const errorCode = (result as any).code;
-        if (errorCode === 'USER_NOT_FOUND' || errorCode === 'USER_NOT_FOUND_DB') {
-          setError('Usuario no existe en PostgreSQL. Regístrate o sincroniza primero.');
-        } else if (errorCode === 'INVALID_PASSWORD') {
-          setError('Contraseña incorrecta.');
-        } else if (errorCode === 'MISSING_TOKEN') {
-          setError('Falta token de autenticación (flujo Firebase incompleto).');
-        } else {
-          setError(result.message || 'Credenciales no válidas.');
-        }
+        setError('Credenciales no válidas.');
       }
     } catch (err: any) {
-      console.error('[LOGIN][ERROR] Excepción:', err);
-      if (err?.message?.includes('Failed to fetch') || err?.message?.includes('Network')) {
-        setError(
-          'No se puede conectar al backend (puerto 4000). Verifica que el servidor esté encendido.'
-        );
-      } else {
-        setError('Error inesperado. Inténtalo más tarde.');
-      }
+      setError(err?.message || 'Error inesperado al iniciar sesión. Inténtalo más tarde.');
     }
 
     setLoading(false);
   };
 
-  // TODO: Implementar Google login con backend coordinador
+  // Login con Google - mantener lógica existente por ahora
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Por ahora mostrar mensaje de que está en desarrollo
-      setError('Login con Google estará disponible pronto. Usa email y contraseña.');
-
-      // Cuando esté listo, debería ser algo así:
-      // const result = await loginWithGoogleBackend();
-      // if (result.success && result.data) {
-      //   saveUserSession(result.data.user, result.data.token);
-      //   const redirectUrl = buildERPRedirectUrl(result.data.user);
-      //   window.location.href = redirectUrl;
-      // }
+      const result = await signInWithGoogle();
+      if (result && result.user && result.user.uid) {
+        // Redirigir a la aplicación ERP
+        redirectToERP();
+      } else {
+        setError('Error al iniciar sesión con Google.');
+      }
     } catch (err) {
       setError('Error inesperado. Inténtalo más tarde.');
       console.error('Error en handleGoogleLogin:', err);

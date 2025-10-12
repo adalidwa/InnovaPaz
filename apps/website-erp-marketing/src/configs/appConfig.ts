@@ -35,8 +35,8 @@ export const buildERPUrl = (route: string = ERP_ROUTES.DASHBOARD): string => {
 // Nuevo: construir URLs de API backend
 export const buildApiUrl = (path: string) => {
   const base = BACKEND_API_URL.replace(/\/+$/, '');
-  const clean = path.startsWith('/') ? path : `/${path}`;
-  return `${base}${clean}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${cleanPath}`;
 };
 
 // Nuevo helper para redirección consistente hacia el ERP
