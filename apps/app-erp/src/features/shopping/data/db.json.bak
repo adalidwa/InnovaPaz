@@ -211,70 +211,6 @@
       "address": "Centro Financiero, La Paz"
     }
   ],
-  "purchaseOrders": [
-    {
-      "id": 1,
-      "orderNumber": "PO-2024-001",
-      "date": "2024-10-01",
-      "supplierId": 1,
-      "supplierName": "Embotelladora Boliviana",
-      "items": [
-        {
-          "productId": 1,
-          "productName": "Coca Cola 2L",
-          "quantity": 50,
-          "unitPrice": 12.5,
-          "total": 625
-        }
-      ],
-      "totalItems": 1,
-      "totalAmount": 625,
-      "status": "Pendiente",
-      "notes": "Pedido urgente"
-    },
-    {
-      "id": 2,
-      "orderNumber": "PO-2024-002",
-      "date": "2024-10-02",
-      "supplierId": 21,
-      "supplierName": "CBN",
-      "items": [
-        {
-          "productId": 14,
-          "productName": "Cerveza Paceña 330ml",
-          "quantity": 100,
-          "unitPrice": 8.5,
-          "total": 850
-        }
-      ],
-      "totalItems": 1,
-      "totalAmount": 850,
-      "status": "Recibido",
-      "notes": ""
-    }
-  ],
-  "receptions": [
-    {
-      "id": 1,
-      "orderNumber": "PO-2024-002",
-      "date": "2024-10-05",
-      "supplierId": 21,
-      "supplierName": "CBN",
-      "receivedBy": "Juan Pérez",
-      "items": [
-        {
-          "productId": 14,
-          "productName": "Cerveza Paceña 330ml",
-          "expectedQuantity": 100,
-          "receivedQuantity": 98,
-          "unitPrice": 8.5
-        }
-      ],
-      "totalAmount": 833,
-      "status": "Completa",
-      "notes": "2 unidades dañadas en transporte"
-    }
-  ],
   "products": [
     {
       "id": 1,
@@ -628,70 +564,6 @@
         "status": "completed"
       }
     ],
-    "purchaseOrders": [
-      {
-        "id": 1,
-        "orderNumber": "PO-2024-001",
-        "date": "2024-10-01",
-        "supplierId": 1,
-        "supplierName": "Embotelladora Boliviana",
-        "items": [
-          {
-            "productId": 1,
-            "productName": "Coca Cola 2L",
-            "quantity": 50,
-            "unitPrice": 12.5,
-            "total": 625
-          }
-        ],
-        "totalItems": 1,
-        "totalAmount": 625,
-        "status": "Pendiente",
-        "notes": "Pedido urgente"
-      },
-      {
-        "id": 2,
-        "orderNumber": "PO-2024-002",
-        "date": "2024-10-02",
-        "supplierId": 21,
-        "supplierName": "CBN",
-        "items": [
-          {
-            "productId": 14,
-            "productName": "Cerveza Paceña 330ml",
-            "quantity": 100,
-            "unitPrice": 8.5,
-            "total": 850
-          }
-        ],
-        "totalItems": 1,
-        "totalAmount": 850,
-        "status": "Recibido",
-        "notes": ""
-      }
-    ],
-    "receptions": [
-      {
-        "id": 1,
-        "orderNumber": "PO-2024-002",
-        "date": "2024-10-05",
-        "supplierId": 21,
-        "supplierName": "CBN",
-        "receivedBy": "Juan Pérez",
-        "items": [
-          {
-            "productId": 14,
-            "productName": "Cerveza Paceña 330ml",
-            "expectedQuantity": 100,
-            "receivedQuantity": 98,
-            "unitPrice": 8.5
-          }
-        ],
-        "totalAmount": 833,
-        "status": "Completa",
-        "notes": "2 unidades dañadas en transporte"
-      }
-    ],
     "2": [
       {
         "id": 201,
@@ -742,35 +614,5 @@
         "status": "completed"
       }
     ]
-  },
-  "returnReasons": [
-    {
-      "value": "damaged",
-      "label": "Producto dañado"
-    },
-    {
-      "value": "expired",
-      "label": "Producto vencido"
-    },
-    {
-      "value": "wrong_product",
-      "label": "Producto incorrecto"
-    },
-    {
-      "value": "wrong_quantity",
-      "label": "Cantidad incorrecta"
-    },
-    {
-      "value": "quality_issues",
-      "label": "Problemas de calidad"
-    },
-    {
-      "value": "not_ordered",
-      "label": "No fue pedido"
-    },
-    {
-      "value": "other",
-      "label": "Otro motivo"
-    }
-  ]
+  }
 }

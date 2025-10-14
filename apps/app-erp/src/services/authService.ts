@@ -11,8 +11,7 @@ export const validateTokenAndLogin = async (): Promise<{ success: boolean; user:
 
       const timeout = setTimeout(() => {
         if (!authCheckComplete) {
-          console.log('Timeout en verificación de autenticación, redirigiendo al login');
-          window.location.href = '/login'; // Redirige al login local del ERP
+          console.log('Timeout en verificación de autenticación');
           resolve({ success: false, user: null });
         }
       }, 10000);
@@ -45,15 +44,13 @@ export const validateTokenAndLogin = async (): Promise<{ success: boolean; user:
 
           resolve({ success: true, user });
         } else {
-          console.log('Usuario no autenticado, redirigiendo al login');
-          window.location.href = '/login'; // Redirige al login local del ERP
+          console.log('Usuario no autenticado');
           resolve({ success: false, user: null });
         }
       });
     });
   } catch (error) {
     console.error('Error validando token:', error);
-    window.location.href = '/login';
     return { success: false, user: null };
   }
 };

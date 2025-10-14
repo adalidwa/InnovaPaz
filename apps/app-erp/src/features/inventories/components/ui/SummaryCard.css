@@ -11,6 +11,24 @@
   box-sizing: border-box;
 }
 
+@media (max-width: 1366px) {
+  .summary-card {
+    width: 19rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .summary-card {
+    width: 18.5rem;
+  }
+}
+
+@media (max-width: 1152px) {
+  .summary-card {
+    width: 18rem;
+  }
+}
+
 @media (max-width: 1025px) {
   .summary-card {
     width: 18rem;

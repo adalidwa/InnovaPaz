@@ -3,13 +3,14 @@ import AppRoutes from './routes/AppRoutes';
 import Layout from './components/layout/Layout';
 import { getSidebarConfig } from './config/sidebarConfigs';
 import { useLocation } from 'react-router-dom';
+import { CompanyConfigProvider } from './contexts/CompanyConfigContext';
 
 function App() {
   const location = useLocation();
 
   const getCurrentModule = (): string => {
     const path = location.pathname;
-    if (path.startsWith('/shopping')) return 'ventas';
+    if (path.startsWith('/ventas')) return 'ventas';
     return 'inventario';
   };
 
@@ -18,14 +19,16 @@ function App() {
   const subtitle = 'Ferretería'; // This could come from user settings, API, etc.
 
   return (
-    <Layout
-      subtitle={subtitle}
-      sidebarTitle={sidebarConfig.title}
-      sidebarTitleIcon={sidebarConfig.titleIcon}
-      sidebarMenuItems={sidebarConfig.menuItems}
-    >
-      <AppRoutes subtitle={subtitle} />
-    </Layout>
+    <CompanyConfigProvider>
+      <Layout
+        subtitle={subtitle}
+        sidebarTitle={sidebarConfig.title}
+        sidebarTitleIcon={sidebarConfig.titleIcon}
+        sidebarMenuItems={sidebarConfig.menuItems}
+      >
+        <AppRoutes />
+      </Layout>
+    </CompanyConfigProvider>
   );
 }
 

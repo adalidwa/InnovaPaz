@@ -4,6 +4,11 @@ import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
 import { FiDroplet, FiBell, FiMenu, FiType, FiCircle } from 'react-icons/fi';
+import {
+  useCompanyConfig,
+  type VisualIdentity,
+  type CompanyConfig,
+} from '../../../contexts/CompanyConfigContext';
 import './CompanyGeneralSection.css';
 
 const businessTypeOptions = [
@@ -22,35 +27,6 @@ const fontOptions = [
   { value: 'Dancing Script', label: 'Dancing Script' },
   { value: 'Oswald', label: 'Oswald' },
 ];
-
-interface VisualIdentity {
-  header_bg: string;
-  header_text: string;
-  sidebar_bg: string;
-  sidebar_text: string;
-  content_bg: string;
-  content_text: string;
-  color_primario: string;
-  color_acento: string;
-  tipografia: string;
-  logoFile?: File | null;
-  logoPreview?: string | null;
-  permisos: {
-    colores_header: boolean;
-    colores_sidebar: boolean;
-    colores_contenido: boolean;
-    colores_marca: boolean;
-    tipografia: boolean;
-    logo: boolean;
-  };
-}
-
-interface FormState {
-  nombre: string;
-  tipoNegocio: string;
-  zonaHoraria: string;
-  identidad_visual: VisualIdentity;
-}
 
 function ColorSwatch({
   label,
@@ -93,72 +69,23 @@ function ColorSwatch({
 }
 
 function CompanyGeneralSection() {
-  const [form, setForm] = useState<FormState>({
-    nombre: '',
-    tipoNegocio: '',
-    zonaHoraria: '',
-    identidad_visual: {
-      header_bg: '#ffffff',
-      header_text: '#322f44',
-      sidebar_bg: '#322f44',
-      sidebar_text: '#ffffff',
-      content_bg: '#f9fafb',
-      content_text: '#1f2937',
-      color_primario: '#4f46e5',
-      color_acento: '#10b981',
-      tipografia: 'Inter',
-      logoFile: null,
-      logoPreview: null,
-      permisos: {
-        colores_header: true,
-        colores_sidebar: true,
-        colores_contenido: true,
-        colores_marca: false,
-        tipografia: true,
-        logo: false,
-      },
-    },
-  });
+  // Usar el contexto global de configuración
+  const { config, updateConfig, updateVisualIdentity, saveConfig, clearConfig } =
+    useCompanyConfig();
+
   const [dragActive, setDragActive] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  React.useEffect(() => {
-    applyThemeColors();
-  }, [form.identidad_visual]);
+  const updateField = (key: keyof CompanyConfig, value: any) => {
+    updateConfig({ [key]: value });
+  };
 
-  const updateField = (key: keyof FormState, value: any) =>
-    setForm((p) => ({ ...p, [key]: value }));
-
-  const updateVisual = (key: keyof VisualIdentity, value: any) =>
-    setForm((p) => ({
-      ...p,
-      identidad_visual: { ...p.identidad_visual, [key]: value },
-    }));
-
-  function applyThemeColors() {
-    const v = form.identidad_visual;
-    document.documentElement.style.setProperty('--header-bg', v.header_bg);
-    document.documentElement.style.setProperty('--header-text', v.header_text);
-    document.documentElement.style.setProperty('--sidebar-bg', v.sidebar_bg);
-    document.documentElement.style.setProperty('--sidebar-text', v.sidebar_text);
-    document.documentElement.style.setProperty('--content-bg', v.content_bg);
-    document.documentElement.style.setProperty('--content-text', v.content_text);
-    document.documentElement.style.setProperty('--pri-600', v.color_primario);
-    document.documentElement.style.setProperty('--sec-600', v.color_acento);
-    let fontVar = '--font-inter';
-    if (v.tipografia === 'Roboto') fontVar = '--font-roboto';
-    else if (v.tipografia === 'Lato') fontVar = '--font-lato';
-    else if (v.tipografia === 'Poppins') fontVar = '--font-poppins';
-    else if (v.tipografia === 'Montserrat') fontVar = '--font-montserrat';
-    else if (v.tipografia === 'Open Sans') fontVar = '--font-open-sans';
-    else if (v.tipografia === 'Dancing Script') fontVar = '--font-dancing-script';
-    else if (v.tipografia === 'Oswald') fontVar = '--font-oswald';
-    document.documentElement.style.setProperty('--font', `var(${fontVar})`);
-  }
+  const updateVisual = (key: keyof VisualIdentity, value: any) => {
+    updateVisualIdentity({ [key]: value });
+  };
 
   const handleColorChange = (key: keyof VisualIdentity, value: string) => {
     updateVisual(key, value);
-    setTimeout(applyThemeColors, 0);
   };
 
   const handleLogo = (file?: File) => {
@@ -194,11 +121,24 @@ function CompanyGeneralSection() {
     handleLogo(file);
   };
 
+  // Función para limpiar los datos guardados
+  const clearStoredData = useCallback(() => {
+    clearConfig();
+    alert('Datos limpiados exitosamente');
+  }, [clearConfig]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+
+    // Guardar usando el contexto
+    saveConfig();
+
+    // Simular proceso de guardado
     setTimeout(() => {
       setSaving(false);
+      // Opcional: mostrar mensaje de éxito
+      alert('¡Datos guardados exitosamente!');
     }, 800);
   };
 
@@ -219,14 +159,14 @@ function CompanyGeneralSection() {
           label='Nombre de la Empresa'
           required
           placeholder='Mi Empresa'
-          value={form.nombre}
+          value={config.nombre}
           onChange={(e) => updateField('nombre', e.target.value)}
         />
         <Select
           label='Tipo de Negocio'
           required
           options={businessTypeOptions}
-          value={form.tipoNegocio}
+          value={config.tipoNegocio}
           onChange={(e) => updateField('tipoNegocio', e.target.value)}
           placeholder='Seleccionar tipo'
         />
@@ -252,14 +192,14 @@ function CompanyGeneralSection() {
                   <div className='color-swatches-row'>
                     <ColorSwatch
                       label='Fondo'
-                      value={form.identidad_visual.header_bg}
+                      value={config.identidad_visual.header_bg}
                       onChange={(v) => handleColorChange('header_bg', v)}
                       icon={<FiCircle />}
                       help='Fondo del menú superior'
                     />
                     <ColorSwatch
                       label='Texto'
-                      value={form.identidad_visual.header_text}
+                      value={config.identidad_visual.header_text}
                       onChange={(v) => handleColorChange('header_text', v)}
                       icon={<FiType />}
                       help='Texto del menú superior'
@@ -271,14 +211,14 @@ function CompanyGeneralSection() {
                   <div className='color-swatches-row'>
                     <ColorSwatch
                       label='Fondo'
-                      value={form.identidad_visual.sidebar_bg}
+                      value={config.identidad_visual.sidebar_bg}
                       onChange={(v) => handleColorChange('sidebar_bg', v)}
                       icon={<FiMenu />}
                       help='Fondo del menú lateral'
                     />
                     <ColorSwatch
                       label='Texto'
-                      value={form.identidad_visual.sidebar_text}
+                      value={config.identidad_visual.sidebar_text}
                       onChange={(v) => handleColorChange('sidebar_text', v)}
                       icon={<FiType />}
                       help='Texto del menú lateral'
@@ -290,14 +230,14 @@ function CompanyGeneralSection() {
                   <div className='color-swatches-row'>
                     <ColorSwatch
                       label='Fondo'
-                      value={form.identidad_visual.content_bg}
+                      value={config.identidad_visual.content_bg}
                       onChange={(v) => handleColorChange('content_bg', v)}
                       icon={<FiCircle />}
                       help='Fondo del contenido'
                     />
                     <ColorSwatch
                       label='Texto'
-                      value={form.identidad_visual.content_text}
+                      value={config.identidad_visual.content_text}
                       onChange={(v) => handleColorChange('content_text', v)}
                       icon={<FiType />}
                       help='Texto del contenido'
@@ -309,7 +249,7 @@ function CompanyGeneralSection() {
                   <div className='color-swatches-row'>
                     <ColorSwatch
                       label='Botones principales'
-                      value={form.identidad_visual.color_primario}
+                      value={config.identidad_visual.color_primario}
                       onChange={(v) => handleColorChange('color_primario', v)}
                       icon={<FiDroplet />}
                       help='Botones principales y enlaces'
@@ -317,7 +257,7 @@ function CompanyGeneralSection() {
                     />
                     <ColorSwatch
                       label='Acento'
-                      value={form.identidad_visual.color_acento}
+                      value={config.identidad_visual.color_acento}
                       onChange={(v) => handleColorChange('color_acento', v)}
                       icon={<FiBell />}
                       help='Cambia el efecto, checks.'
@@ -331,15 +271,15 @@ function CompanyGeneralSection() {
             <div className='visual-card'>
               <div className='visual-card-title'>Logo y Tipografía</div>
               <div
-                className={`logo-upload logo-upload--large ${dragActive ? 'logo-upload--drag' : ''} ${form.identidad_visual.logoPreview ? 'logo-upload--with-image' : ''}`}
+                className={`logo-upload logo-upload--large ${dragActive ? 'logo-upload--drag' : ''} ${config.identidad_visual.logoPreview ? 'logo-upload--with-image' : ''}`}
                 onDragEnter={onDrag}
                 onDragOver={onDrag}
                 onDragLeave={onDrag}
                 onDrop={onDrop}
               >
-                {form.identidad_visual.logoPreview ? (
+                {config.identidad_visual.logoPreview ? (
                   <img
-                    src={form.identidad_visual.logoPreview}
+                    src={config.identidad_visual.logoPreview}
                     alt='Logo'
                     className='logo-preview-img logo-preview-img--large'
                   />
@@ -364,10 +304,9 @@ function CompanyGeneralSection() {
               <Select
                 label='Tipografía Principal'
                 options={fontOptions}
-                value={form.identidad_visual.tipografia}
+                value={config.identidad_visual.tipografia}
                 onChange={(e) => {
                   updateVisual('tipografia', e.target.value);
-                  setTimeout(applyThemeColors, 0);
                 }}
                 required
               />
@@ -380,10 +319,10 @@ function CompanyGeneralSection() {
                   <label className='permission-item'>
                     <input
                       type='checkbox'
-                      checked={form.identidad_visual.permisos.colores_header}
+                      checked={config.identidad_visual.permisos.colores_header}
                       onChange={(e) =>
                         updateVisual('permisos', {
-                          ...form.identidad_visual.permisos,
+                          ...config.identidad_visual.permisos,
                           colores_header: e.target.checked,
                         })
                       }
@@ -394,10 +333,10 @@ function CompanyGeneralSection() {
                   <label className='permission-item'>
                     <input
                       type='checkbox'
-                      checked={form.identidad_visual.permisos.colores_sidebar}
+                      checked={config.identidad_visual.permisos.colores_sidebar}
                       onChange={(e) =>
                         updateVisual('permisos', {
-                          ...form.identidad_visual.permisos,
+                          ...config.identidad_visual.permisos,
                           colores_sidebar: e.target.checked,
                         })
                       }
@@ -408,10 +347,10 @@ function CompanyGeneralSection() {
                   <label className='permission-item'>
                     <input
                       type='checkbox'
-                      checked={form.identidad_visual.permisos.colores_contenido}
+                      checked={config.identidad_visual.permisos.colores_contenido}
                       onChange={(e) =>
                         updateVisual('permisos', {
-                          ...form.identidad_visual.permisos,
+                          ...config.identidad_visual.permisos,
                           colores_contenido: e.target.checked,
                         })
                       }
@@ -422,10 +361,10 @@ function CompanyGeneralSection() {
                   <label className='permission-item'>
                     <input
                       type='checkbox'
-                      checked={form.identidad_visual.permisos.colores_marca}
+                      checked={config.identidad_visual.permisos.colores_marca}
                       onChange={(e) =>
                         updateVisual('permisos', {
-                          ...form.identidad_visual.permisos,
+                          ...config.identidad_visual.permisos,
                           colores_marca: e.target.checked,
                         })
                       }
@@ -436,10 +375,10 @@ function CompanyGeneralSection() {
                   <label className='permission-item'>
                     <input
                       type='checkbox'
-                      checked={form.identidad_visual.permisos.tipografia}
+                      checked={config.identidad_visual.permisos.tipografia}
                       onChange={(e) =>
                         updateVisual('permisos', {
-                          ...form.identidad_visual.permisos,
+                          ...config.identidad_visual.permisos,
                           tipografia: e.target.checked,
                         })
                       }
@@ -450,10 +389,10 @@ function CompanyGeneralSection() {
                   <label className='permission-item'>
                     <input
                       type='checkbox'
-                      checked={form.identidad_visual.permisos.logo}
+                      checked={config.identidad_visual.permisos.logo}
                       onChange={(e) =>
                         updateVisual('permisos', {
-                          ...form.identidad_visual.permisos,
+                          ...config.identidad_visual.permisos,
                           logo: e.target.checked,
                         })
                       }
@@ -479,6 +418,9 @@ function CompanyGeneralSection() {
       <div className='company-actions'>
         <Button type='submit' variant='primary' size='medium' loading={saving}>
           Guardar Cambios
+        </Button>
+        <Button type='button' variant='secondary' size='medium' onClick={clearStoredData}>
+          Limpiar Datos
         </Button>
       </div>
     </form>

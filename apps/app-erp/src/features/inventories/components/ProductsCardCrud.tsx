@@ -56,6 +56,12 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
     return date.toLocaleDateString('es-BO');
   };
 
+  const formatPrice = (price: number | string | null | undefined) => {
+    if (price === null || price === undefined) return '0.00';
+    const numericPrice = typeof price === 'number' ? price : parseFloat(price.toString());
+    return isNaN(numericPrice) ? '0.00' : numericPrice.toFixed(2);
+  };
+
   return (
     <div className='product-card'>
       <div className='product-card-header'>
@@ -93,7 +99,7 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
         </div>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Precio:</span>
-          <span className='product-detail-value'>Bs. {product.price.toFixed(2)}</span>
+          <span className='product-detail-value'>Bs. {formatPrice(product.price)}</span>
         </div>
         <div className='product-detail-item'>
           <span className='product-detail-label'>Mínimo:</span>

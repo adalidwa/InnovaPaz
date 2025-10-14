@@ -12,32 +12,13 @@ import CompanySettingsPage from '../../features/users/pages/CompanySettingsPage'
  * - /configuracion/invitar - Invitar nuevos usuarios (solo administradores)
  */
 const UserRoutes: React.FC = () => {
-  // Simulación de funciones (en la aplicación real vendrían de hooks/services)
-  const handleUpdateProfile = async (profileData: any) => {
-    console.log('Actualizando perfil:', profileData);
-    // Aquí iría la lógica real de actualización
-  };
-
-  const handleChangePassword = async (passwordData: any) => {
-    console.log('Cambiando contraseña:', passwordData);
-    // Aquí iría la lógica real de cambio de contraseña
-  };
-
   return (
     <Routes>
       {/* Página de Configuración Empresa (Tabs Internas) */}
       <Route path='empresa' element={<CompanySettingsPage />} />
 
       {/* Perfil del usuario - Accesible para todos */}
-      <Route
-        path='perfil'
-        element={
-          <ProfilePage
-            onUpdateProfile={handleUpdateProfile}
-            onChangePassword={handleChangePassword}
-          />
-        }
-      />
+      <Route path='perfil' element={<ProfilePage />} />
 
       {/* Redirección por defecto ahora a empresa */}
       <Route path='' element={<Navigate to='empresa' replace />} />

@@ -42,8 +42,29 @@ export interface PlanInfo {
 }
 
 // Datos reales del usuario actual (se llenarán desde Firebase)
-export let currentUser: User | null = null;
-export let currentCompany: Company | null = null;
+// Inicializados con datos temporales para desarrollo
+export let currentUser: User | null = {
+  id: 'temp-user-id',
+  nombre_completo: 'Usuario de Prueba',
+  email: 'usuario@test.com',
+  rol: 'administrador',
+  empresa_id: 'temp-company-id',
+  created_at: new Date(),
+  updated_at: new Date(),
+  setup_completed: true,
+  avatar: null,
+  estado: 'activo',
+};
+
+export let currentCompany: Company | null = {
+  id: 'temp-company-id',
+  nombre: 'Empresa de Prueba',
+  owner_uid: 'temp-user-id',
+  plan_id: 'basico',
+  tipo_negocio: 'ferreteria',
+  created_at: new Date(),
+  updated_at: new Date(),
+};
 
 // Función para actualizar datos reales
 export const setCurrentUser = (user: User) => {
