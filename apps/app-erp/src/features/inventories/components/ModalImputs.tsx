@@ -4,7 +4,7 @@ import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
 import type { ProductFormData } from '../hooks/useProductsReal';
 import { categoryBrandService } from '../services/categoryBrandService';
-import type { Category, Subcategory, Brand } from '../services/categoryBrandService';
+import type { Category, Subcategory, Brand, Attribute } from '../services/categoryBrandService';
 import './ModalImputs.css';
 
 interface ModalImputsProps {
@@ -27,14 +27,14 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
     price: 0,
     cost: 0,
     stock: 0,
-    expirationDate: '',
-    lot: '',
+    dynamicAttributes: {},
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [dynamicAttributes, setDynamicAttributes] = useState<Attribute[]>([]);
 
   useEffect(() => {
     // Cargar categorías y marcas al montar
@@ -53,6 +53,19 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       setSubcategories([]);
     }
   }, [formData.parentCategory]);
+
+  // Cargar atributos dinámicos cuando se selecciona una subcategoría
+  useEffect(() => {
+    if (formData.category) {
+      const categoryId = parseInt(formData.category);
+      categoryBrandService.getAttributesByCategory(categoryId).then(setDynamicAttributes);
+      // Limpiar atributos dinámicos previos cuando cambia la categoría
+      setFormData((prev) => ({ ...prev, dynamicAttributes: {} }));
+    } else {
+      setDynamicAttributes([]);
+      setFormData((prev) => ({ ...prev, dynamicAttributes: {} }));
+    }
+  }, [formData.category]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
@@ -101,10 +114,10 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       price: 0,
       cost: 0,
       stock: 0,
-      expirationDate: '',
-      lot: '',
+      dynamicAttributes: {},
     });
     setSubcategories([]);
+    setDynamicAttributes([]);
     setErrors({});
   };
 
@@ -151,6 +164,73 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
         }));
       }
     };
+  };
+
+  const handleDynamicAttributeChange = (attributeId: number, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      dynamicAttributes: {
+        ...prev.dynamicAttributes,
+        [attributeId]: value,
+      },
+    }));
+  };
+
+  const renderDynamicAttributeField = (attribute: Attribute) => {
+    const currentValue = formData.dynamicAttributes[attribute.atributo_id] || '';
+
+    switch (attribute.tipo_atributo) {
+      case 'texto':
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={`${attribute.nombre}${attribute.unidad_medida ? ` (${attribute.unidad_medida})` : ''}`}
+            required={attribute.es_obligatorio}
+            placeholder={`Ingresa ${attribute.nombre.toLowerCase()}`}
+            value={currentValue}
+            onChange={(e) => handleDynamicAttributeChange(attribute.atributo_id, e.target.value)}
+          />
+        );
+
+      case 'número':
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={`${attribute.nombre}${attribute.unidad_medida ? ` (${attribute.unidad_medida})` : ''}`}
+            required={attribute.es_obligatorio}
+            type='number'
+            placeholder='0'
+            value={currentValue}
+            onChange={(e) =>
+              handleDynamicAttributeChange(attribute.atributo_id, Number(e.target.value))
+            }
+            step='0.01'
+          />
+        );
+
+      case 'fecha':
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={attribute.nombre}
+            required={attribute.es_obligatorio}
+            type='date'
+            value={currentValue}
+            onChange={(e) => handleDynamicAttributeChange(attribute.atributo_id, e.target.value)}
+          />
+        );
+
+      default:
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={attribute.nombre}
+            required={attribute.es_obligatorio}
+            value={currentValue}
+            onChange={(e) => handleDynamicAttributeChange(attribute.atributo_id, e.target.value)}
+          />
+        );
+    }
   };
 
   return (
@@ -268,24 +348,15 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       />
       {errors.stock && <span className='error-message'>{errors.stock}</span>}
 
-      <div className='form-section'>
-        <h4 className='section-title'>Campos Específicos - Minimarket</h4>
-
-        <div className='form-row'>
-          <Input
-            label='Fecha de Vencimiento'
-            type='date'
-            value={formData.expirationDate}
-            onChange={handleInputChange('expirationDate')}
-          />
-          <Input
-            label='Lote'
-            placeholder='Ej: LOT2024001'
-            value={formData.lot}
-            onChange={handleInputChange('lot')}
-          />
+      {/* Atributos dinámicos específicos por categoría */}
+      {dynamicAttributes.length > 0 && (
+        <div className='form-section'>
+          <h4 className='section-title'>Campos Específicos por Categoría</h4>
+          <div className='dynamic-attributes-grid'>
+            {dynamicAttributes.map((attribute) => renderDynamicAttributeField(attribute))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className='form-actions'>
         <Button

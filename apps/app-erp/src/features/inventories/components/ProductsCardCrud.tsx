@@ -50,12 +50,6 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-BO');
-  };
-
   const formatPrice = (price: number | string | null | undefined) => {
     if (price === null || price === undefined) return '0.00';
     const numericPrice = typeof price === 'number' ? price : parseFloat(price.toString());
@@ -75,6 +69,19 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
           width={60}
           height={24}
           radius={12}
+        />
+      </div>
+
+      {/* Imagen del producto desde la base de datos */}
+      <div className='product-image-section'>
+        <img
+          src={product.image || '/placeholder-product.png'}
+          alt={product.name}
+          className='product-image'
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = '/placeholder-product.png';
+          }}
         />
       </div>
 
@@ -104,14 +111,6 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
         <div className='product-detail-item'>
           <span className='product-detail-label'>Mínimo:</span>
           <span className='product-detail-value'>{product.minStock}</span>
-        </div>
-        <div className='product-detail-item'>
-          <span className='product-detail-label'>Vencimiento:</span>
-          <span className='product-detail-value'>{formatDate(product.expirationDate)}</span>
-        </div>
-        <div className='product-detail-item'>
-          <span className='product-detail-label'>Lote:</span>
-          <span className='product-detail-value'>{product.lot || 'N/A'}</span>
         </div>
       </div>
 

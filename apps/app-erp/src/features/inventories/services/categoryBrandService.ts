@@ -17,6 +17,14 @@ export interface Brand {
   nombre: string;
 }
 
+export interface Attribute {
+  atributo_id: number;
+  nombre: string;
+  tipo_atributo: 'texto' | 'número' | 'fecha' | 'selección';
+  unidad_medida?: string;
+  es_obligatorio: boolean;
+}
+
 export const categoryBrandService = {
   async getCategories(): Promise<Category[]> {
     try {
@@ -53,6 +61,19 @@ export const categoryBrandService = {
       return data.brands || [];
     } catch (err) {
       console.error('Error getBrands:', err);
+      return [];
+    }
+  },
+
+  async getAttributesByCategory(categoryId: number): Promise<Attribute[]> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/categories/${categoryId}/attributes`);
+      if (!res.ok) throw new Error('Error al obtener atributos');
+      const data = await res.json();
+      // Asume que el backend responde con { success, attributes }
+      return data.attributes || [];
+    } catch (err) {
+      console.error('Error getAttributesByCategory:', err);
       return [];
     }
   },

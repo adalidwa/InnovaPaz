@@ -39,8 +39,28 @@ const getBrands = async (req, res, next) => {
   }
 };
 
+// Obtener atributos específicos por categoría
+const getAttributesByCategory = async (req, res, next) => {
+  try {
+    const { categoryId } = req.params;
+    const atributos = await pool.query(
+      `SELECT a.atributo_id, a.nombre, a.tipo_atributo, a.unidad_medida, a.es_obligatorio 
+       FROM atributos a
+       INNER JOIN categoria_atributo ca ON a.atributo_id = ca.atributo_id
+       WHERE ca.categoria_id = $1 
+       ORDER BY a.nombre ASC`,
+      [categoryId]
+    );
+    res.json({ success: true, attributes: atributos.rows });
+  } catch (error) {
+    console.error('Error al obtener atributos por categoría:', error);
+    next(error);
+  }
+};
+
 module.exports = {
   getCategories,
   getSubcategories,
   getBrands,
+  getAttributesByCategory,
 };

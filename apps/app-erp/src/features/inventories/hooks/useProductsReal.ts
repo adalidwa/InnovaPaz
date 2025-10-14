@@ -6,6 +6,7 @@ import { productService } from '../services/productService';
 const EMPRESA_ID = '93d5a3c0-a091-40ab-97de-e26a285c7318';
 
 export interface ProductFormData {
+  id?: string; // ID del producto para edición
   name: string;
   code: string;
   parentCategory: string;
@@ -16,8 +17,10 @@ export interface ProductFormData {
   price: number;
   cost: number;
   stock: number;
-  expirationDate: string;
-  lot: string;
+  marca_id?: number; // ID de la marca en la base de datos
+  estado_id?: number; // ID del estado (1=activo, 2=inactivo, etc.)
+  // Atributos dinámicos específicos por categoría
+  dynamicAttributes: Record<string, any>;
 }
 
 export const useProducts = () => {
@@ -82,6 +85,7 @@ export const useProducts = () => {
           categoria_id: productData.category ? parseInt(productData.category) : undefined,
           marca_id: productData.brand ? parseInt(productData.brand) : undefined,
           estado_id: 1, // Por defecto activo
+          dynamicAttributes: productData.dynamicAttributes,
         };
 
         const newProduct = await productService.createProduct(createRequest);
@@ -119,9 +123,15 @@ export const useProducts = () => {
           codigo: productData.code,
           nombre_producto: productData.name,
           descripcion: productData.description,
+          imagen: productData.image,
           precio_venta: productData.price,
           precio_costo: productData.cost,
           stock: productData.stock,
+          categoria_id: productData.category ? parseInt(productData.category) : undefined,
+          marca_id:
+            productData.marca_id || (productData.brand ? parseInt(productData.brand) : undefined),
+          estado_id: productData.estado_id || 1, // Por defecto estado activo (1)
+          dynamicAttributes: productData.dynamicAttributes,
         };
 
         const updatedProduct = await productService.updateProduct(productId, updateRequest);

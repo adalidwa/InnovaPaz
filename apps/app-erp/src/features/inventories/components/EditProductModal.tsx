@@ -4,6 +4,8 @@ import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
 import type { ProductFormData } from '../hooks/useProductsReal';
 import type { ProductLegacy } from '../types/inventory';
+import { categoryBrandService } from '../services/categoryBrandService';
+import type { Category, Brand, Attribute } from '../services/categoryBrandService';
 import './ModalImputs.css';
 
 interface EditProductModalProps {
@@ -17,44 +19,134 @@ function EditProductModal({ product, onSave, onCancel, loading = false }: EditPr
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     code: '',
+    parentCategory: '',
     category: '',
+    brand: '',
+    image: '',
     description: '',
     price: 0,
     cost: 0,
     stock: 0,
-    minStock: 0,
-    expirationDate: '',
-    lot: '',
+    marca_id: undefined,
+    estado_id: undefined,
+    dynamicAttributes: {},
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
+
+  // Estados para datos dinámicos
+  const [parentCategories, setParentCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
 
   // Inicializar el formulario con los datos del producto
   useEffect(() => {
     if (product) {
       setFormData({
+        id: product.id, // Preservar el ID del producto
         name: product.name,
         code: product.code,
-        category: product.category,
+        parentCategory: '', // Se cargará dinámicamente basado en la categoría
+        category: product.categoria_id?.toString() || product.category,
+        brand: product.marca_id?.toString() || '',
+        image: product.image || '', // Cargar imagen existente
         description: product.description || '',
         price: product.price,
         cost: product.cost,
         stock: product.stock,
-        minStock: product.minStock,
-        expirationDate: product.expirationDate || '',
-        lot: product.lot || '',
+        marca_id: product.marca_id, // Preservar marca_id original
+        estado_id: product.estado_id, // Preservar estado_id original
+        dynamicAttributes: {},
       });
     }
   }, [product]);
 
-  const categorias = [
-    { value: 'Bebidas', label: 'Bebidas' },
-    { value: 'Alimentos', label: 'Alimentos' },
-    { value: 'Limpieza', label: 'Limpieza' },
-    { value: 'Higiene Personal', label: 'Higiene Personal' },
-    { value: 'Lácteos', label: 'Lácteos' },
-    { value: 'Snacks', label: 'Snacks' },
-  ];
+  // Cargar categorías principales, marcas y datos iniciales
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const [categoriesResponse, brandsResponse] = await Promise.all([
+          categoryBrandService.getCategories(),
+          categoryBrandService.getBrands(),
+        ]);
+
+        setParentCategories(categoriesResponse);
+        setBrands(brandsResponse);
+
+        // Si hay un producto, intentar cargar sus subcategorías y atributos
+        if (product && product.category) {
+          // Intentar encontrar la categoría padre basándose en la categoría actual
+          // Por ahora, mantener vacío y que el usuario seleccione manualmente
+          // TODO: Implementar lógica para determinar categoría padre desde el backend
+        }
+      } catch (error) {
+        console.error('Error cargando datos iniciales:', error);
+      }
+    };
+
+    if (product) {
+      loadInitialData();
+    }
+  }, [product]);
+
+  // Manejar cambio de categoría principal
+  const handleParentCategoryChange = async (parentCategoryId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      parentCategory: parentCategoryId,
+      category: '', // Reset subcategory
+      dynamicAttributes: {}, // Reset attributes
+    }));
+
+    if (parentCategoryId) {
+      try {
+        const subcategoriesResponse = await categoryBrandService.getSubcategories(
+          Number(parentCategoryId)
+        );
+        setSubcategories(subcategoriesResponse);
+        setAttributes([]); // Clear attributes when parent category changes
+      } catch (error) {
+        console.error('Error cargando subcategorías:', error);
+      }
+    } else {
+      setSubcategories([]);
+      setAttributes([]);
+    }
+  };
+
+  // Manejar cambio de subcategoría
+  const handleSubcategoryChange = async (subcategoryId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: subcategoryId,
+      dynamicAttributes: {}, // Reset attributes
+    }));
+
+    if (subcategoryId) {
+      try {
+        const attributesResponse = await categoryBrandService.getAttributesByCategory(
+          Number(subcategoryId)
+        );
+        setAttributes(attributesResponse);
+      } catch (error) {
+        console.error('Error cargando atributos:', error);
+      }
+    } else {
+      setAttributes([]);
+    }
+  };
+
+  // Manejar cambio de atributo dinámico
+  const handleDynamicAttributeChange = (attributeId: number, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      dynamicAttributes: {
+        ...prev.dynamicAttributes,
+        [attributeId]: value,
+      },
+    }));
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
@@ -81,10 +173,6 @@ function EditProductModal({ product, onSave, onCancel, loading = false }: EditPr
 
     if (formData.stock < 0) {
       newErrors.stock = 'El stock no puede ser negativo';
-    }
-
-    if (formData.minStock < 0) {
-      newErrors.minStock = 'El stock mínimo no puede ser negativo';
     }
 
     setErrors(newErrors);
@@ -158,16 +246,58 @@ function EditProductModal({ product, onSave, onCancel, loading = false }: EditPr
       {errors.name && <span className='error-message'>{errors.name}</span>}
       {errors.code && <span className='error-message'>{errors.code}</span>}
 
-      <Select
-        label='Categoría'
-        required
-        placeholder='Seleccionar categoría'
-        options={categorias}
-        value={formData.category}
-        onChange={handleSelectChange('category')}
-      />
+      <div className='form-row'>
+        <Select
+          label='Categoría Principal'
+          required
+          placeholder='Seleccionar categoría principal'
+          options={parentCategories.map((cat) => ({
+            value: cat.categoria_id.toString(),
+            label: cat.nombre_categoria,
+          }))}
+          value={formData.parentCategory}
+          onChange={(e) => handleParentCategoryChange(e.target.value)}
+        />
 
+        <Select
+          label='Subcategoría'
+          required
+          placeholder='Seleccionar subcategoría'
+          options={subcategories.map((sub) => ({
+            value: sub.categoria_id.toString(),
+            label: sub.nombre_categoria,
+          }))}
+          value={formData.category}
+          onChange={(e) => handleSubcategoryChange(e.target.value)}
+          disabled={!formData.parentCategory}
+        />
+      </div>
+
+      {errors.parentCategory && <span className='error-message'>{errors.parentCategory}</span>}
       {errors.category && <span className='error-message'>{errors.category}</span>}
+
+      <div className='form-row'>
+        <Select
+          label='Marca'
+          placeholder='Seleccionar marca'
+          options={brands.map((brand) => ({
+            value: brand.marca_id.toString(),
+            label: brand.nombre,
+          }))}
+          value={formData.brand}
+          onChange={handleSelectChange('brand')}
+        />
+
+        <Input
+          label='Imagen URL'
+          placeholder='https://ejemplo.com/imagen.jpg'
+          value={formData.image}
+          onChange={handleInputChange('image')}
+        />
+      </div>
+
+      {errors.brand && <span className='error-message'>{errors.brand}</span>}
+      {errors.image && <span className='error-message'>{errors.image}</span>}
 
       <Input
         label='Descripción'
@@ -175,6 +305,35 @@ function EditProductModal({ product, onSave, onCancel, loading = false }: EditPr
         value={formData.description}
         onChange={handleInputChange('description')}
       />
+
+      {/* Atributos dinámicos específicos de la categoría */}
+      {attributes.length > 0 && (
+        <div className='form-section'>
+          <h4 className='section-title'>Atributos Específicos</h4>
+          {attributes.map((attr) => {
+            const value = formData.dynamicAttributes[attr.atributo_id] || '';
+
+            return (
+              <div key={attr.atributo_id} className='form-field'>
+                <Input
+                  label={`${attr.nombre}${attr.es_obligatorio ? ' *' : ''}${attr.unidad_medida ? ` (${attr.unidad_medida})` : ''}`}
+                  type={
+                    attr.tipo_atributo === 'número'
+                      ? 'number'
+                      : attr.tipo_atributo === 'fecha'
+                        ? 'date'
+                        : 'text'
+                  }
+                  placeholder={`Ingrese ${attr.nombre.toLowerCase()}`}
+                  value={value}
+                  onChange={(e) => handleDynamicAttributeChange(attr.atributo_id, e.target.value)}
+                  required={attr.es_obligatorio}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className='form-row'>
         <Input
@@ -212,38 +371,9 @@ function EditProductModal({ product, onSave, onCancel, loading = false }: EditPr
           onChange={handleInputChange('stock')}
           min='0'
         />
-        <Input
-          label='Stock Mínimo'
-          required
-          type='number'
-          placeholder='0'
-          value={formData.minStock || ''}
-          onChange={handleInputChange('minStock')}
-          min='0'
-        />
       </div>
 
       {errors.stock && <span className='error-message'>{errors.stock}</span>}
-      {errors.minStock && <span className='error-message'>{errors.minStock}</span>}
-
-      <div className='form-section'>
-        <h4 className='section-title'>Campos Específicos - Minimarket</h4>
-
-        <div className='form-row'>
-          <Input
-            label='Fecha de Vencimiento'
-            type='date'
-            value={formData.expirationDate}
-            onChange={handleInputChange('expirationDate')}
-          />
-          <Input
-            label='Lote'
-            placeholder='Ej: LOT2024001'
-            value={formData.lot}
-            onChange={handleInputChange('lot')}
-          />
-        </div>
-      </div>
 
       <div className='form-actions'>
         <Button

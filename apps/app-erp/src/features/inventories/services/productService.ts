@@ -146,6 +146,7 @@ class ProductService {
       code: product.codigo || '',
       category: product.nombre_categoria || 'Sin categoría',
       description: product.descripcion || '',
+      image: product.imagen || '',
       price: parseFloat(product.precio_venta),
       cost: parseFloat(product.precio_costo),
       stock: product.stock,
@@ -156,6 +157,10 @@ class ProductService {
       active: product.estado_id === 1, // Asumiendo que 1 = activo
       createdAt: product.fecha_creacion,
       updatedAt: product.fecha_modificacion,
+      // Preservar IDs originales para edición
+      marca_id: product.marca_id,
+      estado_id: product.estado_id,
+      categoria_id: product.categoria_id,
     };
   }
 

@@ -33,6 +33,7 @@ export interface CreateProductRequest {
   empresa_id: string;
   marca_id?: number;
   estado_id?: number;
+  dynamicAttributes?: Record<string, any>;
 }
 
 export interface UpdateProductRequest extends Partial<CreateProductRequest> {
@@ -53,6 +54,7 @@ export interface ProductLegacy {
   code: string;
   category: string;
   description?: string;
+  image?: string;
   price: number;
   cost: number;
   stock: number;
@@ -63,6 +65,10 @@ export interface ProductLegacy {
   active: boolean;
   createdAt: string;
   updatedAt: string;
+  // IDs originales para preservar en edición
+  marca_id?: number;
+  estado_id?: number;
+  categoria_id?: number;
 }
 
 export interface CriticalProduct {
