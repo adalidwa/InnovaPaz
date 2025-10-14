@@ -1,0 +1,95 @@
+.logo-upload-inner {
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--pri-500);
+  line-height: 1.05rem;
+  padding: 0.25rem 0.35rem;
+  font-family: var(--font);
+}
+.logo-upload-inner--large {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  font-family: var(--font);
+}
+.logo-icon.logo-icon--large {
+  font-size: 2.2rem;
+  color: var(--pri-500);
+  margin-right: 0.5rem;
+}
+.logo-text.logo-text--large {
+  font-size: 1.1rem;
+  color: var(--pri-500);
+  font-weight: 500;
+  font-family: var(--font);
+}
+.logo-preview-img.logo-preview-img--large {
+  max-width: 180px;
+  max-height: 80px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: 0 2px 8px var(--pri-100, rgba(79, 70, 229, 0.08));
+}
+.logo-remove-bg-checkbox-container {
+  margin: 1rem 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.logo-remove-bg-checkbox {
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-100);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px var(--pri-100, rgba(36, 34, 49, 0.07));
+  font-family: var(--font);
+}
+
+.logo-remove-bg-checkbox-input {
+  accent-color: var(--pri-600);
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  border-radius: 4px;
+  border: 1.5px solid var(--pri-600);
+  box-shadow: 0 1px 2px var(--pri-100, rgba(36, 34, 49, 0.08));
+}
+
+.logo-remove-bg-checkbox-label {
+  font-weight: 500;
+  color: var(--pri-900);
+  font-family: var(--font);
+}
+
+.logo-remove-bg-checkbox-hint {
+  color: var(--pri-400);
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.logo-upload-error {
+  color: var(--acc-800);
+  font-size: 14px;
+  margin-top: 4px;
+  display: block;
+  font-family: var(--font);
+}
+
+.logo-remove-bg-error {
+  color: var(--acc-900);
+  font-size: 13px;
+  margin-top: 4px;
+  display: block;
+  font-family: var(--font);
+}

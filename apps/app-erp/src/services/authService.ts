@@ -1,11 +1,9 @@
 import { auth } from '../configs/firebaseConfig';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { getUserData, getCompanyData } from './userService';
-import { setCurrentUser, setCurrentCompany } from '../features/users/config/mockData';
 
 export const validateTokenAndLogin = async (): Promise<{ success: boolean; user: User | null }> => {
   try {
-    // Elimina la dependencia de localStorage y solo usa Firebase Auth
     return new Promise((resolve) => {
       let authCheckComplete = false;
 
@@ -27,15 +25,10 @@ export const validateTokenAndLogin = async (): Promise<{ success: boolean; user:
           console.log('Usuario autenticado:', user.email);
 
           try {
-            // Cargar datos del usuario desde Firestore
             const userData = await getUserData(user.uid);
             if (userData) {
-              setCurrentUser(userData);
-
-              // Cargar datos de la empresa
               const companyData = await getCompanyData(userData.empresa_id);
               if (companyData) {
-                setCurrentCompany(companyData);
               }
             }
           } catch (error) {

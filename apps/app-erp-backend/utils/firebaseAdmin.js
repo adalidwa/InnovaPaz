@@ -1,11 +1,8 @@
 const admin = require('firebase-admin');
 
-// Configuración de Firebase Admin
 const initializeFirebaseAdmin = () => {
   if (admin.apps.length === 0) {
     try {
-      // Cargar las credenciales de la cuenta de servicio
-      // DEBES descargar este archivo desde tu consola de Firebase
       const serviceAccount = require('../serviceAccountKey.json');
 
       admin.initializeApp({
@@ -23,9 +20,7 @@ const initializeFirebaseAdmin = () => {
   return admin;
 };
 
-// El Coordinador habla con Firebase Auth (El Guardia)
 const firebaseAuth = {
-  // Crear usuario en Firebase Auth
   createUser: async (email, password, displayName) => {
     try {
       const firebaseAdmin = initializeFirebaseAdmin();
@@ -53,7 +48,6 @@ const firebaseAuth = {
     }
   },
 
-  // Verificar token de usuario
   verifyToken: async (idToken) => {
     try {
       const firebaseAdmin = initializeFirebaseAdmin();
@@ -74,7 +68,6 @@ const firebaseAuth = {
     }
   },
 
-  // Obtener usuario por UID
   getUser: async (uid) => {
     try {
       const firebaseAdmin = initializeFirebaseAdmin();
@@ -97,7 +90,6 @@ const firebaseAuth = {
     }
   },
 
-  // Obtener usuario por email
   getUserByEmail: async (email) => {
     try {
       const firebaseAdmin = initializeFirebaseAdmin();
@@ -120,7 +112,6 @@ const firebaseAuth = {
     }
   },
 
-  // Eliminar usuario de Firebase Auth
   deleteUser: async (uid) => {
     try {
       const firebaseAdmin = initializeFirebaseAdmin();

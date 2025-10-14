@@ -2,6 +2,7 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import Button from '../../../components/common/Button';
 import Table, { type TableColumn } from '../../../components/common/Table';
 import { FiExternalLink, FiDownload, FiCreditCard } from 'react-icons/fi';
+import { useEffect, useState } from 'react';
 import './CompanyBillingSection.css';
 
 interface Invoice {
@@ -10,13 +11,18 @@ interface Invoice {
   fecha: string;
   monto: number;
   estado: 'pagada' | 'pendiente';
+  url?: string;
 }
 
-const invoices: Invoice[] = [
-  { id: '1', numero: 'INV-001', fecha: '01 Dic 2024', monto: 10, estado: 'pagada' },
-  { id: '2', numero: 'INV-002', fecha: '01 Nov 2024', monto: 10, estado: 'pagada' },
-  { id: '3', numero: 'INV-003', fecha: '01 Oct 2024', monto: 10, estado: 'pagada' },
-];
+interface PlanInfo {
+  nombre: string;
+  estado: string;
+  precio: number;
+  periodo: string;
+  miembros: { used: number; total: number };
+  productos: { used: number; total: number };
+  proximoCobro: string;
+}
 
 const invoiceCols: TableColumn<Invoice>[] = [
   { key: 'numero', header: 'Factura' },
@@ -42,23 +48,23 @@ const invoiceCols: TableColumn<Invoice>[] = [
     key: 'accion',
     header: 'Acción',
     render: (_, row) => (
-      <button
-        type='button'
+      <a
+        href={row.url || '#'}
+        target='_blank'
+        rel='noopener noreferrer'
         className='invoice-download-btn'
         aria-label={`Descargar ${row.numero}`}
-        onClick={() => handleDownload(row)}
+        download
       >
         <FiDownload size={15} />
-      </button>
+      </a>
     ),
     width: '70px',
   },
 ];
 
-const handleManage = () => {};
-
-const handleDownload = (invoice: Invoice) => {
-  console.log('Descargar', invoice.numero);
+const handleManage = () => {
+  window.open('/facturacion/gestionar', '_blank');
 };
 
 function UsageBar({
@@ -89,13 +95,75 @@ function UsageBar({
 }
 
 function CompanyBillingSection() {
-  const miembros = { used: 5, total: 10 };
-  const productos = { used: 250, total: 1000 };
-  const proximoCobro = '01 Ene 2025';
+  const [plan, setPlan] = useState<PlanInfo | null>(null);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [empresaId, setEmpresaId] = useState('');
+
+  useEffect(() => {
+    const fetchEmpresaId = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const resUser = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resUser.ok) {
+          const dataUser = await resUser.json();
+          setEmpresaId(dataUser.usuario.empresa_id);
+        }
+      } catch (error) {
+        console.error('Error obteniendo empresaId:', error);
+      }
+    };
+    fetchEmpresaId();
+  }, []);
+
+  useEffect(() => {
+    const fetchBilling = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token || !empresaId) return;
+        const resFact = await fetch(`/api/companies/${empresaId}/invoices`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resFact.ok) {
+          const dataFact = await resFact.json();
+          setInvoices(dataFact.facturas || []);
+        }
+        const resPlan = await fetch(`/api/companies/${empresaId}/plan`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resPlan.ok) {
+          const dataPlan = await resPlan.json();
+          setPlan({
+            nombre: dataPlan.nombre || 'Plan Básico',
+            estado: dataPlan.estado || 'Activo',
+            precio: dataPlan.precio || 0,
+            periodo: dataPlan.periodo || '/mensual',
+            miembros: dataPlan.miembros || { used: 0, total: 0 },
+            productos: dataPlan.productos || { used: 0, total: 0 },
+            proximoCobro: dataPlan.proximoCobro || '',
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (empresaId) fetchBilling();
+  }, [empresaId]);
 
   return (
     <div className='billing-section-wrapper'>
-      {/* Tarjeta Plan Actual */}
       <div className='billing-card'>
         <TitleDescription
           title='Plan Actual'
@@ -111,12 +179,12 @@ function CompanyBillingSection() {
         <div className='plan-header'>
           <div className='plan-main'>
             <div className='plan-title-row'>
-              <h3 className='plan-name'>Plan Básico</h3>
-              <span className='plan-status-badge'>Activo</span>
+              <h3 className='plan-name'>{plan?.nombre || 'Plan Básico'}</h3>
+              <span className='plan-status-badge'>{plan?.estado || 'Activo'}</span>
             </div>
             <div className='plan-price-row'>
-              <span className='plan-price'>Bs10</span>
-              <span className='plan-period'>/mensual</span>
+              <span className='plan-price'>Bs{plan?.precio?.toFixed(2) || '0.00'}</span>
+              <span className='plan-period'>{plan?.periodo || '/mensual'}</span>
             </div>
           </div>
           <div className='plan-actions'>
@@ -133,22 +201,24 @@ function CompanyBillingSection() {
         </div>
 
         <div className='plan-usage-block'>
-          <UsageBar label='Miembros' used={miembros.used} total={miembros.total} />
+          <UsageBar
+            label='Miembros'
+            used={plan?.miembros?.used || 0}
+            total={plan?.miembros?.total || 0}
+          />
           <UsageBar
             label='Productos'
-            used={productos.used}
-            total={productos.total}
+            used={plan?.productos?.used || 0}
+            total={plan?.productos?.total || 0}
             color='var(--pri-500,#6366f1)'
           />
         </div>
 
         <div className='plan-next-charge'>
           <span className='plan-next-label'>Próximo cobro</span>
-          <span className='plan-next-date'>{proximoCobro}</span>
+          <span className='plan-next-date'>{plan?.proximoCobro || '-'}</span>
         </div>
       </div>
-
-      {/* Tarjeta Historial Facturas */}
       <div className='billing-card'>
         <TitleDescription
           title='Historial de Facturas'
@@ -164,7 +234,7 @@ function CompanyBillingSection() {
         <Table<Invoice>
           data={invoices}
           columns={invoiceCols}
-          emptyMessage='Sin facturas'
+          emptyMessage={loading ? 'Cargando...' : 'Sin facturas'}
           className='invoices-table'
         />
 

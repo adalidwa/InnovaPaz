@@ -1,7 +1,6 @@
 const Plan = require('../models/plan.model');
 const Company = require('../models/company.model');
 
-// Lista todos los planes
 async function getAllPlans(req, res) {
   try {
     const plans = await Plan.find();
@@ -11,7 +10,6 @@ async function getAllPlans(req, res) {
   }
 }
 
-// Obtiene un plan por su ID
 async function getPlanById(req, res) {
   try {
     const plan = await Plan.findById(req.params.id);
@@ -22,7 +20,6 @@ async function getPlanById(req, res) {
   }
 }
 
-// Crea un nuevo plan
 async function createPlan(req, res) {
   try {
     const { nombre_plan, precio_mensual, limites } = req.body;
@@ -37,7 +34,6 @@ async function createPlan(req, res) {
   }
 }
 
-// Actualiza nombre, precio o límites de un plan
 async function updatePlan(req, res) {
   try {
     const { nombre_plan, precio_mensual, limites } = req.body;
@@ -53,7 +49,6 @@ async function updatePlan(req, res) {
   }
 }
 
-// Elimina un plan
 async function deletePlan(req, res) {
   try {
     const plan = await Plan.findByIdAndDelete(req.params.id);
@@ -64,7 +59,6 @@ async function deletePlan(req, res) {
   }
 }
 
-// Asigna un plan a una empresa
 async function assignPlanToCompany(req, res) {
   try {
     const { companyId, planId } = req.body;

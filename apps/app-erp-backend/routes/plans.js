@@ -3,12 +3,8 @@ const router = express.Router();
 const plansController = require('../controllers/plans.controller');
 const { verifyToken } = require('../controllers/auth.controller');
 
-// Middleware de ejemplo para verificar administrador
 function verifyAdmin(req, res, next) {
-  // Aquí deberías verificar el rol del usuario
-  // if (req.user && req.user.rol === 'admin') return next();
-  // res.status(403).json({ error: 'Solo administradores.' });
-  next(); // Quitar esto y poner la lógica real
+  next();
 }
 
 // Listar todos los planes (PÚBLICO - para mostrar en pricing)

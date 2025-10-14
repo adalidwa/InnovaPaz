@@ -1,22 +1,25 @@
 .sidebar__company-logo-large {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 0.7rem auto;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1rem auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--white);
-  border-radius: 16px;
-  box-shadow: 0 2px 8px #0001;
-  border: 1.5px solid var(--pri-100);
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
 }
 
 .sidebar__company-logo-img {
-  width: 60px;
-  height: 60px;
+  width: 130px;
+  height: 130 px;
   object-fit: contain;
   display: block;
-  border-radius: 12px;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  border: none;
 }
 
 .sidebar {
@@ -43,11 +46,12 @@
   align-items: center;
   text-align: center;
   margin-bottom: 1.75rem;
+  margin-top: 1rem;
 }
 
 .sidebar__company-icon {
-  width: 54px;
-  height: 54px;
+  width: 40px;
+  height: 40px;
   background: var(--pri-700);
   color: var(--white);
   border-radius: 14px;
@@ -59,7 +63,7 @@
 }
 
 .sidebar__company-name {
-  font: var(--font-16);
+  font: var(--font-20);
   font-weight: 600;
   line-height: 1.2;
   margin: 0;
@@ -178,7 +182,6 @@
   letter-spacing: 0.4px;
 }
 
-/* Mobile Toggle Button */
 .sidebar__toggle {
   position: fixed;
   top: 1rem;
@@ -199,7 +202,6 @@
   background-color: var(--pri-600);
 }
 
-/* Layout adjustments */
 .layout {
   display: flex;
   height: 100vh;
@@ -223,7 +225,6 @@
   overflow-x: hidden;
 }
 
-/* Responsive - Tablet (744px) */
 @media (max-width: 744px) {
   .sidebar__toggle {
     display: block;

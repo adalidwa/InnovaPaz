@@ -1,3 +1,43 @@
+export const getUserProfile = async (token: string): Promise<any> => {
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.usuario;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error obteniendo perfil de usuario:', error);
+    return null;
+  }
+};
+
+export const changeUserPassword = async (
+  uid: string,
+  currentPassword: string,
+  newPassword: string,
+  token: string
+): Promise<any> => {
+  try {
+    const res = await fetch(`/api/users/${uid}/change-password`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    return await res.json();
+  } catch (error) {
+    console.error('Error cambiando contraseña:', error);
+    return { ok: false, error: 'Error de red' };
+  }
+};
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../configs/firebaseConfig';
 

@@ -46,51 +46,6 @@
   margin-bottom: 1rem;
 }
 
-.avatar-image,
-.avatar-initials {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  border: 4px solid var(--white);
-  box-shadow: 0 4px 16px rgba(36, 34, 49, 0.15);
-}
-
-.avatar-image {
-  object-fit: cover;
-}
-
-.avatar-initials {
-  background: linear-gradient(135deg, var(--sec-600), var(--sec-800));
-  color: var(--white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: var(--font-39);
-  font-weight: 700;
-}
-
-.avatar-upload-btn {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  width: 36px;
-  height: 36px;
-  background: var(--sec-600);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--white);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(44, 168, 161, 0.3);
-}
-
-.avatar-upload-btn:hover {
-  background: var(--sec-700);
-  transform: scale(1.1);
-}
-
 .avatar-info {
   width: 100%;
 }
@@ -158,12 +113,6 @@
     border-right: none;
     border-bottom: 1px solid var(--pri-100);
     padding: 1.5rem;
-  }
-
-  .avatar-image,
-  .avatar-initials {
-    width: 100px;
-    height: 100px;
   }
 
   .form-section {

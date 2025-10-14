@@ -7,7 +7,6 @@ const { firebaseAuth } = require('../utils/firebaseAdmin');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta';
 
-// Login directo con email/password (sin Firebase)
 async function loginDirect(req, res) {
   try {
     const { email, password } = req.body;
@@ -19,7 +18,6 @@ async function loginDirect(req, res) {
       });
     }
 
-    // Buscar usuario en PostgreSQL por email
     const usuario = await User.findOne({ email: email.toLowerCase() });
 
     if (!usuario) {
@@ -29,10 +27,6 @@ async function loginDirect(req, res) {
       });
     }
 
-    // Verificar contraseña (si tienes contraseñas hasheadas)
-    // Si no tienes contraseñas hasheadas aún, solo compara directamente
-    // const passwordMatch = await bcrypt.compare(password, usuario.password_hash);
-    // Por ahora, comparación directa (TEMPORAL - deberías hashear passwords)
     if (usuario.password !== password) {
       return res.status(400).json({
         success: false,
@@ -40,7 +34,6 @@ async function loginDirect(req, res) {
       });
     }
 
-    // Verificar que el usuario tenga una empresa
     if (!usuario.empresa_id) {
       return res.status(400).json({
         success: false,
@@ -48,7 +41,6 @@ async function loginDirect(req, res) {
       });
     }
 
-    // Generar JWT token
     const token = jwt.sign(
       {
         uid: usuario.uid,
@@ -58,6 +50,15 @@ async function loginDirect(req, res) {
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    console.log('[BACKEND] POST /api/auth/login - Usuario retornado:', {
+      uid: usuario.uid,
+      nombre_completo: usuario.nombre_completo,
+      email: usuario.email,
+      rol_id: usuario.rol_id,
+      empresa_id: usuario.empresa_id,
+      avatar_url: usuario.avatar_url,
+    });
 
     res.json({
       success: true,
@@ -70,6 +71,7 @@ async function loginDirect(req, res) {
         rol_id: usuario.rol_id,
         estado: usuario.estado,
         preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
       },
     });
   } catch (error) {
@@ -81,18 +83,15 @@ async function loginDirect(req, res) {
   }
 }
 
-// Registro coordinado (Firebase + PostgreSQL) - mantener para el sitio de marketing
 async function registerUser(req, res) {
   let firebaseUser;
   try {
     const { email, password, nombre_completo, empresa_data } = req.body;
 
-    // Validaciones
     if (!email || !password || !nombre_completo) {
       return res.status(400).json({ error: 'Email, password y nombre_completo son requeridos.' });
     }
 
-    // 1. Crear usuario en Firebase Auth
     firebaseUser = await firebaseAuth.createUser(email, password, nombre_completo);
     if (!firebaseUser.success) {
       return res
@@ -102,11 +101,9 @@ async function registerUser(req, res) {
 
     let empresa_id, rol_id;
 
-    // 2. Si viene empresa_data, crear empresa completa (flujo con plan)
     if (empresa_data) {
       const { nombre, tipo_empresa_id, plan_id } = empresa_data;
 
-      // Crear empresa
       const nuevaEmpresa = await Company.create({
         nombre,
         tipo_empresa_id,
@@ -115,7 +112,6 @@ async function registerUser(req, res) {
       });
       empresa_id = nuevaEmpresa.empresa_id;
 
-      // Crear rol de administrador para la empresa
       const nuevoRol = await Role.create({
         empresa_id,
         nombre_rol: 'Administrador',
@@ -125,12 +121,10 @@ async function registerUser(req, res) {
       });
       rol_id = nuevoRol.rol_id;
     } else {
-      // Flujo simple: sin empresa (usuario básico)
       empresa_id = null;
       rol_id = null;
     }
 
-    // 3. Crear usuario en PostgreSQL
     const nuevoUsuario = await User.create({
       uid: firebaseUser.uid,
       empresa_id,
@@ -146,7 +140,6 @@ async function registerUser(req, res) {
       firebase_uid: firebaseUser.uid,
     });
   } catch (err) {
-    // Rollback: Si algo falla, eliminar el usuario de Firebase
     if (firebaseUser && firebaseUser.success) {
       await firebaseAuth.deleteUser(firebaseUser.uid);
     }
@@ -154,7 +147,6 @@ async function registerUser(req, res) {
   }
 }
 
-// Login de usuario (usando Firebase ID Token)
 async function loginUser(req, res) {
   try {
     const { idToken } = req.body;
@@ -190,7 +182,6 @@ async function loginUser(req, res) {
   }
 }
 
-// Verificar token JWT local
 async function verifyToken(req, res, next) {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -204,7 +195,6 @@ async function verifyToken(req, res, next) {
   }
 }
 
-// Nuevo endpoint: Verifica el token y devuelve el usuario autenticado
 async function verifyTokenEndpoint(req, res) {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -212,7 +202,6 @@ async function verifyTokenEndpoint(req, res) {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // Buscar usuario en la base de datos
     const usuario = await User.findOne({ uid: decoded.uid });
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
 
@@ -225,6 +214,7 @@ async function verifyTokenEndpoint(req, res) {
         rol_id: usuario.rol_id,
         estado: usuario.estado,
         preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
       },
     });
   } catch (err) {
@@ -232,18 +222,37 @@ async function verifyTokenEndpoint(req, res) {
   }
 }
 
-// Logout (opcional)
 async function logoutUser(req, res) {
-  // En este caso, como usamos JWT, el logout es principalmente del lado del cliente
-  // Aquí podrías implementar una blacklist de tokens si lo necesitas
   res.json({ success: true, message: 'Logout exitoso' });
 }
 
+async function getMe(req, res) {
+  try {
+    const uid = req.user.uid;
+    const usuario = await User.findById(uid);
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
+    res.json({
+      usuario: {
+        uid: usuario.uid,
+        nombre_completo: usuario.nombre_completo,
+        email: usuario.email,
+        rol_id: usuario.rol_id,
+        empresa_id: usuario.empresa_id,
+        avatar_url: usuario.avatar_url || null,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error al obtener el usuario.' });
+  }
+}
+
 module.exports = {
-  loginDirect, // <-- Este debe ser el export principal para login ERP
-  loginUser, // (solo para login con Firebase, si lo usas en otro endpoint)
+  loginDirect,
+  loginUser,
   verifyToken,
-  verifyTokenEndpoint, // <-- Exportar el nuevo endpoint
+  verifyTokenEndpoint,
   registerUser,
   logoutUser,
+  getMe,
 };

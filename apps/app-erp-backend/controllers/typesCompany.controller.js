@@ -1,6 +1,5 @@
-const TypeCompany = require('../models/typeCompany.model'); // Asumiendo que existe el modelo TypeCompany
+const TypeCompany = require('../models/typeCompany.model');
 
-// Lista todos los tipos de empresa
 async function getAllTypes(req, res) {
   try {
     const tipos = await TypeCompany.find();
@@ -10,7 +9,6 @@ async function getAllTypes(req, res) {
   }
 }
 
-// Obtiene un tipo de empresa por su ID
 async function getTypeById(req, res) {
   try {
     const tipo = await TypeCompany.findById(req.params.tipo_id);
@@ -21,7 +19,6 @@ async function getTypeById(req, res) {
   }
 }
 
-// Crea un nuevo tipo de empresa
 async function createType(req, res) {
   try {
     const { tipo_empresa } = req.body;
@@ -36,7 +33,6 @@ async function createType(req, res) {
   }
 }
 
-// Actualiza un tipo de empresa
 async function updateType(req, res) {
   try {
     const { tipo_empresa } = req.body;
@@ -52,7 +48,6 @@ async function updateType(req, res) {
   }
 }
 
-// Elimina un tipo de empresa
 async function deleteType(req, res) {
   try {
     const tipo = await TypeCompany.findByIdAndDelete(req.params.tipo_id);

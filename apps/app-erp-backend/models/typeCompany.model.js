@@ -1,6 +1,13 @@
 const pool = require('../db');
 
 class TypeCompany {
+  static normalizeTypeValue(tipoEmpresa) {
+    const value = tipoEmpresa.toLowerCase();
+    if (['ferreteria', 'licoreria', 'minimarket'].includes(value)) {
+      return value;
+    }
+    return value;
+  }
   static async find() {
     const result = await pool.query('SELECT * FROM tipos_empresa');
     return result.rows;

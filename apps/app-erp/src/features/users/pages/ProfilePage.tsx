@@ -3,8 +3,6 @@ import { IoPersonOutline, IoSettingsOutline, IoShieldCheckmarkOutline } from 're
 import PersonalInfoSection from '../components/PersonalInfoSection';
 import PreferencesSection from '../components/PreferencesSection';
 import SecuritySection from '../components/SecuritySection';
-import { currentUser, currentCompany } from '../config/mockData';
-
 import './ProfilePage.css';
 
 type TabType = 'personal' | 'preferences' | 'security';
@@ -35,15 +33,45 @@ const tabs: Tab[] = [
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState<TabType>('personal');
-  const [userData, setUserData] = useState(currentUser);
-  const [companyData, setCompanyData] = useState(currentCompany);
-  const [loading, setLoading] = useState(!currentUser);
+  const [userData, setUserData] = useState<any>(null);
+  const [companyData, setCompanyData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simplemente usar los datos mockeados sin validación de token
-    setUserData(currentUser);
-    setCompanyData(currentCompany);
-    setLoading(false);
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
+        const resUser = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resUser.ok) {
+          const dataUser = await resUser.json();
+          setUserData(dataUser.usuario);
+          const empresaId = dataUser.usuario.empresa_id;
+          const resCompany = await fetch(`/api/companies/${empresaId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          if (resCompany.ok) {
+            const dataCompany = await resCompany.json();
+            setCompanyData(dataCompany);
+          }
+        }
+      } catch (error) {}
+      setLoading(false);
+    };
+    fetchProfile();
   }, []);
 
   const renderTabContent = () => {

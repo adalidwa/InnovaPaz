@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const companiesController = require('../controllers/companies.controller');
 const { verifyToken } = require('../controllers/auth.controller');
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 
-// --- Rutas para Tipos de Empresa (públicas) ---
 router.get('/types', companiesController.getAllCompanyTypes);
-router.post('/types', verifyToken, companiesController.createCompanyType); // Proteger creación
+router.post('/types', verifyToken, companiesController.createCompanyType);
 
-// --- Rutas para Empresas ---
 // Listar todas las empresas (puede ser pública o protegida, la dejamos pública por ahora)
 router.get('/', companiesController.getAllCompanies);
 
@@ -42,5 +42,17 @@ router.put(
   verifyToken,
   companiesController.updateSubscriptionStatus
 );
+
+// Subir logo de empresa (protegida)
+router.post(
+  '/upload/logo/:empresa_id',
+  verifyToken,
+  upload.single('logo'),
+  companiesController.uploadCompanyLogo
+);
+
+// Nuevas rutas para los endpoints solicitados
+router.get('/:empresa_id/invoices', companiesController.getCompanyInvoices);
+router.get('/:empresa_id/plan', companiesController.getCompanyPlan);
 
 module.exports = router;

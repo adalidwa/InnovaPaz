@@ -1,7 +1,5 @@
 const pool = require('../db');
 
-// NOTA: Los nombres de tabla y columnas ('usuarios', 'empresa_id', etc.) deben coincidir con tu esquema de base de datos.
-
 class User {
   static async find(query = {}) {
     if (query.empresa_id) {

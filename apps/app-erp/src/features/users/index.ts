@@ -1,6 +1,5 @@
-// Exportar todas las páginas
 export { default as ProfilePage } from './pages/ProfilePage';
 export { default as CompanySettingsPage } from './pages/CompanySettingsPage';
-
-// Exportar datos simulados y tipos
-export * from './config/mockData';
+export { default as LoginPage } from './pages/LoginPage';
+export { default as ImageAdjuster } from './components/ImageAdjuster';
+export { default as ImageAdjusterPreview } from './components/ImageAdjusterPreview';

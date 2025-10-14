@@ -86,7 +86,6 @@
   font-style: italic;
 }
 
-/* Barra de fortaleza de contraseña */
 .password-strength {
   margin-top: 0.75rem;
 }
@@ -124,7 +123,6 @@
   font-weight: 500;
 }
 
-/* Indicador de coincidencia de contraseñas */
 .password-match {
   margin-top: 0.5rem;
   font: var(--font-13);

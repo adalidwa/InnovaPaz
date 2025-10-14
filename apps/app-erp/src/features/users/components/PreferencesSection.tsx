@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IoSunny, IoMoon, IoDesktop } from 'react-icons/io5';
 import Button from '../../../components/common/Button';
 import Select from '../../../components/common/Select';
@@ -22,6 +22,7 @@ function PreferencesSection() {
     theme: 'light',
     language: 'es',
   });
+  const [userId, setUserId] = useState('');
 
   const [showModal, setShowModal] = useState(false);
 
@@ -32,8 +33,51 @@ function PreferencesSection() {
     }));
   };
 
-  const handleSave = () => {
-    setShowModal(true);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUserId(data.usuario.uid);
+          if (data.usuario.preferencias) {
+            setPreferences(data.usuario.preferencias);
+          }
+        }
+      } catch {
+        console.error('Error obteniendo usuario:');
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || !userId) return;
+      const res = await fetch(`/api/users/${userId}/preferences`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ preferencias: preferences }),
+      });
+      if (res.ok) {
+        setShowModal(true);
+      } else {
+        alert('No se pudo guardar las preferencias');
+      }
+    } catch (error) {
+      alert('Error de red al guardar preferencias');
+    }
   };
 
   const getThemeIcon = (theme: string) => {

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import './SecuritySection.css';
+import { useEffect, useState } from 'react';
 import { IoLockClosed, IoKey } from 'react-icons/io5';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
-import './SecuritySection.css';
+import { getUserProfile, changeUserPassword } from '../../../services/userService';
 
 function SecuritySection() {
   const [passwordData, setPasswordData] = useState({
@@ -11,7 +12,6 @@ function SecuritySection() {
     newPassword: '',
     confirmPassword: '',
   });
-
   const [showModal, setShowModal] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
     type: 'success' | 'warning' | 'error';
@@ -22,6 +22,24 @@ function SecuritySection() {
     title: '',
     message: '',
   });
+  const [userId, setUserId] = useState('');
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('Token de autenticación no encontrado');
+          return;
+        }
+        const res = await getUserProfile(token);
+        if (res && res.uid) setUserId(res.uid);
+      } catch {
+        console.error('Error obteniendo usuario:');
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setPasswordData((prev) => ({
@@ -30,8 +48,7 @@ function SecuritySection() {
     }));
   };
 
-  const handleChangePassword = () => {
-    // Validations
+  const handleChangePassword = async () => {
     if (
       !passwordData.currentPassword ||
       !passwordData.newPassword ||
@@ -45,7 +62,6 @@ function SecuritySection() {
       setShowModal(true);
       return;
     }
-
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setModalConfig({
         type: 'error',
@@ -55,7 +71,6 @@ function SecuritySection() {
       setShowModal(true);
       return;
     }
-
     if (passwordData.newPassword.length < 8) {
       setModalConfig({
         type: 'warning',
@@ -65,24 +80,51 @@ function SecuritySection() {
       setShowModal(true);
       return;
     }
-
-    // Success
-    setModalConfig({
-      type: 'success',
-      title: 'Contraseña Actualizada',
-      message: 'Tu contraseña ha sido cambiada exitosamente.',
-    });
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setModalConfig({
+          type: 'error',
+          title: 'Error de autenticación',
+          message: 'No se encontró el token de autenticación.',
+        });
+        setShowModal(true);
+        return;
+      }
+      const res = await changeUserPassword(
+        userId,
+        passwordData.currentPassword,
+        passwordData.newPassword,
+        token
+      );
+      if (res.ok) {
+        setModalConfig({
+          type: 'success',
+          title: 'Contraseña Actualizada',
+          message: 'Tu contraseña ha sido cambiada exitosamente.',
+        });
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+      } else {
+        setModalConfig({
+          type: 'error',
+          title: 'Error',
+          message: res.error || 'No se pudo cambiar la contraseña.',
+        });
+      }
+    } catch (error) {
+      setModalConfig({
+        type: 'error',
+        title: 'Error',
+        message: 'No se pudo cambiar la contraseña.',
+      });
+    }
     setShowModal(true);
-
-    // Reset form
-    setPasswordData({
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    });
   };
 
-  // Función para calcular la fortaleza de la contraseña
   const getPasswordStrength = (password: string) => {
     let score = 0;
     if (password.length >= 8) score += 20;
@@ -94,7 +136,6 @@ function SecuritySection() {
     return Math.min(score, 100);
   };
 
-  // Función para obtener el texto de fortaleza
   const getStrengthText = (score: number) => {
     if (score < 30) return 'Muy débil';
     if (score < 50) return 'Débil';
@@ -103,7 +144,6 @@ function SecuritySection() {
     return 'Muy fuerte';
   };
 
-  // Función para obtener el color de la barra
   const getStrengthColor = (score: number) => {
     if (score < 30) return 'var(--acc-600)';
     if (score < 50) return 'var(--var-600)';
@@ -161,7 +201,6 @@ function SecuritySection() {
                   required
                 />
 
-                {/* Barra de fortaleza de contraseña */}
                 {passwordData.newPassword && (
                   <div className='password-strength'>
                     <div className='password-strength-bar'>
@@ -195,7 +234,6 @@ function SecuritySection() {
                   placeholder='Confirma tu nueva contraseña'
                   required
                 />
-                {/* Indicador de coincidencia */}
                 {passwordData.confirmPassword && (
                   <div
                     className={`password-match ${passwordData.newPassword === passwordData.confirmPassword ? 'match' : 'no-match'}`}
