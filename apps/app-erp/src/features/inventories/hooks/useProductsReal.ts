@@ -8,12 +8,14 @@ const EMPRESA_ID = '93d5a3c0-a091-40ab-97de-e26a285c7318';
 export interface ProductFormData {
   name: string;
   code: string;
+  parentCategory: string;
   category: string;
+  brand: string;
+  image: string;
   description: string;
   price: number;
   cost: number;
   stock: number;
-  minStock: number;
   expirationDate: string;
   lot: string;
 }
@@ -72,12 +74,13 @@ export const useProducts = () => {
           codigo: productData.code,
           nombre_producto: productData.name,
           descripcion: productData.description,
+          imagen: productData.image || undefined,
           precio_venta: productData.price,
           precio_costo: productData.cost,
           stock: productData.stock,
           empresa_id: EMPRESA_ID,
-          categoria_id: 1, // Por defecto, esto debería venir de la selección del usuario
-          marca_id: 1, // Por defecto, esto debería venir de la selección del usuario
+          categoria_id: productData.category ? parseInt(productData.category) : undefined,
+          marca_id: productData.brand ? parseInt(productData.brand) : undefined,
           estado_id: 1, // Por defecto activo
         };
 

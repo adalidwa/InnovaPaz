@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { Product, ProductLegacy } from '../types/inventory';
-import { productService } from '../services/productService';
+import { useState, useCallback } from 'react';
+import type { Product } from '../types/inventory';
 
 // Empresa ID de prueba - puedes cambiar esto por el ID de tu empresa
 const EMPRESA_ID = '93d5a3c0-a091-40ab-97de-e26a285c7318';
