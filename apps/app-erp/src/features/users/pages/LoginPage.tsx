@@ -137,3 +137,6 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
+
+// El login ya usa loginToERP, que ahora utiliza Firebase Auth.
+// No se requieren cambios adicionales aquí.

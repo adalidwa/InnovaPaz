@@ -226,10 +226,28 @@ async function logoutUser(req, res) {
   res.json({ success: true, message: 'Logout exitoso' });
 }
 
+async function verifyFirebaseToken(req, res, next) {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Acceso denegado. No se proporcionó token.' });
+
+    // Validar el token con Firebase Admin
+    const decoded = await firebaseAuth.verifyToken(token);
+    if (!decoded.success) {
+      return res.status(401).json({ error: 'Token de Firebase inválido.' });
+    }
+
+    req.user = decoded; // uid y email
+    next();
+  } catch (err) {
+    res.status(401).json({ error: 'Token inválido.' });
+  }
+}
+
+// Endpoint protegido usando el nuevo middleware
 async function getMe(req, res) {
   try {
-    const uid = req.user.uid;
-    const usuario = await User.findById(uid);
+    const usuario = await User.findOne({ uid: req.user.uid });
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
 
     res.json({
@@ -254,5 +272,6 @@ module.exports = {
   verifyTokenEndpoint,
   registerUser,
   logoutUser,
+  verifyFirebaseToken,
   getMe,
 };

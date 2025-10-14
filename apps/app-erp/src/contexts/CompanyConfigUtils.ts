@@ -1,5 +1,27 @@
 import type { CompanyConfig, VisualIdentity } from './CompanyConfigContext';
 
+const defaultVisualIdentity: VisualIdentity = {
+  header_bg: '#ffffff',
+  header_text: '#322f44',
+  sidebar_bg: '#322f44',
+  sidebar_text: '#ffffff',
+  content_bg: '#f9fafb',
+  content_text: '#1f2937',
+  color_primario: '#4f46e5',
+  color_acento: '#10b981',
+  tipografia: 'Inter',
+  logoFile: null,
+  logoPreview: null,
+  permisos: {
+    colores_header: true,
+    colores_sidebar: true,
+    colores_contenido: true,
+    colores_marca: false,
+    tipografia: true,
+    logo: false,
+  },
+};
+
 export const loadConfigFromBackend = async (
   empresaId: string,
   defaultConfig: CompanyConfig
@@ -15,7 +37,15 @@ export const loadConfigFromBackend = async (
     if (res.ok) {
       const data = await res.json();
       console.warn('loadConfigFromBackend - datos recibidos:', data);
-      return data.empresa.ajustes || defaultConfig;
+      const ajustes = data.empresa.ajustes || defaultConfig;
+      // Asegura que identidad_visual tenga todos los campos
+      return {
+        ...ajustes,
+        identidad_visual: {
+          ...defaultVisualIdentity,
+          ...(ajustes.identidad_visual || {}),
+        },
+      };
     }
   } catch (error) {
     console.error('Error al cargar configuración desde backend:', error);

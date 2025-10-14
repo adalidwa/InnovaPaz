@@ -1,10 +1,10 @@
 import './SecuritySection.css';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { IoLockClosed, IoKey } from 'react-icons/io5';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
-import { getUserProfile, changeUserPassword } from '../../../services/userService';
+import { changeUserPassword } from '../services/authService';
 
 function SecuritySection() {
   const [passwordData, setPasswordData] = useState({
@@ -22,24 +22,7 @@ function SecuritySection() {
     title: '',
     message: '',
   });
-  const [userId, setUserId] = useState('');
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          console.error('Token de autenticación no encontrado');
-          return;
-        }
-        const res = await getUserProfile(token);
-        if (res && res.uid) setUserId(res.uid);
-      } catch {
-        console.error('Error obteniendo usuario:');
-      }
-    };
-    fetchUser();
-  }, []);
+  const [userId] = useState('');
 
   const handleInputChange = (field: string, value: string) => {
     setPasswordData((prev) => ({

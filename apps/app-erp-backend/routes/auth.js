@@ -15,7 +15,7 @@ router.post('/register', authController.registerUser);
 router.post('/verify-token', authController.verifyTokenEndpoint);
 
 // Obtener usuario autenticado actual (GET /api/auth/me)
-router.get('/me', authController.verifyTokenEndpoint);
+router.get('/me', authController.verifyFirebaseToken, authController.getMe);
 
 // Logout
 router.post('/logout', authController.logoutUser);
