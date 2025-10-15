@@ -8,6 +8,9 @@ router.post('/login', authController.loginDirect);
 // Login con Firebase (para sitio de marketing)
 router.post('/login-firebase', authController.loginUser);
 
+// Nuevo: Login/Registro con Google
+router.post('/google-auth', authController.googleAuth);
+
 // Registro coordinado (Firebase + PostgreSQL)
 router.post('/register', authController.registerUser);
 

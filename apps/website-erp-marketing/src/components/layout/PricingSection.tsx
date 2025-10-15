@@ -75,31 +75,31 @@ const PricingSection = () => {
     const features = [];
 
     // Miembros del equipo
-    if (plan.limites.miembros === -1) {
+    if (plan.limites.miembros === null) {
       features.push('Miembros del Equipo Ilimitados');
     } else {
       features.push(`Hasta ${plan.limites.miembros} Miembros del Equipo`);
     }
 
     // Roles (solo para Estándar y Premium)
-    if (plan.limites.roles && plan.limites.roles !== -1) {
+    if (plan.limites.roles && plan.limites.roles !== null) {
       features.push(`${plan.limites.roles} Roles Personalizables`);
-    } else if (plan.limites.roles === -1) {
+    } else if (plan.limites.roles === null) {
       features.push('Roles Ilimitados');
     }
 
     // Productos en inventario
-    if (plan.limites.productos === -1) {
+    if (plan.limites.productos === null) {
       features.push('Productos Ilimitados');
     } else {
-      features.push(`${plan.limites.productos.toLocaleString()} Productos en Inventario`);
+      features.push(`${plan.limites.productos?.toLocaleString() || 0} Productos en Inventario`);
     }
 
     // Transacciones
-    if (plan.limites.transacciones === -1) {
+    if (plan.limites.transacciones === null) {
       features.push('Transacciones Ilimitadas');
     } else {
-      features.push(`${plan.limites.transacciones.toLocaleString()} Transacciones/mes`);
+      features.push(`${plan.limites.transacciones?.toLocaleString() || 0} Transacciones/mes`);
     }
 
     // Features específicas por plan (como aparecen en la imagen)

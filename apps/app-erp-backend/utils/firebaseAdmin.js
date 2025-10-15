@@ -52,18 +52,40 @@ const firebaseAuth = {
     try {
       const firebaseAdmin = initializeFirebaseAdmin();
 
+      // Validar que el token no esté vacío
+      if (!idToken || typeof idToken !== 'string') {
+        return {
+          success: false,
+          error: 'Token inválido o vacío',
+        };
+      }
+
       const decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
 
       return {
         success: true,
         uid: decodedToken.uid,
         email: decodedToken.email,
+        email_verified: decodedToken.email_verified,
+        firebase_sign_in_provider: decodedToken.firebase?.sign_in_provider,
       };
     } catch (error) {
       console.error('❌ Error verificando token con el Guardia:', error);
+
+      // Diferentes tipos de errores de Firebase
+      let errorMessage = error.message;
+      if (error.code === 'auth/id-token-expired') {
+        errorMessage = 'Token expirado';
+      } else if (error.code === 'auth/id-token-revoked') {
+        errorMessage = 'Token revocado';
+      } else if (error.code === 'auth/argument-error') {
+        errorMessage = 'Formato de token inválido';
+      }
+
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
+        code: error.code,
       };
     }
   },

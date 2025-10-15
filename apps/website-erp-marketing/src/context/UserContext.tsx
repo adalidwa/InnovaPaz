@@ -82,21 +82,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setUser(fullUser);
 
         // --- LÓGICA DE REDIRECCIÓN AUTOMÁTICA ---
-        // Si el usuario está sincronizado con el backend y tiene una empresa...
+        // Solo redirigir al ERP si el usuario tiene empresa configurada
         if (fullUser.backendSynced && fullUser.empresa_id) {
-          // ...y se encuentra en una página pública del sitio de marketing...
-          const publicMarketingPaths = [
-            '/',
-            '/about',
-            '/privacy',
-            '/contacto',
-            '/login',
-            '/register',
-          ];
+          // ...y se encuentra en páginas públicas del sitio de marketing...
+          const publicMarketingPaths = ['/login', '/register'];
           if (publicMarketingPaths.includes(window.location.pathname)) {
             // ...lo redirigimos al ERP.
+            console.log('✅ Usuario completo con empresa, redirigiendo al ERP desde UserContext');
             redirectToERP();
           }
+        }
+        // Si está autenticado pero no tiene empresa, permitir exploración
+        // NO redirigir automáticamente - solo cuando viene desde planes
+        else if (fullUser.backendSynced && !fullUser.empresa_id) {
+          console.log('🏠 Usuario sin empresa - permitiendo exploración libre');
         }
       } else {
         setUser(null);

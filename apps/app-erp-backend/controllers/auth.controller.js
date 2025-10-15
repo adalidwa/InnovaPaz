@@ -226,21 +226,145 @@ async function logoutUser(req, res) {
   res.json({ success: true, message: 'Logout exitoso' });
 }
 
-async function verifyFirebaseToken(req, res, next) {
+// Nuevo: Autenticación con Google (login o registro automático)
+async function googleAuth(req, res) {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Acceso denegado. No se proporcionó token.' });
+    const { idToken } = req.body;
 
-    // Validar el token con Firebase Admin
-    const decoded = await firebaseAuth.verifyToken(token);
-    if (!decoded.success) {
-      return res.status(401).json({ error: 'Token de Firebase inválido.' });
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Firebase ID Token es requerido.',
+      });
     }
 
-    req.user = decoded; // uid y email
-    next();
-  } catch (err) {
-    res.status(401).json({ error: 'Token inválido.' });
+    // Verificar token de Firebase
+    const decodedFirebaseToken = await firebaseAuth.verifyToken(idToken);
+    if (!decodedFirebaseToken.success) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token de Firebase inválido.',
+        details: decodedFirebaseToken.error,
+      });
+    }
+
+    const { uid, email } = decodedFirebaseToken;
+
+    // Obtener información adicional del usuario desde Firebase
+    const firebaseUserInfo = await firebaseAuth.getUser(uid);
+    if (!firebaseUserInfo.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Error obteniendo información del usuario de Firebase',
+      });
+    }
+
+    // Buscar usuario existente en PostgreSQL
+    let usuario = await User.findOne({ uid });
+
+    if (!usuario) {
+      // Usuario no existe en PostgreSQL, crearlo sin empresa
+      usuario = await User.create({
+        uid,
+        empresa_id: null,
+        rol_id: null,
+        nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
+        email,
+        estado: 'activo',
+        preferencias: {},
+      });
+
+      console.log(`✅ Nuevo usuario Google creado en PostgreSQL: ${uid}`);
+    }
+
+    // Generar token JWT local
+    const localToken = jwt.sign(
+      {
+        uid: usuario.uid,
+        email: usuario.email,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Determinar si necesita configurar empresa
+    const needsCompanySetup = !usuario.empresa_id;
+
+    res.json({
+      success: true,
+      token: localToken,
+      usuario: {
+        uid: usuario.uid,
+        email: usuario.email,
+        nombre_completo: usuario.nombre_completo,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+        estado: usuario.estado,
+        preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
+      },
+      needsCompanySetup,
+    });
+  } catch (error) {
+    console.error('Error en Google Auth:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+      details: error.message,
+    });
+  }
+}
+
+async function verifyFirebaseToken(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Acceso denegado. Token no proporcionado o formato incorrecto.',
+      });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // Intentar verificar como token de Firebase primero
+    const firebaseResult = await firebaseAuth.verifyToken(token);
+
+    if (firebaseResult.success) {
+      // Es un token de Firebase válido
+      req.user = {
+        uid: firebaseResult.uid,
+        email: firebaseResult.email,
+        source: 'firebase',
+      };
+      return next();
+    }
+
+    // Si no es Firebase, intentar como JWT local
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = {
+        uid: decoded.uid,
+        email: decoded.email,
+        empresa_id: decoded.empresa_id,
+        rol_id: decoded.rol_id,
+        source: 'jwt',
+      };
+      return next();
+    } catch (jwtError) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token inválido (ni Firebase ni JWT local).',
+      });
+    }
+  } catch (error) {
+    console.error('Error en verifyFirebaseToken:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno al verificar token.',
+    });
   }
 }
 
@@ -268,6 +392,7 @@ async function getMe(req, res) {
 module.exports = {
   loginDirect,
   loginUser,
+  googleAuth, // Nuevo export
   verifyToken,
   verifyTokenEndpoint,
   registerUser,

@@ -127,71 +127,78 @@ async function updatePreferences(req, res) {
 
 async function completeCompanySetup(req, res) {
   try {
-    const { firebase_uid, email, nombre_completo, empresa_data } = req.body;
-    if (!firebase_uid || !email || !nombre_completo || !empresa_data) {
+    const { empresa_data } = req.body;
+    const firebase_uid = req.user.uid; // Obtener del token verificado
+
+    if (!empresa_data) {
       return res.status(400).json({
-        error: 'Faltan datos obligatorios para completar la configuración de la empresa.',
+        success: false,
+        error: 'Datos de la empresa son requeridos.',
       });
     }
+
     const { nombre, tipo_empresa_id, plan_id } = empresa_data;
     if (!nombre || !tipo_empresa_id || !plan_id) {
-      return res
-        .status(400)
-        .json({ error: 'Faltan datos de la empresa (nombre, tipo_empresa_id, plan_id).' });
+      return res.status(400).json({
+        success: false,
+        error: 'Faltan datos de la empresa (nombre, tipo_empresa_id, plan_id).',
+      });
     }
+
+    // Verificar que el usuario existe y no tiene empresa
     const existingUser = await User.findOne({ uid: firebase_uid });
-    if (existingUser && existingUser.empresa_id) {
-      return res.status(409).json({ error: 'El usuario ya tiene una empresa configurada.' });
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.',
+      });
     }
+
+    if (existingUser.empresa_id) {
+      return res.status(409).json({
+        success: false,
+        error: 'El usuario ya tiene una empresa configurada.',
+      });
+    }
+
+    // Crear empresa
     const nuevaEmpresa = await Company.create({
       nombre,
       tipo_empresa_id,
       plan_id,
       estado_suscripcion: 'en_prueba',
     });
-    const empresa_id = nuevaEmpresa.empresa_id;
+
+    // Crear rol de administrador
     const nuevoRol = await Role.create({
-      empresa_id,
+      empresa_id: nuevaEmpresa.empresa_id,
       nombre_rol: 'Administrador',
       permisos: { full_access: true },
       es_predeterminado: true,
       estado: 'activo',
     });
-    const rol_id = nuevoRol.rol_id;
+
+    // Actualizar usuario
     const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
-      empresa_id,
-      rol_id,
-      nombre_completo,
-      email,
+      empresa_id: nuevaEmpresa.empresa_id,
+      rol_id: nuevoRol.rol_id,
       estado: 'activo',
     });
-    if (!usuarioActualizado) {
-      const nuevoUsuario = await User.create({
-        uid: firebase_uid,
-        empresa_id,
-        rol_id,
-        nombre_completo,
-        email,
-        estado: 'activo',
-      });
-      return res.status(201).json({
-        mensaje: 'Configuración de empresa completada y usuario creado.',
-        empresa: nuevaEmpresa,
-        usuario: nuevoUsuario,
-        rol: nuevoRol,
-      });
-    }
+
     res.status(200).json({
-      mensaje: 'Configuración de empresa completada y usuario actualizado.',
+      success: true,
+      mensaje: 'Configuración de empresa completada.',
       empresa: nuevaEmpresa,
       usuario: usuarioActualizado,
       rol: nuevoRol,
     });
   } catch (err) {
     console.error('Error en completeCompanySetup:', err);
-    res
-      .status(500)
-      .json({ error: 'Error al completar la configuración de la empresa.', details: err.message });
+    res.status(500).json({
+      success: false,
+      error: 'Error al completar la configuración de la empresa.',
+      details: err.message,
+    });
   }
 }
 

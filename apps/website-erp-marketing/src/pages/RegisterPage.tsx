@@ -7,7 +7,7 @@ import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
 import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './RegisterPage.css';
-import { signInWithGoogle } from '../services/auth/authService';
+import { signInWithGoogleBackend } from '../services/auth/googleAuthService';
 import { registerWithBackend } from '../services/auth/sessionService';
 import { getPlanId, getBusinessTypeId, businessTypeToSlug } from '../services/auth/companyService';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -218,8 +218,8 @@ const RegisterPage: React.FC = () => {
         const result = await registerWithBackend(registrationData);
 
         if (result.usuario) {
-          setSuccess('¡Cuenta creada exitosamente!');
-          setTimeout(() => redirectToERP(), 1500); // Redirigir al dashboard del ERP
+          setSuccess('¡Cuenta creada exitosamente! Puedes seguir explorando.');
+          setTimeout(() => navigate('/'), 1500); // Ir al homepage para explorar
         } else {
           setError('Error al crear la cuenta.');
         }
@@ -238,43 +238,45 @@ const RegisterPage: React.FC = () => {
     setError(null);
 
     try {
-      const { user } = await signInWithGoogle();
-      if (user && !isNavigating) {
-        if (planSeleccionado) {
-          try {
-            const resp = await fetch(buildApiUrl(`/api/users/check-company/${user.uid}`));
-            if (resp.status === 404) {
-              setError('Ruta check-company (404). Revisa backend.');
-              setLoading(false);
-              return;
-            }
-            const result = await resp.json();
-            console.log('[REGISTER][GOOGLE] check-company:', result);
+      const result = await signInWithGoogleBackend();
 
-            if (result.success && result.data.tiene_empresa) {
-              setSuccess('¡Bienvenido de vuelta!');
-              setIsNavigating(true);
-              setTimeout(() => redirectToERP(), 600);
-            } else {
-              setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
-              setIsNavigating(true);
-              setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 800);
-            }
-          } catch (err) {
-            console.error('[REGISTER][GOOGLE] Error consultando backend:', err);
-            setError('Error verificando estado de empresa.');
-          }
-        } else {
-          setSuccess('¡Registro exitoso!');
+      if (!result.success) {
+        setError(result.error || 'Error en registro con Google');
+        setLoading(false);
+        return;
+      }
+
+      // Guardar token en localStorage para mantener sesión
+      if (result.token) {
+        localStorage.setItem('authToken', result.token);
+      }
+
+      if (planSeleccionado) {
+        // Si viene de un plan específico
+        if (result.needsCompanySetup) {
+          setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
           setIsNavigating(true);
-          setTimeout(() => navigate('/'), 800);
+          setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 800);
+        } else {
+          setSuccess('¡Bienvenido de vuelta!');
+          setIsNavigating(true);
+          setTimeout(() => redirectToERP(), 600);
         }
       } else {
-        setError('Error al registrar con Google. Inténtalo de nuevo.');
+        // Si NO viene de un plan (header/exploración)
+        if (result.needsCompanySetup) {
+          setSuccess('¡Registro exitoso! Puedes seguir explorando.');
+          setIsNavigating(true);
+          setTimeout(() => navigate('/'), 800); // Ir al homepage para explorar
+        } else {
+          setSuccess('¡Bienvenido! Redirigiendo al ERP.');
+          setIsNavigating(true);
+          setTimeout(() => redirectToERP(), 800);
+        }
       }
-    } catch (err) {
-      console.error('Error en Google register:', err);
-      setError('Error inesperado. Inténtalo más tarde.');
+    } catch (error: any) {
+      console.error('Error en Google register:', error);
+      setError(error.message || 'Error inesperado. Inténtalo más tarde.');
     }
 
     setLoading(false);

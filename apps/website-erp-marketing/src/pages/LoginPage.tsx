@@ -6,14 +6,16 @@ import illustrationPicture from '../assets/icons/illustrationPicture.svg';
 import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './LoginPage.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loginWithBackend } from '../services/auth/sessionService';
-import { signInWithGoogle } from '../services/auth/authService';
+import { signInWithGoogleBackend } from '../services/auth/googleAuthService';
 import { useUser } from '../context/UserContext';
-import { redirectToERP } from '../configs/appConfig'; // Importar la función de redirección
+import { redirectToERP } from '../configs/appConfig';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planSeleccionado = searchParams.get('plan');
   useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,8 +32,27 @@ const LoginPage: React.FC = () => {
       const result = await loginWithBackend(email.trim().toLowerCase(), password);
       if (result && result.userData) {
         console.log('Usuario logueado desde PostgreSQL:', result.userData);
-        // Redirigir a la aplicación ERP
-        redirectToERP();
+
+        // Si viene de un plan y no tiene empresa, ir a company-setup
+        if (planSeleccionado && !result.userData.empresa_id) {
+          console.log('🏢 Usuario desde plan sin empresa, redirigiendo a company-setup');
+          navigate(`/company-setup?plan=${planSeleccionado}`);
+        }
+        // Si viene de un plan y ya tiene empresa, ir al ERP
+        else if (planSeleccionado && result.userData.empresa_id) {
+          console.log('✅ Usuario desde plan con empresa, redirigiendo al ERP');
+          redirectToERP();
+        }
+        // Si NO viene de un plan (header/exploración), solo ir al ERP si tiene empresa
+        else if (!planSeleccionado && result.userData.empresa_id) {
+          console.log('✅ Usuario desde header con empresa, redirigiendo al ERP');
+          redirectToERP();
+        }
+        // Si NO viene de un plan y no tiene empresa, quedarse en homepage para explorar
+        else if (!planSeleccionado && !result.userData.empresa_id) {
+          console.log('🏠 Usuario desde header sin empresa, volviendo a homepage para explorar');
+          navigate('/');
+        }
       } else {
         setError('Credenciales no válidas.');
       }
@@ -42,22 +63,52 @@ const LoginPage: React.FC = () => {
     setLoading(false);
   };
 
-  // Login con Google - mantener lógica existente por ahora
+  // Login con Google usando el nuevo servicio
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await signInWithGoogle();
-      if (result && result.user && result.user.uid) {
-        // Redirigir a la aplicación ERP
-        redirectToERP();
-      } else {
-        setError('Error al iniciar sesión con Google.');
+      const result = await signInWithGoogleBackend();
+
+      if (!result.success) {
+        setError(result.error || 'Error al iniciar sesión con Google');
+        setLoading(false);
+        return;
       }
-    } catch (err) {
-      setError('Error inesperado. Inténtalo más tarde.');
-      console.error('Error en handleGoogleLogin:', err);
+
+      // Guardar token en localStorage para mantener sesión
+      if (result.token) {
+        localStorage.setItem('authToken', result.token);
+      }
+
+      console.log('Usuario logueado con Google:', result.usuario);
+
+      // Si viene de un plan y necesita configurar empresa
+      if (planSeleccionado && result.needsCompanySetup) {
+        console.log(
+          '🏢 Usuario desde plan necesita configurar empresa, redirigiendo a company-setup'
+        );
+        navigate(`/company-setup?plan=${planSeleccionado}`);
+      }
+      // Si viene de un plan y ya no necesita configurar empresa
+      else if (planSeleccionado && !result.needsCompanySetup) {
+        console.log('✅ Usuario desde plan completo, redirigiendo al ERP');
+        redirectToERP();
+      }
+      // Si NO viene de un plan (header/exploración)
+      else if (!planSeleccionado) {
+        if (result.needsCompanySetup) {
+          console.log('🏠 Usuario desde header sin empresa, volviendo a homepage para explorar');
+          navigate('/');
+        } else {
+          console.log('✅ Usuario desde header con empresa, redirigiendo al ERP');
+          redirectToERP();
+        }
+      }
+    } catch (error: any) {
+      console.error('Error en Google login:', error);
+      setError(error.message || 'Error inesperado. Inténtalo más tarde.');
     }
 
     setLoading(false);

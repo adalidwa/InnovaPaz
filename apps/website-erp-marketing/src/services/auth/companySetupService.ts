@@ -1,9 +1,9 @@
+import { auth } from '../../configs/firebaseConfig';
+import { buildApiUrl } from '../../configs/appConfig';
+
 // Servicio para completar la configuración de la empresa para un usuario existente
 
 interface CompleteCompanySetupData {
-  firebase_uid: string;
-  email: string;
-  nombre_completo: string;
   empresa_data: {
     nombre: string;
     tipo_empresa_id: number;
@@ -12,18 +12,32 @@ interface CompleteCompanySetupData {
 }
 
 export async function completeCompanySetup(data: CompleteCompanySetupData) {
-  const response = await fetch('http://localhost:4000/api/users/complete-company-setup', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
+  try {
+    // Obtener token de Firebase del usuario autenticado
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error('Usuario no autenticado');
+    }
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Error al completar la configuración de la empresa.');
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(buildApiUrl('/api/users/complete-company-setup'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Error al completar la configuración de la empresa.');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error en completeCompanySetup:', error);
+    throw error;
   }
-
-  return await response.json();
 }

@@ -76,7 +76,9 @@ const CompanySetupPage: React.FC = () => {
 
       try {
         // Verificar si el usuario ya tiene empresa configurada
-        const checkResponse = await fetch(buildApiUrl(`/api/users/check-company/${currentUser.uid}`));
+        const checkResponse = await fetch(
+          buildApiUrl(`/api/users/check-company/${currentUser.uid}`)
+        );
 
         if (checkResponse.status === 404) {
           console.log(
@@ -114,20 +116,16 @@ const CompanySetupPage: React.FC = () => {
       return;
     }
 
-    if (!user || !user.uid || !user.email || !user.displayName) {
-      setError('Datos de usuario de Firebase incompletos o no autenticado.');
+    if (!user || !user.uid) {
+      setError('Usuario no autenticado.');
       return;
     }
 
     setSubmitting(true);
     console.log('🔄 Iniciando configuración de empresa...');
-    console.log('🛡️ Usuario autenticado por el Guardia (Firebase):', user.uid);
 
     try {
       const setupData = {
-        firebase_uid: user.uid,
-        email: user.email,
-        nombre_completo: user.displayName,
         empresa_data: {
           nombre: nombreEmpresa,
           tipo_empresa_id: getBusinessTypeId(tipoNegocio),
@@ -137,8 +135,8 @@ const CompanySetupPage: React.FC = () => {
 
       const result = await completeCompanySetup(setupData);
 
-      if (result.empresa && result.usuario) {
-        console.log('✅ El Coordinador completó la configuración exitosamente');
+      if (result.success && result.empresa && result.usuario) {
+        console.log('✅ Configuración completada exitosamente');
         setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
 
         setTimeout(() => {
@@ -146,10 +144,10 @@ const CompanySetupPage: React.FC = () => {
           redirectToERP();
         }, 2000);
       } else {
-        setError(result.message || 'Error al configurar la empresa.');
+        setError(result.error || 'Error al configurar la empresa.');
       }
     } catch (err: any) {
-      console.error('💥 Error comunicándose con el Coordinador:', err);
+      console.error('💥 Error en configuración:', err);
       setError(err.message || 'Error al configurar la empresa. Inténtalo de nuevo.');
     }
 
