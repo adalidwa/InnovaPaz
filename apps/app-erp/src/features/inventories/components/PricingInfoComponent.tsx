@@ -1,9 +1,9 @@
 import Dinero from '../../../assets/images/Dinero.png';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './PricingInfoComponent.css';
 
 interface PricingInfoComponentProps {
-  product: Product;
+  product: ProductLegacy;
 }
 
 function PricingInfoComponent({ product }: PricingInfoComponentProps) {

@@ -3,11 +3,11 @@ import Movimientos from '../../../assets/images/movimiento.png';
 import StatusTag from '../../../components/common/StatusTag';
 import Button from '../../../components/common/Button';
 import HistorialCompletoModal from './HistorialCompletoModal';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './RecentMovementsComponent.css';
 
 interface RecentMovementsComponentProps {
-  product: Product;
+  product: ProductLegacy;
 }
 
 function RecentMovementsComponent({ product }: RecentMovementsComponentProps) {
