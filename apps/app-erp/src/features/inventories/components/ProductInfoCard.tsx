@@ -1,9 +1,9 @@
 import Invetarios from '../../../assets/icons/Inventarios.png';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './ProductInfoCard.css';
 
 interface ProductInfoCardProps {
-  product: Product;
+  product: ProductLegacy;
 }
 
 function ProductInfoCard({ product }: ProductInfoCardProps) {
@@ -27,26 +27,30 @@ function ProductInfoCard({ product }: ProductInfoCardProps) {
             <p className='info-value'>{product.description || 'Sin descripción disponible'}</p>
           </div>
           <div className='info-item'>
-            <span className='info-label'>Fecha de Vencimiento</span>
-            <p className='info-value date'>{formatDate(product.expirationDate)}</p>
+            <span className='info-label'>Categoría</span>
+            <p className='info-value'>{product.category}</p>
           </div>
         </div>
 
         <div className='info-row'>
           <div className='info-item'>
-            <span className='info-label'>Categoría</span>
-            <p className='info-value'>{product.category}</p>
+            <span className='info-label'>Código del Producto</span>
+            <p className='info-value'>{product.code}</p>
           </div>
           <div className='info-item'>
-            <span className='info-label'>Lote</span>
-            <p className='info-value tag'>{product.lot || 'N/A'}</p>
+            <span className='info-label'>Estado</span>
+            <p className='info-value tag'>{product.active ? 'Activo' : 'Inactivo'}</p>
           </div>
         </div>
 
-        <div className='info-row single-column'>
+        <div className='info-row'>
           <div className='info-item'>
-            <span className='info-label'>Código del Producto</span>
-            <p className='info-value'>{product.code}</p>
+            <span className='info-label'>Fecha de Creación</span>
+            <p className='info-value date'>{formatDate(product.createdAt)}</p>
+          </div>
+          <div className='info-item'>
+            <span className='info-label'>Última Modificación</span>
+            <p className='info-value date'>{formatDate(product.updatedAt)}</p>
           </div>
         </div>
       </div>

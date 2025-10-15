@@ -71,3 +71,27 @@
   flex: 1;
   min-width: 0;
 }
+
+/* Estilos para la imagen del producto */
+.product-image-section {
+  margin: 12px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 120px;
+  background-color: var(--pri-50);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.product-image:hover {
+  transform: scale(1.05);
+}

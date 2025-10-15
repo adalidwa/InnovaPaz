@@ -4,7 +4,7 @@ import StatusTag from '../../../components/common/StatusTag';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import { BiSearch } from 'react-icons/bi';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './HistorialCompletoModal.css';
 
 interface Movement {
@@ -22,7 +22,7 @@ interface Movement {
 interface HistorialCompletoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product: Product;
+  product: ProductLegacy;
 }
 
 function HistorialCompletoModal({ isOpen, onClose, product }: HistorialCompletoModalProps) {

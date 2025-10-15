@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
-import type { ProductFormData } from '../hooks/useProducts';
+import type { ProductFormData } from '../hooks/useProductsReal';
+import { categoryBrandService } from '../services/categoryBrandService';
+import type { Category, Subcategory, Brand, Attribute } from '../services/categoryBrandService';
 import './ModalImputs.css';
 
 interface ModalImputsProps {
-  onSave: (productData: ProductFormData) => { success: boolean; product?: any; error?: string };
+  onSave: (
+    productData: ProductFormData
+  ) => Promise<{ success: boolean; product?: any; error?: string }>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -15,26 +19,53 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
   const [formData, setFormData] = useState<ProductFormData>({
     name: '',
     code: '',
+    parentCategory: '',
     category: '',
+    brand: '',
+    image: '',
     description: '',
     price: 0,
     cost: 0,
     stock: 0,
-    minStock: 0,
-    expirationDate: '',
-    lot: '',
+    dynamicAttributes: {},
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormData, string>>>({});
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [dynamicAttributes, setDynamicAttributes] = useState<Attribute[]>([]);
 
-  const categorias = [
-    { value: 'Bebidas', label: 'Bebidas' },
-    { value: 'Alimentos', label: 'Alimentos' },
-    { value: 'Limpieza', label: 'Limpieza' },
-    { value: 'Higiene Personal', label: 'Higiene Personal' },
-    { value: 'Lácteos', label: 'Lácteos' },
-    { value: 'Snacks', label: 'Snacks' },
-  ];
+  useEffect(() => {
+    // Cargar categorías y marcas al montar
+    categoryBrandService.getCategories().then(setCategories);
+    categoryBrandService.getBrands().then(setBrands);
+  }, []);
+
+  // Cargar subcategorías cuando se selecciona una categoría padre
+  useEffect(() => {
+    if (formData.parentCategory) {
+      const parentCategoryId = parseInt(formData.parentCategory);
+      categoryBrandService.getSubcategories(parentCategoryId).then(setSubcategories);
+      // Limpiar la subcategoría seleccionada cuando cambia la categoría padre
+      setFormData((prev) => ({ ...prev, category: '' }));
+    } else {
+      setSubcategories([]);
+    }
+  }, [formData.parentCategory]);
+
+  // Cargar atributos dinámicos cuando se selecciona una subcategoría
+  useEffect(() => {
+    if (formData.category) {
+      const categoryId = parseInt(formData.category);
+      categoryBrandService.getAttributesByCategory(categoryId).then(setDynamicAttributes);
+      // Limpiar atributos dinámicos previos cuando cambia la categoría
+      setFormData((prev) => ({ ...prev, dynamicAttributes: {} }));
+    } else {
+      setDynamicAttributes([]);
+      setFormData((prev) => ({ ...prev, dynamicAttributes: {} }));
+    }
+  }, [formData.category]);
 
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof ProductFormData, string>> = {};
@@ -47,8 +78,12 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       newErrors.code = 'El código del producto es requerido';
     }
 
+    if (!formData.parentCategory) {
+      newErrors.parentCategory = 'La categoría principal es requerida';
+    }
+
     if (!formData.category) {
-      newErrors.category = 'La categoría es requerida';
+      newErrors.category = 'La subcategoría es requerida';
     }
 
     if (formData.price <= 0) {
@@ -63,10 +98,6 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       newErrors.stock = 'El stock no puede ser negativo';
     }
 
-    if (formData.minStock < 0) {
-      newErrors.minStock = 'El stock mínimo no puede ser negativo';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,22 +106,25 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
     setFormData({
       name: '',
       code: '',
+      parentCategory: '',
       category: '',
+      brand: '',
+      image: '',
       description: '',
       price: 0,
       cost: 0,
       stock: 0,
-      minStock: 0,
-      expirationDate: '',
-      lot: '',
+      dynamicAttributes: {},
     });
+    setSubcategories([]);
+    setDynamicAttributes([]);
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const result = onSave(formData);
+      const result = await onSave(formData);
       if (result.success) {
         resetForm();
       }
@@ -132,6 +166,73 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
     };
   };
 
+  const handleDynamicAttributeChange = (attributeId: number, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      dynamicAttributes: {
+        ...prev.dynamicAttributes,
+        [attributeId]: value,
+      },
+    }));
+  };
+
+  const renderDynamicAttributeField = (attribute: Attribute) => {
+    const currentValue = formData.dynamicAttributes[attribute.atributo_id] || '';
+
+    switch (attribute.tipo_atributo) {
+      case 'texto':
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={`${attribute.nombre}${attribute.unidad_medida ? ` (${attribute.unidad_medida})` : ''}`}
+            required={attribute.es_obligatorio}
+            placeholder={`Ingresa ${attribute.nombre.toLowerCase()}`}
+            value={currentValue}
+            onChange={(e) => handleDynamicAttributeChange(attribute.atributo_id, e.target.value)}
+          />
+        );
+
+      case 'número':
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={`${attribute.nombre}${attribute.unidad_medida ? ` (${attribute.unidad_medida})` : ''}`}
+            required={attribute.es_obligatorio}
+            type='number'
+            placeholder='0'
+            value={currentValue}
+            onChange={(e) =>
+              handleDynamicAttributeChange(attribute.atributo_id, Number(e.target.value))
+            }
+            step='0.01'
+          />
+        );
+
+      case 'fecha':
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={attribute.nombre}
+            required={attribute.es_obligatorio}
+            type='date'
+            value={currentValue}
+            onChange={(e) => handleDynamicAttributeChange(attribute.atributo_id, e.target.value)}
+          />
+        );
+
+      default:
+        return (
+          <Input
+            key={attribute.atributo_id}
+            label={attribute.nombre}
+            required={attribute.es_obligatorio}
+            value={currentValue}
+            onChange={(e) => handleDynamicAttributeChange(attribute.atributo_id, e.target.value)}
+          />
+        );
+    }
+  };
+
   return (
     <form className='modal-form' onSubmit={handleSubmit}>
       <div className='form-row'>
@@ -155,15 +256,45 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       {errors.code && <span className='error-message'>{errors.code}</span>}
 
       <Select
-        label='Categoría'
+        label='Categoría Principal'
         required
-        placeholder='Seleccionar categoría'
-        options={categorias}
+        placeholder='Seleccionar categoría principal'
+        options={categories.map((cat) => ({
+          value: cat.categoria_id.toString(),
+          label: cat.nombre_categoria,
+        }))}
+        value={formData.parentCategory}
+        onChange={handleSelectChange('parentCategory')}
+      />
+      {errors.parentCategory && <span className='error-message'>{errors.parentCategory}</span>}
+
+      <Select
+        label='Subcategoría'
+        required
+        placeholder={
+          formData.parentCategory
+            ? 'Seleccionar subcategoría'
+            : 'Primero selecciona una categoría principal'
+        }
+        options={subcategories.map((subcat) => ({
+          value: subcat.categoria_id.toString(),
+          label: subcat.nombre_categoria,
+        }))}
         value={formData.category}
         onChange={handleSelectChange('category')}
+        disabled={!formData.parentCategory}
       />
-
       {errors.category && <span className='error-message'>{errors.category}</span>}
+
+      <Select
+        label='Marca'
+        required
+        placeholder='Seleccionar marca'
+        options={brands.map((brand) => ({ value: brand.marca_id.toString(), label: brand.nombre }))}
+        value={formData.brand || ''}
+        onChange={handleSelectChange('brand' as keyof ProductFormData)}
+      />
+      {errors.brand && <span className='error-message'>{errors.brand}</span>}
 
       <Input
         label='Descripción'
@@ -171,6 +302,14 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
         value={formData.description}
         onChange={handleInputChange('description')}
       />
+
+      <Input
+        label='Imagen (URL)'
+        placeholder='https://...'
+        value={formData.image || ''}
+        onChange={handleInputChange('image' as keyof ProductFormData)}
+      />
+      {errors.image && <span className='error-message'>{errors.image}</span>}
 
       <div className='form-row'>
         <Input
@@ -198,48 +337,26 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
       {errors.price && <span className='error-message'>{errors.price}</span>}
       {errors.cost && <span className='error-message'>{errors.cost}</span>}
 
-      <div className='form-row'>
-        <Input
-          label='Stock Inicial'
-          required
-          type='number'
-          placeholder='0'
-          value={formData.stock || ''}
-          onChange={handleInputChange('stock')}
-          min='0'
-        />
-        <Input
-          label='Stock Mínimo'
-          required
-          type='number'
-          placeholder='0'
-          value={formData.minStock || ''}
-          onChange={handleInputChange('minStock')}
-          min='0'
-        />
-      </div>
-
+      <Input
+        label='Stock'
+        required
+        type='number'
+        placeholder='0'
+        value={formData.stock || ''}
+        onChange={handleInputChange('stock')}
+        min='0'
+      />
       {errors.stock && <span className='error-message'>{errors.stock}</span>}
-      {errors.minStock && <span className='error-message'>{errors.minStock}</span>}
 
-      <div className='form-section'>
-        <h4 className='section-title'>Campos Específicos - Minimarket</h4>
-
-        <div className='form-row'>
-          <Input
-            label='Fecha de Vencimiento'
-            type='date'
-            value={formData.expirationDate}
-            onChange={handleInputChange('expirationDate')}
-          />
-          <Input
-            label='Lote'
-            placeholder='Ej: LOT2024001'
-            value={formData.lot}
-            onChange={handleInputChange('lot')}
-          />
+      {/* Atributos dinámicos específicos por categoría */}
+      {dynamicAttributes.length > 0 && (
+        <div className='form-section'>
+          <h4 className='section-title'>Campos Específicos por Categoría</h4>
+          <div className='dynamic-attributes-grid'>
+            {dynamicAttributes.map((attribute) => renderDynamicAttributeField(attribute))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className='form-actions'>
         <Button

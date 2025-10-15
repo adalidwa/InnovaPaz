@@ -1,9 +1,9 @@
 import Estadisitca from '../../../assets/images/Estadisitca.png';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './StatsCardComponent.css';
 
 interface StatsCardComponentProps {
-  product: Product;
+  product: ProductLegacy;
 }
 
 function StatsCardComponent({ product }: StatsCardComponentProps) {

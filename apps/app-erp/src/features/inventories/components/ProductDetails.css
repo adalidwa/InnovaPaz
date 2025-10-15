@@ -10,6 +10,7 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem 0;
+  justify-content: space-between;
 }
 
 .back-button {
@@ -81,4 +82,52 @@
 
 .action-button {
   min-width: 120px;
+}
+
+/* Nuevos estilos para badges de estado */
+.product-status-section {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.active-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: var(--sec-600);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.inactive-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: var(--error-600);
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Estilos para la imagen del producto */
+.product-image-section {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.product-image {
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
 }
