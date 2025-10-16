@@ -17,7 +17,6 @@ const createProduct = async (req, res, next) => {
   } = req.body;
 
   try {
-    // Validar campos requeridos
     if (!nombre_producto || !precio_venta || !precio_costo || !empresa_id) {
       return res.status(400).json({
         success: false,
@@ -220,10 +219,9 @@ const deleteProduct = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    // En lugar de eliminar, cambiar el estado a inactivo
     const result = await pool.query(
       'UPDATE producto SET estado_id = $1, fecha_modificacion = CURRENT_TIMESTAMP WHERE producto_id = $2 RETURNING *',
-      [2, id] // Asumiendo que estado_id = 2 es "inactivo"
+      [2, id]
     );
 
     if (result.rowCount === 0) {

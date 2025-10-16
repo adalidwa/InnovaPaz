@@ -11,6 +11,11 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/companies', require('./routes/companies'));
+app.use('/api/plans', require('./routes/plans'));
+app.use('/api/roles', require('./routes/roles'));
 
 app.use(taskRoutes);
 app.use('/api', inventoryRoutes);
@@ -23,4 +28,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(4000);
+console.log('Server on port 4000');
 console.log('Server on port 4000');

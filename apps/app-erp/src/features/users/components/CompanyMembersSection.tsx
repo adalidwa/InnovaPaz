@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Button from '../../../components/common/Button';
 import Table, { type TableColumn } from '../../../components/common/Table';
@@ -23,49 +23,116 @@ const roleOptions = [
 ];
 
 function CompanyMembersSection() {
-  const [members, setMembers] = useState<Member[]>([
-    {
-      id: '1',
-      nombre: 'Juan Pérez',
-      email: 'juan@empresa.com',
-      rol: 'Administrador',
-      estado: 'activo',
-    },
-    {
-      id: '2',
-      nombre: 'María García',
-      email: 'maria@empresa.com',
-      rol: 'Vendedor',
-      estado: 'activo',
-    },
-    {
-      id: '3',
-      nombre: 'Carlos López',
-      email: 'carlos@empresa.com',
-      rol: 'Inventario',
-      estado: 'pendiente',
-    },
-  ]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [empresaId, setEmpresaId] = useState('');
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState({ nombre: '', email: '', rol: '' });
 
   const updateInvite = (k: string, v: string) => setInviteForm((p) => ({ ...p, [k]: v }));
 
-  const handleInvite = () => {
-    if (!inviteForm.nombre || !inviteForm.email || !inviteForm.rol) return;
-    setMembers((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        nombre: inviteForm.nombre,
-        email: inviteForm.email,
-        rol: inviteForm.rol,
-        estado: 'pendiente',
-      },
-    ]);
-    setInviteForm({ nombre: '', email: '', rol: '' });
-    setInviteOpen(false);
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const resUser = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resUser.ok) {
+          const dataUser = await resUser.json();
+          setEmpresaId(dataUser.usuario.empresa_id);
+          const resMembers = await fetch(`/api/users/company/${dataUser.usuario.empresa_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          if (resMembers.ok) {
+            const dataMembers = await resMembers.json();
+            setMembers(
+              dataMembers.map(
+                (m: {
+                  uid: string;
+                  nombre_completo: string;
+                  email: string;
+                  rol_id: string;
+                  estado: 'activo' | 'pendiente';
+                }) => ({
+                  id: m.uid,
+                  nombre: m.nombre_completo,
+                  email: m.email,
+                  rol: m.rol_id,
+                  estado: m.estado,
+                })
+              )
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error obteniendo miembros:', error);
+      }
+    };
+    fetchMembers();
+  }, []);
+
+  const handleInvite = async () => {
+    if (!inviteForm.nombre || !inviteForm.email || !inviteForm.rol || !empresaId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          empresa_id: empresaId,
+          nombre_completo: inviteForm.nombre,
+          email: inviteForm.email,
+          rol_id: inviteForm.rol,
+          estado: 'pendiente',
+        }),
+      });
+      if (res.ok) {
+        const resMembers = await fetch(`/api/users/company/${empresaId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resMembers.ok) {
+          const dataMembers = await resMembers.json();
+          setMembers(
+            dataMembers.map(
+              (m: {
+                uid: string;
+                nombre_completo: string;
+                email: string;
+                rol_id: string;
+                estado: 'activo' | 'pendiente';
+              }) => ({
+                id: m.uid,
+                nombre: m.nombre_completo,
+                email: m.email,
+                rol: m.rol_id,
+                estado: m.estado,
+              })
+            )
+          );
+        }
+        setInviteForm({ nombre: '', email: '', rol: '' });
+        setInviteOpen(false);
+      } else {
+        alert('No se pudo invitar al miembro');
+      }
+    } catch {
+      alert('Error de red al invitar miembro');
+    }
   };
 
   const columns: TableColumn<Member>[] = [
@@ -95,9 +162,7 @@ function CompanyMembersSection() {
           type='button'
           className='icon-action-btn'
           aria-label={`Editar ${row.nombre}`}
-          onClick={() => {
-            /* TODO: abrir modal edición */
-          }}
+          onClick={() => {}}
         >
           <FiEdit2 size={16} />
         </button>

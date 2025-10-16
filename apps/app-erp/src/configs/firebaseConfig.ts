@@ -1,25 +1,14 @@
-import { initializeApp, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyCZdZmjV6lOALdD4ajQb2rmPS8kYpw2T4U',
-  authDomain: 'innovapaz-auth.firebaseapp.com',
-  projectId: 'innovapaz-auth',
-  storageBucket: 'innovapaz-auth.appspot.com',
-  messagingSenderId: '922230883439',
-  appId: '1:922230883439:web:f46c1e884ecd3a9883b99a',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-if (import.meta.env.DEV) {
-  console.log('🔥 Firebase Config:', firebaseConfig);
-}
-
-const app: FirebaseApp = initializeApp(firebaseConfig);
-const auth: Auth = getAuth(app);
-const db: Firestore = getFirestore(app);
-
-console.log('✅ Firebase initialized successfully');
-
-export { auth, db };
-export default app;
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);

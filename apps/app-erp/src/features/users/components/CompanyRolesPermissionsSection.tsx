@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Button from '../../../components/common/Button';
 import Table, { type TableColumn } from '../../../components/common/Table';
@@ -25,14 +25,8 @@ const AVAILABLE_PERMISSIONS: { code: string; label: string; group?: string }[] =
 ];
 
 function CompanyRolesPermissionsSection() {
-  const [roles, setRoles] = useState<Role[]>([
-    { id: '1', nombre: 'Administrador', permisos: AVAILABLE_PERMISSIONS.map((p) => p.code) },
-    {
-      id: '2',
-      nombre: 'Vendedor',
-      permisos: ['sales.read', 'sales.write', 'inventory.read', 'users.read'],
-    },
-  ]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [empresaId, setEmpresaId] = useState('');
 
   const [createEditOpen, setCreateEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -65,22 +59,120 @@ function CompanyRolesPermissionsSection() {
     );
   };
 
-  const handleSave = () => {
-    if (!formName.trim()) return;
-    if (editingRole) {
-      setRoles((prev) =>
-        prev.map((r) =>
-          r.id === editingRole.id ? { ...r, nombre: formName.trim(), permisos: formPerms } : r
-        )
-      );
-    } else {
-      setRoles((prev) => [
-        ...prev,
-        { id: Date.now().toString(), nombre: formName.trim(), permisos: formPerms },
-      ]);
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const resUser = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resUser.ok) {
+          const dataUser = await resUser.json();
+          setEmpresaId(dataUser.usuario.empresa_id);
+          const resRoles = await fetch(`/api/roles?empresa_id=${dataUser.usuario.empresa_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          if (resRoles.ok) {
+            const dataRoles = await resRoles.json();
+            setRoles(
+              dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
+                id: r.rol_id,
+                nombre: r.nombre_rol,
+                permisos: Array.isArray(r.permisos) ? r.permisos : [],
+              }))
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error obteniendo roles:', error);
+      }
+    };
+    fetchRoles();
+  }, []);
+
+  const handleSave = async () => {
+    if (!formName.trim() || !empresaId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      if (editingRole) {
+        const res = await fetch(`/api/roles/${editingRole.id}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombre_rol: formName.trim(),
+            permisos: formPerms,
+          }),
+        });
+        if (res.ok) {
+          setCreateEditOpen(false);
+          resetForm();
+          const resRoles = await fetch(`/api/roles?empresa_id=${empresaId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          if (resRoles.ok) {
+            const dataRoles = await resRoles.json();
+            setRoles(
+              dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
+                id: r.rol_id,
+                nombre: r.nombre_rol,
+                permisos: Array.isArray(r.permisos) ? r.permisos : [],
+              }))
+            );
+          }
+        }
+      } else {
+        const res = await fetch('/api/roles', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            empresa_id: empresaId,
+            nombre_rol: formName.trim(),
+            permisos: formPerms,
+            es_predeterminado: false,
+            estado: 'activo',
+          }),
+        });
+        if (res.ok) {
+          setCreateEditOpen(false);
+          resetForm();
+          const resRoles = await fetch(`/api/roles?empresa_id=${empresaId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          if (resRoles.ok) {
+            const dataRoles = await resRoles.json();
+            setRoles(
+              dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
+                id: r.rol_id,
+                nombre: r.nombre_rol,
+                permisos: Array.isArray(r.permisos) ? r.permisos : [],
+              }))
+            );
+          }
+        }
+      }
+    } catch {
+      alert('Error al guardar el rol');
     }
-    setCreateEditOpen(false);
-    resetForm();
   };
 
   const confirmDelete = (role: Role) => {
@@ -88,12 +180,41 @@ function CompanyRolesPermissionsSection() {
     setDeleteOpen(true);
   };
 
-  const handleDelete = () => {
-    if (deletingRole) {
-      setRoles((prev) => prev.filter((r) => r.id !== deletingRole.id));
+  const handleDelete = async () => {
+    if (!deletingRole || !empresaId) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await fetch(`/api/roles/${deletingRole.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (res.ok) {
+        setDeleteOpen(false);
+        setDeletingRole(null);
+        const resRoles = await fetch(`/api/roles?empresa_id=${empresaId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resRoles.ok) {
+          const dataRoles = await resRoles.json();
+          setRoles(
+            dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
+              id: r.rol_id,
+              nombre: r.nombre_rol,
+              permisos: Array.isArray(r.permisos) ? r.permisos : [],
+            }))
+          );
+        }
+      }
+    } catch {
+      alert('Error al eliminar el rol');
     }
-    setDeleteOpen(false);
-    setDeletingRole(null);
   };
 
   const columns: TableColumn<Role>[] = [
@@ -105,7 +226,7 @@ function CompanyRolesPermissionsSection() {
     {
       key: 'permisos',
       header: 'Permisos Activos',
-      render: (_: any, row) => (
+      render: (_: unknown, row: Role) => (
         <span className='perm-count'>
           {row.permisos.length} permiso{row.permisos.length !== 1 ? 's' : ''}
         </span>
@@ -115,7 +236,7 @@ function CompanyRolesPermissionsSection() {
     {
       key: 'acciones',
       header: 'Acciones',
-      render: (_: any, row) => (
+      render: (_: unknown, row: Role) => (
         <div className='roles-actions'>
           <button
             type='button'
@@ -167,8 +288,6 @@ function CompanyRolesPermissionsSection() {
           editingRole && row.id === editingRole.id ? 'table-row--active' : ''
         }
       />
-
-      {/* Modal Crear / Editar */}
       <Modal
         isOpen={createEditOpen}
         onClose={() => {
@@ -221,8 +340,6 @@ function CompanyRolesPermissionsSection() {
           </div>
         </div>
       </Modal>
-
-      {/* Modal Eliminar */}
       <Modal
         isOpen={deleteOpen}
         onClose={() => setDeleteOpen(false)}

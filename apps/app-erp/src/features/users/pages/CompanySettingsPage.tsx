@@ -1,12 +1,10 @@
+import { useCompanyConfig } from '../../../contexts/CompanyConfigContext';
 import { useState, useEffect, useCallback, type KeyboardEvent } from 'react';
 import TitleDescription from '../../../components/common/TitleDescription';
 import CompanyGeneralSection from '../components/CompanyGeneralSection';
 import CompanyMembersSection from '../components/CompanyMembersSection';
 import CompanyRolesPermissionsSection from '../components/CompanyRolesPermissionsSection';
 import CompanyBillingSection from '../components/CompanyBillingSection';
-import { currentCompany, getCurrentPlanInfo } from '../config/mockData';
-import { getCompanyUsers } from '../../../services/userService';
-import { validateTokenAndLogin } from '../../../services/authService';
 import './CompanySettingsPage.css';
 import type { JSX } from 'react';
 
@@ -15,6 +13,13 @@ interface TabDef {
   label: string;
   content: JSX.Element;
   hash: string;
+}
+
+interface CompanyData {
+  id: string;
+  nombre: string;
+  tipo_negocio: string;
+  plan_id: string;
 }
 
 const tabs: TabDef[] = [
@@ -35,9 +40,19 @@ const tabs: TabDef[] = [
 ];
 
 function CompanySettingsPage() {
-  const [companyData, setCompanyData] = useState(currentCompany);
-  const [companyUsers, setCompanyUsers] = useState<any[]>([]);
+  const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { updateConfig } = useCompanyConfig();
+
+  useEffect(() => {
+    if (companyData) {
+      updateConfig({
+        nombre: companyData.nombre,
+        tipoNegocio: companyData.tipo_negocio,
+      });
+    }
+  }, [companyData, updateConfig]);
 
   const getInitial = () => {
     const h = window.location.hash.replace('#', '');
@@ -49,40 +64,49 @@ function CompanySettingsPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!currentCompany) {
-        // Si no hay datos de empresa, validar token primero
-        await validateTokenAndLogin();
-      }
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        const resUser = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!resUser.ok) {
+          setLoading(false);
+          return;
+        }
+        const dataUser = await resUser.json();
+        const empresaId = dataUser.usuario.empresa_id;
 
-      setCompanyData(currentCompany);
+        const resCompany = await fetch(`/api/companies/${empresaId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (resCompany.ok) {
+          const dataCompany = await resCompany.json();
 
-      // Cargar usuarios de la empresa
-      if (currentCompany?.id) {
-        await loadCompanyUsers();
-      } else {
-        setLoading(false);
-      }
+          if (dataCompany.empresa && dataCompany.empresa.ajustes) {
+            setCompanyData({
+              id: dataCompany.empresa.empresa_id || dataCompany.empresa.id,
+              nombre: dataCompany.empresa.ajustes.nombre || dataCompany.empresa.nombre,
+              tipo_negocio: dataCompany.empresa.ajustes.tipoNegocio || '',
+              plan_id: dataCompany.empresa.plan_id || '',
+            });
+          }
+        }
+      } catch (error) {}
+      setLoading(false);
     };
-
     loadData();
   }, []);
-
-  const loadCompanyUsers = async () => {
-    if (!currentCompany?.id) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const users = await getCompanyUsers(currentCompany.id);
-      setCompanyUsers(users);
-    } catch (error) {
-      console.error('Error cargando usuarios:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     const current = tabs.find((t) => t.key === activeTab);
@@ -115,10 +139,6 @@ function CompanySettingsPage() {
 
   const activeContent = tabs.find((t) => t.key === activeTab)?.content;
 
-  const planInfo = companyData
-    ? getCurrentPlanInfo(companyData.plan_id, companyUsers.length)
-    : null;
-
   return (
     <div className='company-settings-page'>
       <TitleDescription
@@ -132,15 +152,6 @@ function CompanySettingsPage() {
         maxWidth='100%'
         className='settings-page-header'
       />
-
-      {planInfo && (
-        <div className='plan-summary'>
-          <span className='plan-name'>{planInfo.name}</span>
-          <span className='users-count'>
-            {planInfo.currentUsers}/{planInfo.maxUsers} usuarios
-          </span>
-        </div>
-      )}
 
       {loading ? (
         <div className='loading-indicator'>Cargando datos de la empresa...</div>

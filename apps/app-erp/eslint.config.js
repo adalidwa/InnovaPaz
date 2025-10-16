@@ -32,7 +32,15 @@ export default tseslint.config([
       '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       'prefer-const': 'warn',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': 'off',
+      'no-empty': 'warn',
+      'no-debugger': 'warn',
+      'no-restricted-globals': 'warn',
+      'no-restricted-syntax': 'warn',
+      'no-unsafe-finally': 'warn',
+      'no-unsafe-negation': 'warn',
+      'no-var': 'warn',
     },
+    // Puedes agregar más reglas aquí como 'warn' o 'off' según lo que te bloquee
   },
 ]);

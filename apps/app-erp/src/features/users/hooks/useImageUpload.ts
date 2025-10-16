@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 
 interface UseImageUploadOptions {
   allowedTypes?: string[];
-  maxSize?: number; // en bytes
+  maxSize?: number;
   onSuccess?: (imageUrl: string) => void;
   onError?: (error: string) => void;
 }
@@ -10,7 +10,7 @@ interface UseImageUploadOptions {
 export const useImageUpload = (options: UseImageUploadOptions = {}) => {
   const {
     allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'],
-    maxSize = 5 * 1024 * 1024, // 5MB por defecto
+    maxSize = 5 * 1024 * 1024,
     onSuccess,
     onError,
   } = options;
@@ -45,7 +45,6 @@ export const useImageUpload = (options: UseImageUploadOptions = {}) => {
     reader.onload = (e) => {
       const result = e.target?.result as string;
 
-      // Simular tiempo de carga
       setTimeout(() => {
         setImageUrl(result);
         setIsUploading(false);

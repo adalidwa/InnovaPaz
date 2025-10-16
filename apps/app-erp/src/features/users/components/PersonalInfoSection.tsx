@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { IoMail, IoCamera } from 'react-icons/io5';
+import { useState, useEffect } from 'react';
+import { IoMail } from 'react-icons/io5';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Select from '../../../components/common/Select';
 import Modal from '../../../components/common/Modal';
+import ProfileAvatarUpload from './ProfileAvatarUpload';
 import './PersonalInfoSection.css';
+import { useUser } from '../hooks/useContextBase.ts';
 
 const roleOptions = [
   { value: 'admin', label: 'Administrador' },
@@ -14,16 +16,17 @@ const roleOptions = [
 
 function PersonalInfoSection() {
   const [formData, setFormData] = useState({
-    fullName: 'Edison García',
-    email: 'edison.garcia@innovapaz.com',
-    role: 'admin',
+    fullName: '',
+    email: '',
+    role: '',
   });
+  const [userId, setUserId] = useState('');
 
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { updateAvatar } = useUser();
 
-  // Función para obtener iniciales del nombre
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -33,16 +36,37 @@ function PersonalInfoSection() {
       .slice(0, 2);
   };
 
-  // Función para manejar cambio de avatar
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAvatarUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch('/api/auth/me', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUserId(data.usuario.uid);
+          setFormData({
+            fullName: data.usuario.nombre_completo || '',
+            email: data.usuario.email || '',
+            role: data.usuario.rol_id || '',
+          });
+          setAvatarUrl(data.usuario.avatar_url || null);
+        }
+      } catch (error) {
+        console.error('Error obteniendo usuario:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleAvatarUploaded = (url: string) => {
+    setAvatarUrl(url);
+    if (updateAvatar) updateAvatar(url);
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -52,9 +76,27 @@ function PersonalInfoSection() {
     }));
   };
 
-  const handleSave = () => {
-    setShowModal(true);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || !userId) return;
+      const res = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ nombre_completo: formData.fullName }),
+      });
+      if (res.ok) {
+        setShowModal(true);
+        setIsEditing(false);
+      } else {
+        alert('No se pudo actualizar la información personal');
+      }
+    } catch {
+      alert('Error de red al actualizar información');
+    }
   };
 
   const handleEdit = () => {
@@ -63,12 +105,6 @@ function PersonalInfoSection() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset form data to original values
-    setFormData({
-      fullName: 'Edison García',
-      email: 'edison.garcia@innovapaz.com',
-      role: 'admin',
-    });
   };
 
   return (
@@ -79,24 +115,25 @@ function PersonalInfoSection() {
       </div>
 
       <div className='personal-info-content'>
-        {/* Avatar Section */}
         <div className='avatar-section'>
           <div className='avatar-container'>
             {avatarUrl ? (
-              <img src={avatarUrl} alt='Avatar' className='avatar-image' />
-            ) : (
-              <div className='avatar-initials'>{getInitials(formData.fullName)}</div>
-            )}
-            <label htmlFor='avatar-upload' className='avatar-upload-btn'>
-              <IoCamera size={16} />
-              <input
-                id='avatar-upload'
-                type='file'
-                accept='image/*'
-                onChange={handleAvatarChange}
-                style={{ display: 'none' }}
+              <ProfileAvatarUpload
+                userId={userId}
+                token={localStorage.getItem('token') || ''}
+                onUploaded={handleAvatarUploaded}
+                avatarPreview={avatarUrl}
               />
-            </label>
+            ) : (
+              <ProfileAvatarUpload
+                userId={userId}
+                token={localStorage.getItem('token') || ''}
+                onUploaded={handleAvatarUploaded}
+                avatarPreview={null}
+              >
+                {getInitials(formData.fullName)}
+              </ProfileAvatarUpload>
+            )}
           </div>
           <div className='avatar-info'>
             <h3 className='user-name'>{formData.fullName}</h3>
@@ -104,7 +141,6 @@ function PersonalInfoSection() {
           </div>
         </div>
 
-        {/* Form Section */}
         <div className='form-section'>
           <div className='form-row'>
             <div className='form-field'>

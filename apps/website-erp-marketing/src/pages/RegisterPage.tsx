@@ -7,14 +7,14 @@ import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
 import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './RegisterPage.css';
-import { signInWithGoogle } from '../services/auth/firebaseAuthService';
-import { registerUser, registerUserAndCompany } from '../services/auth/registerService';
+import { signInWithGoogleBackend } from '../services/auth/googleAuthService';
+import { registerWithBackend } from '../services/auth/sessionService';
+import { getPlanId, getBusinessTypeId, businessTypeToSlug } from '../services/auth/companyService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../configs/firebaseConfig';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../configs/firebaseConfig';
-import { buildERPUrl } from '../configs/appConfig';
+import { redirectToERP, buildApiUrl } from '../configs/appConfig';
+import { getBusinessTypes, type BusinessType } from '../services/api/businessTypesService';
 
 const getPlanDisplayName = (plan: string | null) => {
   switch (plan) {
@@ -36,41 +36,7 @@ const RegisterPage: React.FC = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user && planSeleccionado && !isNavigating && !authChecked) {
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
-
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
-
-            if (userData.empresa_id && userData.setup_completed) {
-              console.log('Usuario ya tiene empresa configurada, redirigiendo al ERP');
-              setIsNavigating(true);
-              window.location.href = buildERPUrl();
-              return;
-            }
-          }
-
-          console.log('Usuario necesita completar setup, redirigiendo a company-setup');
-          setTimeout(() => {
-            if (!isNavigating) {
-              setIsNavigating(true);
-              navigate(`/company-setup?plan=${planSeleccionado}`);
-            }
-          }, 400);
-        } catch (error) {
-          console.error('Error verificando datos del usuario:', error);
-        }
-      }
-      setAuthChecked(true);
-    });
-
-    return () => unsubscribe();
-  }, [navigate, planSeleccionado, isNavigating, authChecked]);
-
+  // Estados existentes
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -82,19 +48,97 @@ const RegisterPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [step, setStep] = useState(1);
 
-  const businessOptions = [
-    { value: 'ferreteria', label: 'Ferretería' },
-    { value: 'licoreria', label: 'Licorería' },
-    { value: 'minimarket', label: 'Minimarket' },
-  ];
+  // Nuevos estados para datos dinámicos
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+  const [businessTypesLoading, setBusinessTypesLoading] = useState(true);
+
+  // Cargar tipos de empresa desde el backend
+  useEffect(() => {
+    const fetchBusinessTypes = async () => {
+      try {
+        const types = await getBusinessTypes();
+        setBusinessTypes(types);
+        // Establecer el primer tipo como default
+        if (types.length > 0 && !tipoNegocio) {
+          setTipoNegocio(businessTypeToSlug(types[0].tipo_empresa));
+        }
+      } catch (error) {
+        console.error('Error cargando tipos de empresa:', error);
+      } finally {
+        setBusinessTypesLoading(false);
+      }
+    };
+
+    fetchBusinessTypes();
+  }, [tipoNegocio]);
+
+  // Convertir tipos de empresa de la BD a opciones para el select
+  const businessOptions = businessTypes.map((type) => ({
+    value: businessTypeToSlug(type.tipo_empresa),
+    label: type.tipo_empresa,
+  }));
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user && planSeleccionado && !isNavigating && !authChecked) {
+        try {
+          console.log('[REGISTER][CHECK] Consultando backend check-company...');
+          const resp = await fetch(buildApiUrl(`/api/users/check-company/${user.uid}`));
+          const result = await resp.json();
+          console.log('[REGISTER][CHECK] Respuesta:', result);
+
+          if (result.success && result.data.tiene_empresa) {
+            console.log('Usuario ya tiene empresa configurada (PostgreSQL), redirigiendo al ERP');
+            setIsNavigating(true);
+            redirectToERP();
+            return;
+          }
+
+          console.log('Usuario necesita completar setup, redirigiendo a company-setup');
+          setTimeout(() => {
+            if (!isNavigating) {
+              setIsNavigating(true);
+              navigate(`/company-setup?plan=${planSeleccionado}`);
+            }
+          }, 400);
+        } catch (error) {
+          console.error('[REGISTER][CHECK] Error verificando empresa en backend:', error);
+        }
+      }
+      setAuthChecked(true);
+    });
+    return () => unsubscribe();
+  }, [navigate, planSeleccionado, isNavigating, authChecked]);
 
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    if (!nombre || !email || !password || !confirmPassword) {
-      setError('Por favor, completa todos los campos.');
+    // Validaciones para el primer paso
+    if (!nombre) {
+      setError('El nombre es obligatorio.');
+      return;
+    }
+    if (!email) {
+      setError('El correo electrónico es obligatorio.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('El correo electrónico no es válido.');
+      return;
+    }
+    if (!password) {
+      setError('La contraseña es obligatoria.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+    if (!confirmPassword) {
+      setError('Debes confirmar tu contraseña.');
       return;
     }
     if (password !== confirmPassword) {
@@ -109,8 +153,30 @@ const RegisterPage: React.FC = () => {
     setError(null);
     setSuccess(null);
 
+    // Validaciones para el segundo paso (empresa)
     if (planSeleccionado && !nombreEmpresa) {
       setError('Por favor, ingresa el nombre de tu empresa.');
+      return;
+    }
+    if (planSeleccionado && !tipoNegocio) {
+      setError('Por favor, selecciona el tipo de negocio.');
+      return;
+    }
+
+    // Validaciones previas
+    if (!email || !password || !nombre) {
+      setError('Por favor, completa todos los campos obligatorios.');
+      return;
+    }
+    // Validación de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('El correo electrónico no es válido.');
+      return;
+    }
+    // Validación de longitud de contraseña
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
@@ -118,55 +184,48 @@ const RegisterPage: React.FC = () => {
 
     try {
       if (planSeleccionado) {
-        const { user, error } = await registerUserAndCompany({
-          nombreCompleto: nombre,
-          email,
+        // Flujo con plan: usar el endpoint /api/auth/register con empresa_data
+        const registrationData = {
+          email: email.trim().toLowerCase(),
           password,
-          nombreEmpresa,
-          tipoNegocio,
-          planId: planSeleccionado,
-        });
-        if (user) {
-          setSuccess('¡Cuenta y empresa creadas exitosamente!');
-          setTimeout(() => navigate('/dashboard'), 1500);
+          nombre_completo: nombre,
+          empresa_data: {
+            nombre: nombreEmpresa,
+            tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+            plan_id: getPlanId(planSeleccionado),
+          },
+        };
+
+        const result = await registerWithBackend(registrationData);
+
+        if (result.usuario) {
+          setSuccess('¡Empresa y cuenta creadas exitosamente!');
+          setTimeout(() => {
+            // Redirigir al dashboard del ERP
+            redirectToERP();
+          }, 1500);
         } else {
-          const firebaseError = error as { code?: string; message?: string };
-          if (firebaseError?.code === 'auth/email-already-in-use') {
-            setError(
-              'El correo electrónico ya está registrado. Intenta iniciar sesión o usa otro correo.'
-            );
-          } else {
-            setError(
-              'Error al crear la cuenta. ' + (firebaseError?.message || 'Inténtalo de nuevo.')
-            );
-          }
+          setError('Error creando la empresa.');
         }
       } else {
-        const { user, error } = await registerUser(nombre, email, password);
-        if (user) {
-          setSuccess('¡Cuenta creada exitosamente!');
-          setTimeout(() => navigate('/'), 1500);
+        // Flujo normal: solo crear usuario con el backend (sin empresa)
+        const registrationData = {
+          email: email.trim().toLowerCase(),
+          password,
+          nombre_completo: nombre,
+        };
+
+        const result = await registerWithBackend(registrationData);
+
+        if (result.usuario) {
+          setSuccess('¡Cuenta creada exitosamente! Puedes seguir explorando.');
+          setTimeout(() => navigate('/'), 1500); // Ir al homepage para explorar
         } else {
-          const firebaseError = error as { code?: string; message?: string };
-          if (firebaseError?.code === 'auth/email-already-in-use') {
-            setError(
-              'El correo electrónico ya está registrado. Intenta iniciar sesión o usa otro correo.'
-            );
-          } else {
-            setError(
-              'Error al crear la cuenta. ' + (firebaseError?.message || 'Inténtalo de nuevo.')
-            );
-          }
+          setError('Error al crear la cuenta.');
         }
       }
     } catch (err: any) {
-      if (err?.code === 'auth/email-already-in-use') {
-        setError(
-          'El correo electrónico ya está registrado. Intenta iniciar sesión o usa otro correo.'
-        );
-      } else {
-        setError('Error inesperado. Inténtalo más tarde.');
-      }
+      setError(err?.message || 'Error inesperado al registrar usuario. Inténtalo más tarde.');
     }
 
     setLoading(false);
@@ -179,45 +238,54 @@ const RegisterPage: React.FC = () => {
     setError(null);
 
     try {
-      const { user } = await signInWithGoogle();
+      const result = await signInWithGoogleBackend();
 
-      if (user && !isNavigating) {
-        if (planSeleccionado) {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
+      if (!result.success) {
+        setError(result.error || 'Error en registro con Google');
+        setLoading(false);
+        return;
+      }
 
-          if (userSnap.exists()) {
-            const userData = userSnap.data();
+      // Guardar token en localStorage para mantener sesión
+      if (result.token) {
+        localStorage.setItem('authToken', result.token);
+      }
 
-            if (userData.empresa_id && userData.setup_completed) {
-              setSuccess('¡Bienvenido de vuelta!');
-              setIsNavigating(true);
-              setTimeout(() => navigate('/dashboard'), 1000);
-            } else {
-              setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
-              setIsNavigating(true);
-              setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 1000);
-            }
-          } else {
-            setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
-            setIsNavigating(true);
-            setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 1000);
-          }
-        } else {
-          setSuccess('¡Registro exitoso!');
+      if (planSeleccionado) {
+        // Si viene de un plan específico
+        if (result.needsCompanySetup) {
+          setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
           setIsNavigating(true);
-          setTimeout(() => navigate('/'), 1000);
+          setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 800);
+        } else {
+          setSuccess('¡Bienvenido de vuelta!');
+          setIsNavigating(true);
+          setTimeout(() => redirectToERP(), 600);
         }
       } else {
-        setError('Error al registrar con Google. Inténtalo de nuevo.');
+        // Si NO viene de un plan (header/exploración)
+        if (result.needsCompanySetup) {
+          setSuccess('¡Registro exitoso! Puedes seguir explorando.');
+          setIsNavigating(true);
+          setTimeout(() => navigate('/'), 800); // Ir al homepage para explorar
+        } else {
+          setSuccess('¡Bienvenido! Redirigiendo al ERP.');
+          setIsNavigating(true);
+          setTimeout(() => redirectToERP(), 800);
+        }
       }
-    } catch (err) {
-      console.error('Error en Google register:', err);
-      setError('Error inesperado. Inténtalo más tarde.');
+    } catch (error: any) {
+      console.error('Error en Google register:', error);
+      setError(error.message || 'Error inesperado. Inténtalo más tarde.');
     }
 
     setLoading(false);
   };
+
+  // Mostrar loading si aún se están cargando los tipos de empresa
+  if (businessTypesLoading) {
+    return <div>Cargando tipos de empresa...</div>;
+  }
 
   return (
     <div className='register-bg'>
@@ -360,7 +428,7 @@ const RegisterPage: React.FC = () => {
                   disabled={loading}
                   theme='dark'
                   size='medium'
-                  options={businessOptions}
+                  options={businessOptions} // Usar las opciones dinámicas
                   textColor='var(--pri-100)'
                   optionTextColor='var(--pri-100)'
                   optionBackgroundColor='var(--pri-900)'

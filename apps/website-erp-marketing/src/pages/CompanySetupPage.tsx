@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../configs/firebaseConfig';
-import { doc, getDoc, runTransaction, collection, serverTimestamp } from 'firebase/firestore';
+import { auth } from '../configs/firebaseConfig';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Logo from '../components/ui/Logo';
 import illustrationPicture from '@/assets/icons/illustrationPicture.svg';
 import BusinessTypeSelect from '../components/common/BusinessTypeSelect';
-import { buildERPUrl } from '../configs/appConfig';
+import { buildApiUrl, redirectToERP } from '../configs/appConfig';
+import {
+  getPlanId,
+  getBusinessTypeId,
+  getPlanDisplayName,
+  businessTypeToSlug,
+} from '../services/auth/companyService';
+import { completeCompanySetup } from '../services/auth/companySetupService';
+import { getBusinessTypes, type BusinessType } from '../services/api/businessTypesService';
 import './CompanySetupPage.css';
 
 const CompanySetupPage: React.FC = () => {
@@ -18,56 +25,76 @@ const CompanySetupPage: React.FC = () => {
 
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [userDocLoading, setUserDocLoading] = useState(true);
   const [nombreEmpresa, setNombreEmpresa] = useState('');
   const [tipoNegocio, setTipoNegocio] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const businessOptions = [
-    { value: 'ferreteria', label: 'Ferretería' },
-    { value: 'licoreria', label: 'Licorería' },
-    { value: 'minimarket', label: 'Minimarket' },
-  ];
+  // Nuevos estados para datos dinámicos
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>([]);
+  const [businessTypesLoading, setBusinessTypesLoading] = useState(true);
+
+  // Cargar tipos de empresa desde el backend
+  useEffect(() => {
+    const fetchBusinessTypes = async () => {
+      try {
+        const types = await getBusinessTypes();
+        setBusinessTypes(types);
+        // Establecer el primer tipo como default si no hay ninguno seleccionado
+        if (types.length > 0 && !tipoNegocio) {
+          setTipoNegocio(businessTypeToSlug(types[0].tipo_empresa));
+        }
+      } catch (error) {
+        console.error('Error cargando tipos de empresa:', error);
+      } finally {
+        setBusinessTypesLoading(false);
+      }
+    };
+
+    fetchBusinessTypes();
+  }, [tipoNegocio]);
+
+  // Convertir tipos de empresa de la BD a opciones para el select
+  const businessOptions = businessTypes.map((type) => ({
+    value: businessTypeToSlug(type.tipo_empresa),
+    label: type.tipo_empresa,
+  }));
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log('CompanySetup - Auth state changed:', currentUser?.email || 'No user');
+      console.log('🛡️ CompanySetup - El Guardia dice:', currentUser?.email || 'Nadie logueado');
 
       setUser(currentUser);
       setLoading(false);
 
       if (!currentUser) {
-        console.log('No user found, redirecting to register');
+        console.log('❌ El Guardia dice: No hay nadie logueado, redirigiendo a register');
         navigate('/register');
         return;
       }
 
       try {
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
+        // Verificar si el usuario ya tiene empresa configurada
+        const checkResponse = await fetch(
+          buildApiUrl(`/api/users/check-company/${currentUser.uid}`)
+        );
 
-        if (!userSnap.exists()) {
-          console.log('User doc not found, redirecting to register');
-          navigate('/register');
-          return;
+        if (checkResponse.status === 404) {
+          console.log(
+            '[COMPANY_SETUP] Usuario no encontrado en PostgreSQL, asumiendo que necesita setup.'
+          );
+        } else if (checkResponse.ok) {
+          const result = await checkResponse.json();
+          if (result.success && (result.data.tiene_empresa || result.data.setup_completed)) {
+            console.log('🏢 Usuario ya tiene empresa, redirigiendo al ERP');
+            redirectToERP();
+            return;
+          }
         }
-
-        const userData = userSnap.data();
-        console.log('User data:', userData);
-
-        if (userData.empresa_id && userData.setup_completed) {
-          console.log('User already has company setup, redirecting to ERP dashboard');
-          window.location.href = buildERPUrl();
-          return;
-        }
-
-        console.log('User needs company setup, staying on page');
-        setUserDocLoading(false);
+        console.log('📝 El Coordinador dice: Usuario necesita configurar empresa');
       } catch (error) {
-        console.error('Error checking user data:', error);
-        setUserDocLoading(false);
+        console.error('💥 Error comunicándose con el Coordinador:', error);
       }
     });
 
@@ -89,62 +116,45 @@ const CompanySetupPage: React.FC = () => {
       return;
     }
 
-    if (!user) {
+    if (!user || !user.uid) {
       setError('Usuario no autenticado.');
       return;
     }
 
     setSubmitting(true);
-    console.log('Starting company setup transaction...');
+    console.log('🔄 Iniciando configuración de empresa...');
 
     try {
-      await runTransaction(db, async (transaction) => {
-        const empresaRef = doc(collection(db, 'empresas'));
-        transaction.set(empresaRef, {
+      const setupData = {
+        empresa_data: {
           nombre: nombreEmpresa,
-          tipo_negocio: tipoNegocio,
-          plan_id: planSeleccionado || 'basico',
-          owner_uid: user.uid,
-          created_at: serverTimestamp(),
-          updated_at: serverTimestamp(),
-        });
+          tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+          plan_id: getPlanId(planSeleccionado),
+        },
+      };
 
-        const userRef = doc(db, 'users', user.uid);
-        transaction.update(userRef, {
-          empresa_id: empresaRef.id,
-          rol: 'administrador',
-          setup_completed: true,
-          updated_at: serverTimestamp(),
-        });
-      });
+      const result = await completeCompanySetup(setupData);
 
-      console.log('Company setup completed successfully');
-      setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
-      setTimeout(() => {
-        window.location.href = buildERPUrl();
-      }, 2000);
-    } catch (err) {
-      console.error('Error configurando empresa:', err);
-      setError('Error al configurar la empresa. Inténtalo de nuevo.');
+      if (result.success && result.empresa && result.usuario) {
+        console.log('✅ Configuración completada exitosamente');
+        setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
+
+        setTimeout(() => {
+          console.log('🚀 Redirigiendo al ERP');
+          redirectToERP();
+        }, 2000);
+      } else {
+        setError(result.error || 'Error al configurar la empresa.');
+      }
+    } catch (err: any) {
+      console.error('💥 Error en configuración:', err);
+      setError(err.message || 'Error al configurar la empresa. Inténtalo de nuevo.');
     }
 
     setSubmitting(false);
   };
 
-  const getPlanDisplayName = (plan: string | null) => {
-    switch (plan) {
-      case 'basico':
-        return 'Básico';
-      case 'profesional':
-        return 'Profesional';
-      case 'empresarial':
-        return 'Empresarial';
-      default:
-        return 'Básico';
-    }
-  };
-
-  if (loading || userDocLoading) {
+  if (loading || businessTypesLoading) {
     return <div>Cargando...</div>;
   }
 
@@ -194,7 +204,7 @@ const CompanySetupPage: React.FC = () => {
               theme='dark'
               size='medium'
               id='tipoNegocio'
-              options={businessOptions}
+              options={businessOptions} // Usar las opciones dinámicas
               textColor='var(--pri-100)'
               optionTextColor='var(--pri-100)'
               optionBackgroundColor='var(--pri-900)'

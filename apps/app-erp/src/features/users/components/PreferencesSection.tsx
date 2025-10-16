@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { IoSunny, IoMoon, IoDesktop } from 'react-icons/io5';
-import Button from '../../../components/common/Button';
 import Select from '../../../components/common/Select';
-import Modal from '../../../components/common/Modal';
+import { useTheme } from '../../../contexts/ThemeContext';
 import './PreferencesSection.css';
 
 const themeOptions = [
@@ -11,29 +10,38 @@ const themeOptions = [
   { value: 'auto', label: 'Automático' },
 ];
 
-const languageOptions = [
-  { value: 'es', label: 'Español' },
-  { value: 'en', label: 'English' },
-  { value: 'fr', label: 'Français' },
+const fontSizeOptions = [
+  { value: 'small', label: 'Pequeño' },
+  { value: 'medium', label: 'Mediano' },
+  { value: 'large', label: 'Grande' },
 ];
 
 function PreferencesSection() {
-  const [preferences, setPreferences] = useState({
-    theme: 'light',
-    language: 'es',
-  });
+  const { currentTheme, preferences, setTheme, setFontSize, loading: themeLoading } = useTheme();
+  const [saving, setSaving] = useState(false);
 
-  const [showModal, setShowModal] = useState(false);
-
-  const handlePreferenceChange = (field: string, value: string) => {
-    setPreferences((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleThemeChange = async (newTheme: 'light' | 'dark' | 'auto') => {
+    try {
+      setSaving(true);
+      await setTheme(newTheme);
+    } catch (error) {
+      console.error('Error cambiando tema:', error);
+      alert('Error al cambiar el tema');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSave = () => {
-    setShowModal(true);
+  const handleFontSizeChange = async (newFontSize: 'small' | 'medium' | 'large') => {
+    try {
+      setSaving(true);
+      await setFontSize(newFontSize);
+    } catch (error) {
+      console.error('Error cambiando tamaño de fuente:', error);
+      alert('Error al cambiar el tamaño de fuente');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getThemeIcon = (theme: string) => {
@@ -48,6 +56,16 @@ function PreferencesSection() {
         return <IoSunny size={20} />;
     }
   };
+
+  if (themeLoading) {
+    return (
+      <div className='preferences-section'>
+        <div className='section-header'>
+          <h2 className='section-title'>Cargando preferencias...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='preferences-section'>
@@ -67,14 +85,15 @@ function PreferencesSection() {
             {themeOptions.map((option) => (
               <label
                 key={option.value}
-                className={`theme-option ${preferences.theme === option.value ? 'selected' : ''}`}
+                className={`theme-option ${currentTheme === option.value ? 'selected' : ''}`}
               >
                 <input
                   type='radio'
                   name='theme'
                   value={option.value}
-                  checked={preferences.theme === option.value}
-                  onChange={(e) => handlePreferenceChange('theme', e.target.value)}
+                  checked={currentTheme === option.value}
+                  onChange={(e) => handleThemeChange(e.target.value as 'light' | 'dark' | 'auto')}
+                  disabled={saving}
                 />
                 <div className='theme-option-content'>
                   <div className='theme-icon'>{getThemeIcon(option.value)}</div>
@@ -87,36 +106,22 @@ function PreferencesSection() {
 
         <div className='preference-card'>
           <div className='preference-card-header'>
-            <h3 className='preference-title'>Idioma</h3>
-            <p className='preference-description'>Configura el idioma de la interfaz</p>
+            <h3 className='preference-title'>Tamaño de Letra</h3>
+            <p className='preference-description'>Ajusta el tamaño de fuente de la interfaz</p>
           </div>
 
-          <div className='language-section'>
+          <div className='font-size-section'>
             <Select
               label=''
-              value={preferences.language}
-              onChange={(e) => handlePreferenceChange('language', e.target.value)}
-              options={languageOptions}
-              placeholder='Seleccionar idioma'
+              value={preferences.fontSize}
+              onChange={(e) => handleFontSizeChange(e.target.value as 'small' | 'medium' | 'large')}
+              options={fontSizeOptions}
+              placeholder='Seleccionar tamaño'
+              disabled={saving}
             />
           </div>
         </div>
       </div>
-
-      <div className='preferences-actions'>
-        <Button variant='primary' onClick={handleSave} size='medium'>
-          Guardar Preferencias
-        </Button>
-      </div>
-
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title='Preferencias Guardadas'
-        message='Tus preferencias han sido actualizadas correctamente.'
-        modalType='success'
-        confirmButtonText='Aceptar'
-      />
     </div>
   );
 }
