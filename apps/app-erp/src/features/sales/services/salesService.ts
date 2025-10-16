@@ -11,11 +11,18 @@ interface ApiResponse<T> {
 export class SalesService {
   private static getEmpresaId(): string {
     const userStr = localStorage.getItem('user');
+    console.log('🔍 User from localStorage:', userStr);
     if (userStr) {
       const user = JSON.parse(userStr);
-      return user.empresa_id;
+      console.log('🔍 Parsed user:', user);
+      console.log('🔍 empresa_id:', user.empresa_id);
+      if (user && user.empresa_id) {
+        return user.empresa_id;
+      }
     }
-    throw new Error('No se encontró empresa_id');
+    throw new Error(
+      'No se encontró empresa_id en el usuario. Verifica que hayas iniciado sesión correctamente.'
+    );
   }
 
   // ==================== CLIENTES ====================

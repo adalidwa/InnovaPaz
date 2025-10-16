@@ -35,7 +35,9 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     }
 
     try {
+      console.log('Enviando cliente:', form);
       await addClient(form);
+      console.log('Cliente agregado exitosamente');
 
       if (onClientAdded) {
         const newClient: Client = {
@@ -48,9 +50,14 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
       resetForm();
       onClose();
-    } catch (err) {
-      setError('Error al agregar el cliente. Por favor, intenta nuevamente.');
-      console.error('Error adding client:', err);
+    } catch (err: any) {
+      console.error('❌ Error completo:', err);
+      console.error('❌ Error message:', err?.message);
+      console.error('❌ Error response:', err?.response);
+      console.error('❌ Form data:', form);
+
+      const errorMsg = err?.message || err?.toString() || 'Error desconocido';
+      setError(`Error al agregar el cliente: ${errorMsg}`);
     } finally {
       setIsSubmitting(false);
     }
