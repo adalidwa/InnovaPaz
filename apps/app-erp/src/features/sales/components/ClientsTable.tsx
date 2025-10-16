@@ -1,11 +1,12 @@
 import { useClients } from '../hooks/hooks';
-import { AddClientModal } from './AddClientModal';
+import { ClientModal } from './ClientModal';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Modal from '../../../components/common/Modal';
 import './ClientsTable.css';
 import { useState } from 'react';
+import type { Client } from '../types';
 
 interface ClientsTableProps {
   onAddClient?: () => void;
@@ -15,29 +16,46 @@ interface ClientsTableProps {
 function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
   const { currentClients, loading, deleteClient } = useClients();
 
-  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
 
-  const handleEditClient = (client: any) => {
-    console.log('Editando cliente:', client);
-    // TODO: Implementar edición de cliente
+  const handleEditClient = (client: Client) => {
+    setSelectedClient(client);
+    setIsClientModalOpen(true);
   };
 
-  const handleDeleteClient = async (client: any) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${client.name}?`)) {
+  const handleDeleteClick = (client: Client) => {
+    setClientToDelete(client);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (clientToDelete) {
       try {
-        await deleteClient(client.id);
+        await deleteClient(clientToDelete.id);
+        setIsDeleteModalOpen(false);
+        setClientToDelete(null);
       } catch (error) {
-        alert('Error al eliminar cliente');
+        console.error('Error al desactivar cliente:', error);
+        alert('Error al desactivar cliente');
       }
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setClientToDelete(null);
   };
 
   const handleAddNewClient = () => {
     if (onAddClient) {
       onAddClient();
     } else {
-      setIsAddClientModalOpen(true);
+      setSelectedClient(null);
+      setIsClientModalOpen(true);
     }
   };
 
@@ -49,17 +67,17 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
     }
   };
 
-  const handleCloseAddClientModal = () => {
-    setIsAddClientModalOpen(false);
+  const handleCloseClientModal = () => {
+    setIsClientModalOpen(false);
+    setSelectedClient(null);
   };
 
   const handleCloseCategoriesModal = () => {
     setIsCategoriesModalOpen(false);
   };
 
-  const handleClientAdded = () => {
-    // El hook useClients ya actualiza la lista automáticamente
-    setIsAddClientModalOpen(false);
+  const handleClientSuccess = () => {
+    handleCloseClientModal();
   };
 
   const renderCategoryTag = (type: string) => {
@@ -85,7 +103,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
     return <span className={getCategoryClass(type)}>{categoryLabels[type] || type}</span>;
   };
 
-  const columns: TableColumn<any>[] = [
+  const columns: TableColumn<Client>[] = [
     {
       key: 'name',
       header: 'Nombre',
@@ -109,20 +127,20 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
     {
       key: 'type',
       header: 'Categoría',
-      render: (value) => renderCategoryTag(value),
+      render: (value) => renderCategoryTag(value as string),
       className: 'clients-table__category-cell',
     },
   ];
 
-  const actions: TableAction<any>[] = [
+  const actions: TableAction<Client>[] = [
     {
       label: 'Editar',
       onClick: handleEditClient,
       variant: 'primary',
     },
     {
-      label: 'Eliminar',
-      onClick: handleDeleteClient,
+      label: 'Desactivar',
+      onClick: handleDeleteClick,
       variant: 'danger',
     },
   ];
@@ -227,11 +245,25 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
         </div>
       </div>
 
-      {/* Add Client Modal */}
-      <AddClientModal
-        isOpen={isAddClientModalOpen}
-        onClose={handleCloseAddClientModal}
-        onClientAdded={handleClientAdded}
+      {/* Client Modal (Add/Edit) */}
+      <ClientModal
+        isOpen={isClientModalOpen}
+        onClose={handleCloseClientModal}
+        client={selectedClient}
+        onSuccess={handleClientSuccess}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title='Desactivar Cliente'
+        message={`¿Está seguro de desactivar al cliente "${clientToDelete?.name}"? El cliente no se eliminará, solo se marcará como inactivo.`}
+        modalType='warning'
+        confirmButtonText='Sí, Desactivar'
+        cancelButtonText='Cancelar'
+        size='medium'
       />
 
       {/* Categories Management Modal */}
