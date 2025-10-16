@@ -113,15 +113,24 @@ async function changeUserRole(req, res) {
 
 async function updatePreferences(req, res) {
   try {
-    const { prefs } = req.body;
-    if (typeof prefs !== 'object' || prefs === null) {
-      return res.status(400).json({ error: 'El campo "prefs" debe ser un objeto JSON.' });
+    const { preferencias } = req.body;
+    if (typeof preferencias !== 'object' || preferencias === null) {
+      return res.status(400).json({ error: 'El campo "preferencias" debe ser un objeto JSON.' });
     }
-    const usuario = await User.findByIdAndUpdate(req.params.uid, { preferencias: prefs });
+    const usuario = await User.findByIdAndUpdate(
+      req.params.uid,
+      { preferencias: preferencias },
+      { new: true } // Retorna el documento actualizado
+    );
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
-    res.json({ mensaje: 'Preferencias actualizadas.', usuario });
+    res.json({
+      mensaje: 'Preferencias actualizadas correctamente.',
+      usuario: usuario,
+      preferencias: usuario.preferencias,
+    });
   } catch (err) {
-    res.status(400).json({ error: 'Error al actualizar las preferencias.' });
+    console.error('Error actualizando preferencias:', err);
+    res.status(500).json({ error: 'Error al actualizar las preferencias.', details: err.message });
   }
 }
 

@@ -21,7 +21,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path='/login' element={<LoginPage />} />
     <Route element={<ProtectedRoutes />}>
-      <Route path='/' element={<Navigate to='/configuracion' replace />} />
+      <Route path='/' element={<Navigate to='/configuracion/empresa#general' replace />} />
       <Route path='/shopping/*' element={<ShoppingRoutes />} />
       <Route path='/productos/*' element={<ProductManagementRoutes />} />
       <Route path='/ventas/*' element={<SalesRoutes />} />
@@ -29,7 +29,7 @@ const AppRoutes = () => (
       <Route path='/configuracion/*' element={<UserRoutes />} />
       <Route path='/dashboard' element={<Dashboard />} />
     </Route>
-    <Route path='*' element={<Navigate to='/configuracion' replace />} />
+    <Route path='*' element={<Navigate to='/configuracion/empresa#general' replace />} />
   </Routes>
 );
 

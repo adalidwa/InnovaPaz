@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout';
 import { getSidebarConfig } from './config/sidebarConfigs';
 import { useLocation } from 'react-router-dom';
 import { CompanyConfigProvider } from './contexts/CompanyConfigContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { useMemo } from 'react';
 import { useUser } from './features/users/hooks/useContextBase';
 
@@ -43,7 +44,11 @@ function App() {
   }
 
   if (isLoginRoute) {
-    return <AppRoutes />;
+    return (
+      <ThemeProvider>
+        <AppRoutes />
+      </ThemeProvider>
+    );
   }
 
   if (!empresaId) {
@@ -52,16 +57,18 @@ function App() {
   }
 
   return (
-    <CompanyConfigProvider empresaId={empresaId}>
-      <Layout
-        subtitle={subtitle}
-        sidebarTitle={sidebarConfig.title}
-        sidebarTitleIcon={sidebarConfig.titleIcon}
-        sidebarMenuItems={sidebarConfig.menuItems}
-      >
-        <AppRoutes />
-      </Layout>
-    </CompanyConfigProvider>
+    <ThemeProvider>
+      <CompanyConfigProvider empresaId={empresaId}>
+        <Layout
+          subtitle={subtitle}
+          sidebarTitle={sidebarConfig.title}
+          sidebarTitleIcon={sidebarConfig.titleIcon}
+          sidebarMenuItems={sidebarConfig.menuItems}
+        >
+          <AppRoutes />
+        </Layout>
+      </CompanyConfigProvider>
+    </ThemeProvider>
   );
 }
 

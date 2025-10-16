@@ -24,7 +24,7 @@ router.delete('/:uid', verifyFirebaseToken, usersController.deleteUser);
 router.put('/:uid/role', verifyFirebaseToken, usersController.changeUserRole);
 
 // Actualizar preferencias de usuario
-router.put('/:uid/preferences', verifyFirebaseToken, usersController.updatePreferences);
+router.patch('/:uid/preferences', verifyFirebaseToken, usersController.updatePreferences);
 
 // Nuevo: Completar configuración de empresa para un usuario de Firebase existente
 router.post('/complete-company-setup', verifyFirebaseToken, usersController.completeCompanySetup);
