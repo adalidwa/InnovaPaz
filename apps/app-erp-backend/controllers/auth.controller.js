@@ -333,10 +333,14 @@ async function verifyFirebaseToken(req, res, next) {
     const firebaseResult = await firebaseAuth.verifyToken(token);
 
     if (firebaseResult.success) {
-      // Es un token de Firebase válido
+      // Es un token de Firebase válido - obtener datos completos del usuario
+      const usuario = await User.findOne({ uid: firebaseResult.uid });
+
       req.user = {
         uid: firebaseResult.uid,
         email: firebaseResult.email,
+        empresa_id: usuario?.empresa_id,
+        rol_id: usuario?.rol_id,
         source: 'firebase',
       };
       return next();

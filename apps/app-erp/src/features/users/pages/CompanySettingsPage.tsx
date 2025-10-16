@@ -5,6 +5,7 @@ import CompanyGeneralSection from '../components/CompanyGeneralSection';
 import CompanyMembersSection from '../components/CompanyMembersSection';
 import CompanyRolesPermissionsSection from '../components/CompanyRolesPermissionsSection';
 import CompanyBillingSection from '../components/CompanyBillingSection';
+import SubscriptionAlerts from '../components/SubscriptionAlerts';
 import './CompanySettingsPage.css';
 import type { JSX } from 'react';
 
@@ -152,6 +153,9 @@ function CompanySettingsPage() {
         maxWidth='100%'
         className='settings-page-header'
       />
+
+      {/* Alertas de suscripción */}
+      <SubscriptionAlerts />
 
       {loading ? (
         <div className='loading-indicator'>Cargando datos de la empresa...</div>

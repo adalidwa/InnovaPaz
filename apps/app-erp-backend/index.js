@@ -1,6 +1,7 @@
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const { setupCronJobs } = require('./services/cronService');
 
 const taskRoutes = require('./routes/task.routes');
 const inventoryRoutes = require('./routes/inventories.routes');
@@ -18,6 +19,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/plans', require('./routes/plans'));
 app.use('/api/roles', require('./routes/roles'));
+app.use('/api/subscriptions', require('./routes/subscription'));
 
 app.use(taskRoutes);
 app.use('/api', inventoryRoutes);

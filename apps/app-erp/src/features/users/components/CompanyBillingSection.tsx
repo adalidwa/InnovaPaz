@@ -64,8 +64,59 @@ const invoiceCols: TableColumn<Invoice>[] = [
 ];
 
 const handleManage = () => {
-  window.open('/facturacion/gestionar', '_blank');
+  // Redirigir al sitio web de marketing para cambiar plan
+  const marketingUrl = 'http://localhost:5174/#pricing';
+
+  // Abrir en nueva pestaña
+  window.open(marketingUrl, '_blank', 'noopener,noreferrer');
+
+  // También mostrar un mensaje de información
+  console.log('Redirigiendo a:', marketingUrl);
 };
+
+// Función para formatear la fecha del próximo cobro
+function formatearFechaProximoCobro(suscripcion: any): string {
+  if (!suscripcion) return '-';
+
+  const now = new Date();
+  let fechaExpiracion: Date | null = null;
+
+  if (suscripcion.estado === 'en_prueba' && suscripcion.fechaExpiracion) {
+    fechaExpiracion = new Date(suscripcion.fechaExpiracion);
+  } else if (suscripcion.estado === 'activa' && suscripcion.fechaExpiracion) {
+    fechaExpiracion = new Date(suscripcion.fechaExpiracion);
+  }
+
+  if (!fechaExpiracion) {
+    // Si no hay fecha de expiración, calcular basado en el estado
+    if (suscripcion.estado === 'activa') {
+      const futureDate = new Date(now);
+      futureDate.setDate(futureDate.getDate() + 30);
+      return `${futureDate.getDate()}/${futureDate.getMonth() + 1}/${futureDate.getFullYear()}`;
+    } else if (suscripcion.estado === 'en_prueba') {
+      const futureDate = new Date(now);
+      futureDate.setDate(futureDate.getDate() + 14);
+      return `Prueba hasta ${futureDate.getDate()}/${futureDate.getMonth() + 1}`;
+    }
+    return '-';
+  }
+
+  const diasRestantes = Math.ceil(
+    (fechaExpiracion.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (diasRestantes <= 0) {
+    return 'Expirado';
+  } else if (diasRestantes === 1) {
+    return 'Mañana';
+  } else if (diasRestantes <= 7) {
+    return `En ${diasRestantes} días`;
+  } else if (diasRestantes <= 30) {
+    return `En ${diasRestantes} días (${fechaExpiracion.getDate()}/${fechaExpiracion.getMonth() + 1})`;
+  } else {
+    return `${fechaExpiracion.getDate()}/${fechaExpiracion.getMonth() + 1}/${fechaExpiracion.getFullYear()}`;
+  }
+}
 
 function UsageBar({
   label,
@@ -126,39 +177,163 @@ function CompanyBillingSection() {
     const fetchBilling = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token || !empresaId) return;
-        const resFact = await fetch(`/api/companies/${empresaId}/invoices`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (resFact.ok) {
-          const dataFact = await resFact.json();
+        if (!token || !empresaId) {
+          console.log('No hay token o empresa_id:', { token: !!token, empresaId });
+          return;
+        }
+
+        console.log('🔄 Obteniendo datos de facturación para empresa:', empresaId);
+
+        // Obtener información de suscripción del nuevo endpoint
+        const [subscriptionRes, invoicesRes] = await Promise.all([
+          fetch('/api/subscriptions/info', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }).catch((err) => {
+            console.error('❌ Error en subscription endpoint:', err);
+            return { ok: false, error: err };
+          }),
+          fetch('/api/subscriptions/invoices', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }).catch((err) => {
+            console.error('❌ Error en invoices endpoint:', err);
+            return { ok: false, error: err };
+          }),
+        ]);
+
+        if (invoicesRes.ok && 'json' in invoicesRes) {
+          const dataFact = await invoicesRes.json();
           setInvoices(dataFact.facturas || []);
         }
-        const resPlan = await fetch(`/api/companies/${empresaId}/plan`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (resPlan.ok) {
-          const dataPlan = await resPlan.json();
+
+        if (subscriptionRes.ok && 'json' in subscriptionRes) {
+          const subscriptionData = await subscriptionRes.json();
+          console.log('✅ Datos de suscripción recibidos:', subscriptionData);
+
+          // Mapear datos de suscripción al formato esperado
+          const planInfo: PlanInfo = {
+            nombre: subscriptionData.subscription?.plan?.nombre || 'Plan Básico',
+            estado:
+              subscriptionData.subscription?.suscripcion?.estado === 'activa'
+                ? 'Activo'
+                : subscriptionData.subscription?.suscripcion?.estado === 'en_prueba'
+                  ? 'En Prueba'
+                  : subscriptionData.subscription?.suscripcion?.estado === 'pendiente_pago'
+                    ? 'Pendiente Pago'
+                    : 'Inactivo',
+            precio: subscriptionData.subscription?.plan?.precio || 10,
+            periodo: '/mensual',
+            miembros: {
+              used: subscriptionData.usage?.usuarios?.current || 1, // Al menos 1 (el admin)
+              total:
+                subscriptionData.subscription?.plan?.limites?.miembros === null
+                  ? 999
+                  : subscriptionData.subscription?.plan?.limites?.miembros || 2,
+            },
+            productos: {
+              used: 0, // TODO: Implementar cuando tengamos módulo de productos
+              total:
+                subscriptionData.subscription?.plan?.limites?.productos === null
+                  ? 999
+                  : subscriptionData.subscription?.plan?.limites?.productos || 100,
+            },
+            proximoCobro: formatearFechaProximoCobro(subscriptionData.subscription?.suscripcion),
+          };
+
+          console.log('📊 Plan info mapeado:', planInfo);
+          setPlan(planInfo);
+        } else {
+          // Si falla el endpoint nuevo, intentar obtener datos directamente de la empresa
+          console.warn(
+            '⚠️ Error al obtener datos de suscripción, intentando endpoint alternativo...'
+          );
+
+          try {
+            const empresaRes = await fetch(`/api/companies/${empresaId}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (empresaRes.ok) {
+              const empresaData = await empresaRes.json();
+              console.log('🏢 Datos de empresa obtenidos:', empresaData);
+
+              // Crear datos basados en la empresa
+              const empresa = empresaData.empresa;
+              if (empresa && empresa.plan_id) {
+                // Mapear plan_id a datos de plan
+                const planMapping = {
+                  1: { nombre: 'Plan Básico', precio: 10 },
+                  2: { nombre: 'Plan Estándar', precio: 50 },
+                  3: { nombre: 'Plan Premium', precio: 90 },
+                };
+
+                const planData =
+                  planMapping[empresa.plan_id as keyof typeof planMapping] || planMapping[1];
+
+                setPlan({
+                  nombre: planData.nombre,
+                  estado: 'En Prueba',
+                  precio: planData.precio,
+                  periodo: '/mensual',
+                  miembros: {
+                    used: 1,
+                    total: empresa.plan_id === 3 ? 999 : empresa.plan_id === 2 ? 10 : 2,
+                  },
+                  productos: {
+                    used: 0,
+                    total: empresa.plan_id === 3 ? 999 : empresa.plan_id === 2 ? 5000 : 150,
+                  },
+                  proximoCobro: 'En 13 días',
+                });
+                console.log('✅ Datos de plan configurados desde empresa');
+                return;
+              }
+            }
+          } catch (fallbackError) {
+            console.error('❌ Error en endpoint de fallback:', fallbackError);
+          }
+
+          // Si todo falla, usar datos por defecto
+          console.warn('🔧 Usando datos por defecto');
+          const fechaFutura = new Date();
+          fechaFutura.setDate(fechaFutura.getDate() + 30);
+
           setPlan({
-            nombre: dataPlan.nombre || 'Plan Básico',
-            estado: dataPlan.estado || 'Activo',
-            precio: dataPlan.precio || 0,
-            periodo: dataPlan.periodo || '/mensual',
-            miembros: dataPlan.miembros || { used: 0, total: 0 },
-            productos: dataPlan.productos || { used: 0, total: 0 },
-            proximoCobro: dataPlan.proximoCobro || '',
+            nombre: 'Plan Básico',
+            estado: 'Activo',
+            precio: 10,
+            periodo: '/mensual',
+            miembros: { used: 1, total: 2 },
+            productos: { used: 0, total: 100 },
+            proximoCobro: `En 30 días (${fechaFutura.getDate()}/${fechaFutura.getMonth() + 1})`,
           });
         }
+      } catch (error) {
+        console.error('❌ Error general en fetchBilling:', error);
+
+        // En caso de error total, usar datos por defecto
+        setPlan({
+          nombre: 'Plan Básico',
+          estado: 'Error',
+          precio: 10,
+          periodo: '/mensual',
+          miembros: { used: 1, total: 2 },
+          productos: { used: 0, total: 100 },
+          proximoCobro: 'No disponible',
+        });
       } finally {
         setLoading(false);
       }
     };
+
     if (empresaId) fetchBilling();
   }, [empresaId]);
 
