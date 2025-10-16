@@ -32,7 +32,7 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
   const statusConfig = getStatusConfig(product.status);
 
   const handleView = () => {
-    navigate(`/productos/ver/${product.id}`);
+    navigate(`ver/${product.id}`);
   };
 
   const handleEdit = () => {

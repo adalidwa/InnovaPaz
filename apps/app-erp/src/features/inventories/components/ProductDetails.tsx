@@ -11,7 +11,7 @@ function ProductDetails({ product }: ProductDetailsProps) {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate('/productos');
+    navigate('../');
   };
 
   const getStatusColor = (status: string) => {
