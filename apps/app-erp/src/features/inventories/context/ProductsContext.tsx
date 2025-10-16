@@ -1,12 +1,12 @@
 import React, { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import { useProducts } from '../hooks/useProducts';
-import type { ProductFormData } from '../hooks/useProducts';
-import type { Product } from '../types/inventory';
+import { useProducts } from '../hooks/useProductsReal';
+import type { ProductFormData } from '../hooks/useProductsReal';
+import type { ProductLegacy } from '../types/inventory';
 
 interface ProductsContextType {
-  products: Product[];
-  allProducts: Product[];
+  products: ProductLegacy[];
+  allProducts: ProductLegacy[];
   searchTerm: string;
   filters: {
     categories: string[];
@@ -15,18 +15,18 @@ interface ProductsContextType {
   };
   loading: boolean;
   error: string | null;
-  addProduct: (productData: ProductFormData) => {
+  addProduct: (productData: ProductFormData) => Promise<{
     success: boolean;
-    product?: Product;
+    product?: ProductLegacy;
     error?: string;
-  };
+  }>;
   updateProduct: (
     id: string,
     productData: Partial<ProductFormData>
-  ) => { success: boolean; error?: string };
-  deactivateProduct: (id: string) => { success: boolean; error?: string };
+  ) => Promise<{ success: boolean; error?: string }>;
+  deactivateProduct: (id: string) => Promise<{ success: boolean; error?: string }>;
   activateProduct: (id: string) => { success: boolean; error?: string };
-  getProductById: (id: string) => Product | undefined;
+  getProductById: (id: string) => ProductLegacy | undefined;
   updateSearchTerm: (term: string) => void;
   updateFilters: (filters: {
     categories: string[];
@@ -36,6 +36,7 @@ interface ProductsContextType {
   clearFilters: () => void;
   availableCategories: () => string[];
   priceRange: () => { min: number; max: number };
+  refreshProducts: () => Promise<void>;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);

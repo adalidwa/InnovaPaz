@@ -6,13 +6,13 @@ import ModalImputs from '../components/ModalImputs';
 import EditProductModal from '../components/EditProductModal';
 import { useProductsContext } from '../context/ProductsContext';
 import type { ProductFormData } from '../hooks/useProducts';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './ProductManagement.css';
 
 function ProductManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [productToEdit, setProductToEdit] = useState<ProductLegacy | null>(null);
   const { products, searchTerm, loading, addProduct, updateProduct, deactivateProduct } =
     useProductsContext();
 
@@ -24,8 +24,8 @@ function ProductManagement() {
     setIsModalOpen(false);
   };
 
-  const handleSaveProduct = (productData: ProductFormData) => {
-    const result = addProduct(productData);
+  const handleSaveProduct = async (productData: ProductFormData) => {
+    const result = await addProduct(productData);
     if (result.success) {
       handleCloseModal();
       // Aquí podrías agregar una notificación de éxito
@@ -37,7 +37,7 @@ function ProductManagement() {
     return result;
   };
 
-  const handleEditProduct = (product: Product) => {
+  const handleEditProduct = (product: ProductLegacy) => {
     setProductToEdit(product);
     setIsEditModalOpen(true);
   };
@@ -47,20 +47,21 @@ function ProductManagement() {
     setProductToEdit(null);
   };
 
-  const handleUpdateProduct = (productData: ProductFormData) => {
+  const handleUpdateProduct = async (productData: ProductFormData) => {
     if (!productToEdit) return { success: false, error: 'No hay producto seleccionado' };
 
-    const result = updateProduct(productToEdit.id, productData);
+    const result = await updateProduct(productToEdit.id, productData);
     if (result.success) {
       console.log('Producto actualizado exitosamente');
+      handleCloseEditModal();
     } else {
       console.error('Error al actualizar producto:', result.error);
     }
     return result;
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    const result = deactivateProduct(productId);
+  const handleDeleteProduct = async (productId: string) => {
+    const result = await deactivateProduct(productId);
     if (result.success) {
       console.log('Producto desactivado exitosamente');
     } else {
@@ -110,7 +111,7 @@ function ProductManagement() {
         <div className='modal-overlay' onClick={handleCloseModal}>
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
             <div className='modal-header'>
-              <h2 className='modal-title'>Agregar Nuevo Producto - Minimarket</h2>
+              <h2 className='modal-title'>Agregar Nuevo Producto - Licoreria</h2>
               <button className='modal-close' onClick={handleCloseModal}>
                 ×
               </button>

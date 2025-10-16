@@ -1,13 +1,13 @@
 import StatusTag from '../../../components/common/StatusTag';
-import type { Product } from '../types/inventory';
+import type { ProductLegacy } from '../types/inventory';
 import './StockComponent.css';
 
 interface StockComponentProps {
-  product: Product;
+  product: ProductLegacy;
 }
 
 function StockComponent({ product }: StockComponentProps) {
-  const getStatusConfig = (status: Product['status']) => {
+  const getStatusConfig = (status: ProductLegacy['status']) => {
     switch (status) {
       case 'critico':
         return { text: 'Crítico', color: 'var(--error-600)', textColor: 'var(--white)' };

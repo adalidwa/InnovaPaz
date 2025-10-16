@@ -4,6 +4,7 @@ const cors = require('cors');
 
 const taskRoutes = require('./routes/task.routes');
 const inventoryRoutes = require('./routes/inventories.routes');
+const catalogRoutes = require('./routes/catalog.routes');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/api/roles', require('./routes/roles'));
 
 app.use(taskRoutes);
 app.use('/api', inventoryRoutes);
+app.use('/api', catalogRoutes);
 
 app.use((err, req, res, next) => {
   return res.json({

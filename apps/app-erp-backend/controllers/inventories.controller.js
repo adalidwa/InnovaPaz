@@ -13,6 +13,7 @@ const createProduct = async (req, res, next) => {
     empresa_id,
     marca_id,
     estado_id,
+    dynamicAttributes,
   } = req.body;
 
   try {
@@ -24,32 +25,61 @@ const createProduct = async (req, res, next) => {
       });
     }
 
-    const result = await pool.query(
-      `INSERT INTO producto 
-       (codigo, nombre_producto, descripcion, imagen, precio_venta, precio_costo, stock, cantidad_vendidos, categoria_id, empresa_id, marca_id, estado_id, fecha_creacion, fecha_modificacion) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
-       RETURNING *`,
-      [
-        codigo || null,
-        nombre_producto,
-        descripcion || null,
-        imagen || null,
-        precio_venta,
-        precio_costo,
-        stock || 0,
-        0,
-        categoria_id || null,
-        empresa_id,
-        marca_id || null,
-        estado_id || 1,
-      ]
-    );
+    // Iniciar transacción para insertar producto y atributos
+    const client = await pool.connect();
 
-    res.status(201).json({
-      success: true,
-      message: 'Producto creado exitosamente',
-      product: result.rows[0],
-    });
+    try {
+      await client.query('BEGIN');
+
+      // Insertar producto
+      const productResult = await client.query(
+        `INSERT INTO producto 
+         (codigo, nombre_producto, descripcion, imagen, precio_venta, precio_costo, stock, cantidad_vendidos, categoria_id, empresa_id, marca_id, estado_id, fecha_creacion, fecha_modificacion) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+         RETURNING *`,
+        [
+          codigo || null,
+          nombre_producto,
+          descripcion || null,
+          imagen || null,
+          precio_venta,
+          precio_costo,
+          stock || 0,
+          0, // cantidad_vendidos inicia en 0
+          categoria_id || null,
+          empresa_id,
+          marca_id || null,
+          estado_id || 1, // Estado activo por defecto
+        ]
+      );
+
+      const newProduct = productResult.rows[0];
+
+      // Insertar atributos dinámicos si existen
+      if (dynamicAttributes && Object.keys(dynamicAttributes).length > 0) {
+        for (const [attributeId, value] of Object.entries(dynamicAttributes)) {
+          if (value !== null && value !== undefined && value !== '') {
+            await client.query(
+              'INSERT INTO atributos_productos (producto_id, atributo_id, valor) VALUES ($1, $2, $3)',
+              [newProduct.producto_id, parseInt(attributeId), value.toString()]
+            );
+          }
+        }
+      }
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        message: 'Producto creado exitosamente',
+        product: newProduct,
+      });
+    } catch (transactionError) {
+      await client.query('ROLLBACK');
+      throw transactionError;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error al crear producto:', error);
     next(error);
