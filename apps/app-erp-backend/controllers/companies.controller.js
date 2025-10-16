@@ -4,6 +4,7 @@ const User = require('../models/user.model');
 const Role = require('../models/role.model');
 const { firebaseAuth } = require('../utils/firebaseAdmin');
 const cloudinary = require('../utils/cloudinaryConfig');
+const SubscriptionService = require('../services/subscriptionService');
 const fs = require('fs');
 
 async function getAllCompanies(req, res) {
@@ -73,18 +74,30 @@ async function createCompany(req, res) {
   let firebaseUser;
   try {
     const { nombre, tipo_empresa_id, plan_id, nombre_completo, email, password } = req.body;
+
+    // Crear usuario en Firebase
     firebaseUser = await firebaseAuth.createUser(email, password, nombre_completo);
     if (!firebaseUser.success) {
       return res
         .status(400)
         .json({ error: 'Error al crear usuario en Firebase.', details: firebaseUser.error });
     }
+
+    // Crear empresa con estado inicial
     const empresaGuardada = await Company.create({
       nombre,
       tipo_empresa_id,
       plan_id,
-      estado_suscripcion: 'en_prueba',
+      estado_suscripcion: 'en_prueba', // Se actualizará con la lógica de suscripción
     });
+
+    // Configurar suscripción inicial según el plan
+    const subscriptionResult = await SubscriptionService.setupInitialSubscription(
+      empresaGuardada.empresa_id,
+      plan_id
+    );
+
+    // Crear rol administrador
     const nuevoRol = await Role.create({
       empresa_id: empresaGuardada.empresa_id,
       nombre_rol: 'Administrador',
@@ -92,6 +105,8 @@ async function createCompany(req, res) {
       es_predeterminado: true,
       estado: 'activo',
     });
+
+    // Crear usuario
     const nuevoUsuario = await User.create({
       uid: firebaseUser.uid,
       empresa_id: empresaGuardada.empresa_id,
@@ -100,7 +115,12 @@ async function createCompany(req, res) {
       email,
       estado: 'activo',
     });
-    res.status(201).json({ empresa: empresaGuardada, usuario: nuevoUsuario });
+
+    res.status(201).json({
+      empresa: empresaGuardada,
+      usuario: nuevoUsuario,
+      subscription: subscriptionResult,
+    });
   } catch (err) {
     if (firebaseUser && firebaseUser.success) {
       await firebaseAuth.deleteUser(firebaseUser.uid);
