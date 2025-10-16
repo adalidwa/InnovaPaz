@@ -3,6 +3,7 @@ import './Header.css';
 import { FaBell } from 'react-icons/fa';
 import { IoPersonOutline, IoLogOutOutline, IoChevronDownOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../features/users/hooks/useContextBase';
 
 interface HeaderProps {
   subtitle?: string;
@@ -12,16 +13,7 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Datos simulados del usuario (esto vendría de un contexto o estado global)
-  const userData = {
-    name: 'Edison García',
-    email: 'edison.garcia@innovapaz.com',
-    role: 'Administrador',
-    avatar: null,
-  };
-
-  // Función para obtener iniciales
+  const { user, logout } = useUser();
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -31,7 +23,22 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
       .slice(0, 2);
   };
 
-  // Cerrar dropdown al hacer click fuera
+  const getRoleName = (rol: string | undefined, rol_id: string | number | undefined) => {
+    if (rol) return rol;
+    switch (String(rol_id)) {
+      case '1':
+        return 'Usuario';
+      case '2':
+        return 'Gerente';
+      case '3':
+        return 'Supervisor';
+      case '4':
+        return 'Administrador';
+      default:
+        return 'Sin rol';
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -55,7 +62,8 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
 
   const handleLogout = () => {
     setShowUserDropdown(false);
-    // lógica de logout aquí
+    if (logout) logout();
+    navigate('/login');
   };
 
   const toggleUserDropdown = () => {
@@ -75,7 +83,6 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
           </span>
         </button>
 
-        {/* User Dropdown */}
         <div className='header__user-dropdown' ref={dropdownRef}>
           <button
             className='header__user-btn header__icon-btn--border'
@@ -84,15 +91,27 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
             aria-haspopup='true'
           >
             <div className='header__user-avatar'>
-              {userData.avatar ? (
-                <img src={userData.avatar} alt={userData.name} className='header__avatar-image' />
+              {user?.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt='Avatar'
+                  className='header__avatar-image'
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                  }}
+                />
               ) : (
-                <div className='header__avatar-initials'>{getInitials(userData.name)}</div>
+                <div className='header__avatar-initials'>
+                  {getInitials(user?.nombre_completo || '')}
+                </div>
               )}
             </div>
             <div className='header__user-info'>
-              <span className='header__user-name'>{userData.name}</span>
-              <span className='header__user-role'>{userData.role}</span>
+              <span className='header__user-name'>{user?.nombre_completo}</span>
+              <span className='header__user-role'>{getRoleName(user?.rol, user?.rol_id)}</span>
             </div>
             <IoChevronDownOutline
               className={`header__dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}
@@ -104,21 +123,30 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
             <div className='header__dropdown-menu'>
               <div className='header__dropdown-header'>
                 <div className='header__dropdown-avatar'>
-                  {userData.avatar ? (
+                  {user?.avatar_url ? (
                     <img
-                      src={userData.avatar}
-                      alt={userData.name}
-                      className='header__dropdown-avatar-image'
+                      src={user.avatar_url}
+                      alt='Avatar'
+                      className='header__avatar-image'
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                      }}
                     />
                   ) : (
                     <div className='header__dropdown-avatar-initials'>
-                      {getInitials(userData.name)}
+                      {getInitials(user?.nombre_completo || '')}
                     </div>
                   )}
                 </div>
                 <div className='header__dropdown-user-info'>
-                  <span className='header__dropdown-name'>{userData.name}</span>
-                  <span className='header__dropdown-email'>{userData.email}</span>
+                  <span className='header__dropdown-name'>{user?.nombre_completo}</span>
+                  <span className='header__dropdown-email'>{user?.email}</span>
+                  <span className='header__dropdown-role'>
+                    {getRoleName(user?.rol, user?.rol_id)}
+                  </span>
                 </div>
               </div>
 

@@ -3,7 +3,7 @@ import MovementsPage from '../../features/sales/pages/MovementsPage';
 
 const SalesRoutes = () => (
   <Routes>
-    <Route path='/movimientos' element={<MovementsPage />} />
+    <Route path='/' element={<MovementsPage />} />
   </Routes>
 );
 

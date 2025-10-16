@@ -23,16 +23,16 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      // Reglas personalizadas para el monorepo
-  '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-  '@typescript-eslint/explicit-function-return-type': 'off',
-  '@typescript-eslint/explicit-module-boundary-types': 'off',
-  '@typescript-eslint/no-explicit-any': 'warn',
-  'prefer-const': 'warn',
-  'no-console': ['warn', { allow: ['warn', 'error'] }],
+      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'prefer-const': 'warn',
+      'no-console': 'off',
+      'no-empty': 'warn',
+      'no-debugger': 'warn',
     },
   },
-  // Configuración específica para archivos de configuración
   {
     files: ['**/vite.config.ts', '**/eslint.config.js'],
     languageOptions: {

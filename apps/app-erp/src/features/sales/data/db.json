@@ -1,0 +1,532 @@
+{
+  "clients": [
+    {
+      "id": 1,
+      "name": "María González",
+      "email": "maria.gonzalez@email.com",
+      "phone": "77888999",
+      "nit": "1234567890",
+      "address": "Av. América 1234, La Paz",
+      "type": "regular",
+      "creditLimit": 5000.0,
+      "currentDebt": 1200.5,
+      "lastPurchase": "2024-10-01"
+    },
+    {
+      "id": 2,
+      "name": "Carlos Mamani",
+      "email": "carlos.mamani@empresa.bo",
+      "phone": "78123456",
+      "nit": "2345678901",
+      "address": "Calle Comercio 567, El Alto",
+      "type": "corporate",
+      "creditLimit": 15000.0,
+      "currentDebt": 8500.75,
+      "lastPurchase": "2024-09-28"
+    },
+    {
+      "id": 3,
+      "name": "Ana Quispe",
+      "email": "ana.quispe@gmail.com",
+      "phone": "79654321",
+      "nit": "3456789012",
+      "address": "Zona Sur 890, Cochabamba",
+      "type": "regular",
+      "creditLimit": 3000.0,
+      "currentDebt": 450.25,
+      "lastPurchase": "2024-10-03"
+    },
+    {
+      "id": 4,
+      "name": "José Vargas",
+      "email": "jose.vargas@negocio.bo",
+      "phone": "76987654",
+      "nit": "4567890123",
+      "address": "Centro Histórico 321, La Paz",
+      "type": "wholesale",
+      "creditLimit": 25000.0,
+      "currentDebt": 12300.0,
+      "lastPurchase": "2024-09-30"
+    },
+    {
+      "id": 5,
+      "name": "Roberto Silva",
+      "email": "roberto.silva@hotmail.com",
+      "phone": "75456789",
+      "nit": "5678901234",
+      "address": "Plan 3000, Santa Cruz",
+      "type": "regular",
+      "creditLimit": 4000.0,
+      "currentDebt": 890.5,
+      "lastPurchase": "2024-10-02"
+    },
+    {
+      "id": 6,
+      "name": "Carmen Rodríguez",
+      "email": "carmen.rodriguez@comercio.bo",
+      "phone": "74789123",
+      "nit": "6789012345",
+      "address": "Villa Fátima, La Paz",
+      "type": "corporate",
+      "creditLimit": 18000.0,
+      "currentDebt": 6750.25,
+      "lastPurchase": "2024-09-29"
+    },
+    {
+      "id": 7,
+      "name": "Luis Martinez",
+      "email": "luis.martinez@yahoo.com",
+      "phone": "78555444",
+      "nit": "7890123456",
+      "address": "Zona Norte, Santa Cruz",
+      "type": "regular",
+      "creditLimit": 2500.0,
+      "currentDebt": 320.0,
+      "lastPurchase": "2024-10-04"
+    },
+    {
+      "id": 8,
+      "name": "Patricia Morales",
+      "email": "patricia.morales@distribucion.bo",
+      "phone": "79666555",
+      "nit": "8901234567",
+      "address": "Av. Banzer 456, Santa Cruz",
+      "type": "wholesale",
+      "creditLimit": 30000.0,
+      "currentDebt": 15600.75,
+      "lastPurchase": "2024-09-27"
+    },
+    {
+      "id": 9,
+      "name": "Daniel Quiroz",
+      "email": "daniel.quiroz@gmail.com",
+      "phone": "77777888",
+      "nit": "9012345678",
+      "address": "Zona Industrial, Cochabamba",
+      "type": "regular",
+      "creditLimit": 3500.0,
+      "currentDebt": 980.5,
+      "lastPurchase": "2024-10-01"
+    },
+    {
+      "id": 10,
+      "name": "Sandra Mendoza",
+      "email": "sandra.mendoza@tienda.bo",
+      "phone": "76888999",
+      "nit": "0123456789",
+      "address": "Centro, La Paz",
+      "type": "corporate",
+      "creditLimit": 12000.0,
+      "currentDebt": 4500.25,
+      "lastPurchase": "2024-09-26"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "CocaCola 2L",
+      "code": "CC2L001",
+      "category": "Bebidas",
+      "price": 18.5,
+      "cost": 12.3,
+      "stock": 85,
+      "minStock": 20,
+      "maxStock": 200,
+      "status": "Disponible"
+    },
+    {
+      "id": 2,
+      "name": "Pepsi 2L",
+      "code": "PP2L002",
+      "category": "Bebidas",
+      "price": 17.8,
+      "cost": 11.9,
+      "stock": 12,
+      "minStock": 15,
+      "maxStock": 150,
+      "status": "Bajo Stock"
+    },
+    {
+      "id": 3,
+      "name": "Agua Vital 2L",
+      "code": "AV2L003",
+      "category": "Bebidas",
+      "price": 8.5,
+      "cost": 5.2,
+      "stock": 145,
+      "minStock": 30,
+      "maxStock": 300,
+      "status": "Disponible"
+    },
+    {
+      "id": 4,
+      "name": "Leche Pil 1L",
+      "code": "LP1L004",
+      "category": "Lácteos",
+      "price": 9.8,
+      "cost": 6.5,
+      "stock": 67,
+      "minStock": 25,
+      "maxStock": 150,
+      "status": "Disponible"
+    },
+    {
+      "id": 5,
+      "name": "Pan Blanco Grande",
+      "code": "PBG005",
+      "category": "Panadería",
+      "price": 3.5,
+      "cost": 2.2,
+      "stock": 8,
+      "minStock": 25,
+      "maxStock": 100,
+      "status": "Crítico"
+    },
+    {
+      "id": 6,
+      "name": "Arroz Carolina 1kg",
+      "code": "AC1K006",
+      "category": "Granos",
+      "price": 12.5,
+      "cost": 8.8,
+      "stock": 180,
+      "minStock": 40,
+      "maxStock": 400,
+      "status": "Disponible"
+    },
+    {
+      "id": 7,
+      "name": "Aceite Fino 1L",
+      "code": "AF1L007",
+      "category": "Aceites",
+      "price": 28.9,
+      "cost": 19.5,
+      "stock": 45,
+      "minStock": 15,
+      "maxStock": 120,
+      "status": "Disponible"
+    },
+    {
+      "id": 8,
+      "name": "Azúcar Blanca 1kg",
+      "code": "AB1K008",
+      "category": "Azúcares",
+      "price": 7.8,
+      "cost": 5.2,
+      "stock": 3,
+      "minStock": 30,
+      "maxStock": 200,
+      "status": "Crítico"
+    },
+    {
+      "id": 9,
+      "name": "Huevos Docena",
+      "code": "HD009",
+      "category": "Frescos",
+      "price": 18.5,
+      "cost": 12.8,
+      "stock": 89,
+      "minStock": 25,
+      "maxStock": 200,
+      "status": "Disponible"
+    },
+    {
+      "id": 10,
+      "name": "Detergente Ace 1kg",
+      "code": "DA1K010",
+      "category": "Limpieza",
+      "price": 22.5,
+      "cost": 15.9,
+      "stock": 34,
+      "minStock": 15,
+      "maxStock": 100,
+      "status": "Disponible"
+    }
+  ],
+  "salesModules": [
+    {
+      "id": 1,
+      "title": "Punto de Venta",
+      "description": "Procesa ventas rápidas y maneja inventario en tiempo real",
+      "type": "Ventas",
+      "icon": "card",
+      "route": "pos",
+      "isActive": true,
+      "priority": "high"
+    },
+    {
+      "id": 2,
+      "title": "Clientes",
+      "description": "Gestiona información de clientes y historial de compras",
+      "type": "Clientes",
+      "icon": "people",
+      "route": "clients",
+      "isActive": true,
+      "priority": "high"
+    },
+    {
+      "id": 3,
+      "title": "Órdenes de Venta",
+      "description": "Administra órdenes de venta y seguimiento de entregas",
+      "type": "Órdenes",
+      "icon": "document-text",
+      "route": "orders",
+      "isActive": true,
+      "priority": "medium"
+    },
+    {
+      "id": 4,
+      "title": "Cotizaciones",
+      "description": "Genera cotizaciones para clientes potenciales",
+      "type": "Cotizaciones",
+      "icon": "calculator",
+      "route": "quotes",
+      "isActive": true,
+      "priority": "medium"
+    },
+    {
+      "id": 5,
+      "title": "Productos",
+      "description": "Gestiona catálogo de productos y precios de venta",
+      "type": "Productos",
+      "icon": "cube",
+      "route": "products",
+      "isActive": true,
+      "priority": "medium"
+    },
+    {
+      "id": 6,
+      "title": "Historial de Ventas",
+      "description": "Revisa el historial completo de transacciones",
+      "type": "Historial",
+      "icon": "time",
+      "route": "history",
+      "isActive": true,
+      "priority": "low"
+    },
+    {
+      "id": 7,
+      "title": "Reportes",
+      "description": "Dashboard ejecutivo y reportes de ventas",
+      "type": "Reportes",
+      "icon": "bar-chart",
+      "route": "reports",
+      "isActive": false,
+      "priority": "low"
+    }
+  ],
+  "sales": [
+    {
+      "id": 1,
+      "clientId": 1,
+      "clientName": "María González",
+      "date": "2024-10-01",
+      "time": "14:30",
+      "products": [
+        {
+          "id": 1,
+          "name": "CocaCola 2L",
+          "code": "CC2L001",
+          "price": 18.5,
+          "quantity": 2,
+          "subtotal": 37.0
+        },
+        {
+          "id": 3,
+          "name": "Agua Vital 2L",
+          "code": "AV2L003",
+          "price": 8.5,
+          "quantity": 1,
+          "subtotal": 8.5
+        }
+      ],
+      "subtotal": 45.5,
+      "discount": 2.5,
+      "total": 43.0,
+      "paymentMethod": "cash",
+      "status": "completed"
+    },
+    {
+      "id": 2,
+      "clientId": 2,
+      "clientName": "Carlos Mamani",
+      "date": "2024-09-28",
+      "time": "16:45",
+      "products": [
+        {
+          "id": 6,
+          "name": "Arroz Carolina 1kg",
+          "code": "AC1K006",
+          "price": 12.5,
+          "quantity": 10,
+          "subtotal": 125.0
+        },
+        {
+          "id": 7,
+          "name": "Aceite Fino 1L",
+          "code": "AF1L007",
+          "price": 28.9,
+          "quantity": 5,
+          "subtotal": 144.5
+        }
+      ],
+      "subtotal": 269.5,
+      "discount": 15.0,
+      "total": 254.5,
+      "paymentMethod": "credit",
+      "status": "completed"
+    },
+    {
+      "id": 3,
+      "clientId": 3,
+      "clientName": "Ana Quispe",
+      "date": "2024-10-03",
+      "time": "10:15",
+      "products": [
+        {
+          "id": 4,
+          "name": "Leche Pil 1L",
+          "code": "LP1L004",
+          "price": 9.8,
+          "quantity": 3,
+          "subtotal": 29.4
+        },
+        {
+          "id": 9,
+          "name": "Huevos Docena",
+          "code": "HD009",
+          "price": 18.5,
+          "quantity": 1,
+          "subtotal": 18.5
+        }
+      ],
+      "subtotal": 47.9,
+      "discount": 0.0,
+      "total": 47.9,
+      "paymentMethod": "cash",
+      "status": "completed"
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "clientId": 4,
+      "clientName": "José Vargas",
+      "date": "2024-10-05",
+      "deliveryDate": "2024-10-08",
+      "products": [
+        {
+          "id": 1,
+          "name": "CocaCola 2L",
+          "code": "CC2L001",
+          "price": 18.5,
+          "quantity": 50,
+          "subtotal": 925.0
+        },
+        {
+          "id": 2,
+          "name": "Pepsi 2L",
+          "code": "PP2L002",
+          "price": 17.8,
+          "quantity": 30,
+          "subtotal": 534.0
+        }
+      ],
+      "subtotal": 1459.0,
+      "discount": 75.0,
+      "total": 1384.0,
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "clientId": 8,
+      "clientName": "Patricia Morales",
+      "date": "2024-10-04",
+      "deliveryDate": "2024-10-07",
+      "products": [
+        {
+          "id": 6,
+          "name": "Arroz Carolina 1kg",
+          "code": "AC1K006",
+          "price": 12.5,
+          "quantity": 100,
+          "subtotal": 1250.0
+        }
+      ],
+      "subtotal": 1250.0,
+      "discount": 50.0,
+      "total": 1200.0,
+      "status": "confirmed"
+    }
+  ],
+  "quotes": [
+    {
+      "id": 1,
+      "clientName": "Empresa ABC",
+      "clientEmail": "compras@abc.bo",
+      "clientPhone": "78999888",
+      "date": "2024-10-06",
+      "validUntil": "2024-10-20",
+      "products": [
+        {
+          "id": 1,
+          "name": "CocaCola 2L",
+          "code": "CC2L001",
+          "price": 18.5,
+          "quantity": 100,
+          "subtotal": 1850.0
+        },
+        {
+          "id": 3,
+          "name": "Agua Vital 2L",
+          "code": "AV2L003",
+          "price": 8.5,
+          "quantity": 200,
+          "subtotal": 1700.0
+        }
+      ],
+      "subtotal": 3550.0,
+      "discount": 200.0,
+      "total": 3350.0,
+      "status": "pending"
+    }
+  ],
+  "historyData": {
+    "1": [
+      {
+        "id": 101,
+        "date": "2024-10-01",
+        "type": "sale",
+        "description": "Venta productos varios",
+        "amount": 43.0,
+        "status": "completed"
+      },
+      {
+        "id": 102,
+        "date": "2024-09-25",
+        "type": "payment",
+        "description": "Pago factura pendiente",
+        "amount": 120.5,
+        "status": "completed"
+      }
+    ],
+    "2": [
+      {
+        "id": 201,
+        "date": "2024-09-28",
+        "type": "sale",
+        "description": "Compra al por mayor",
+        "amount": 254.5,
+        "status": "completed"
+      },
+      {
+        "id": 202,
+        "date": "2024-09-15",
+        "type": "credit",
+        "description": "Extensión de crédito",
+        "amount": 1500.0,
+        "status": "completed"
+      }
+    ]
+  }
+}

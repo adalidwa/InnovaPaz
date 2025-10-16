@@ -3,15 +3,8 @@ import {
   FaBox,
   FaShoppingCart,
   FaChartLine,
-  FaExclamationTriangle,
-  FaFileAlt,
   FaCog,
-  FaUsers,
   FaMoneyBillWave,
-  FaReceipt,
-  FaCalculator,
-  FaTruck,
-  FaUserTie,
 } from 'react-icons/fa';
 import type { IconType } from 'react-icons';
 
@@ -28,85 +21,38 @@ interface SidebarConfig {
 }
 
 export const sidebarConfigs: Record<string, SidebarConfig> = {
-  inventario: {
-    title: 'Inventario',
-    titleIcon: FaBox,
+  dashboard: {
+    title: 'Dashboard',
+    titleIcon: FaThLarge,
     menuItems: [
       {
         label: 'Dashboard',
-        href: '/dashboard',
+        href: '/app-erp/dashboard',
         icon: FaThLarge,
       },
       {
         label: 'Productos',
-        href: '/productos',
+        href: '/app-erp/productos',
         icon: FaBox,
       },
       {
         label: 'Compras',
-        href: '/shopping',
+        href: '/app-erp/shopping',
         icon: FaShoppingCart,
       },
       {
         label: 'Ventas',
-        href: '/movimientos',
-        icon: FaShoppingCart,
+        href: '/app-erp/ventas',
+        icon: FaMoneyBillWave,
       },
       {
         label: 'Reportes',
-        href: '/reportes',
-        icon: FaChartLine,
-      },
-
-      {
-        label: 'Configuración',
-        href: '/configuracion/empresa',
-        icon: FaCog,
-      },
-    ],
-  },
-  ventas: {
-    title: 'Ventas',
-    titleIcon: FaMoneyBillWave,
-    menuItems: [
-      {
-        label: 'Dashboard',
-        href: '/ventas/dashboard',
-        icon: FaThLarge,
-      },
-      {
-        label: 'Clientes',
-        href: '/ventas/clientes',
-        icon: FaUsers,
-      },
-      {
-        label: 'Cotizaciones',
-        href: '/ventas/cotizaciones',
-        icon: FaReceipt,
-      },
-      {
-        label: 'Facturación',
-        href: '/ventas/facturacion',
-        icon: FaCalculator,
-      },
-      {
-        label: 'Pedidos',
-        href: '/ventas/pedidos',
-        icon: FaTruck,
-      },
-      {
-        label: 'Vendedores',
-        href: '/ventas/vendedores',
-        icon: FaUserTie,
-      },
-      {
-        label: 'Reportes',
-        href: '/ventas/reportes',
+        href: '/app-erp/reportes',
         icon: FaChartLine,
       },
       {
         label: 'Configuración',
-        href: '/ventas/configuracion/empresa',
+        href: '/app-erp/configuracion/empresa',
         icon: FaCog,
       },
     ],
@@ -114,5 +60,5 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
 };
 
 export const getSidebarConfig = (module: string): SidebarConfig => {
-  return sidebarConfigs[module] || sidebarConfigs.inventario;
+  return sidebarConfigs[module] || sidebarConfigs.dashboard;
 };

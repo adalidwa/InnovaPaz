@@ -1,11 +1,12 @@
 .company-roles-card {
-  background: #fff;
-  border: 1px solid var(--neutral-200, #e5e7eb);
+  background: var(--white);
+  border: 1px solid var(--pri-200);
   border-radius: 8px;
   padding: 1rem 1.25rem 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  font-family: var(--font);
 }
 
 .roles-header-line {
@@ -28,21 +29,21 @@
 }
 
 .roles-table .table-row:hover {
-  background: var(--neutral-50, #f9fafb);
+  background: var(--bg-50);
 }
 
 .roles-table .table-row--active {
-  background: #f3f4f6;
+  background: var(--bg-100);
 }
 
 .role-name-cell {
   font-weight: 500;
-  color: var(--neutral-800, #1f2937);
+  color: var(--pri-800);
 }
 
 .perm-count {
   font-size: 0.8rem;
-  color: var(--neutral-600, #4b5563);
+  color: var(--pri-500);
 }
 
 .roles-actions {
@@ -56,11 +57,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--neutral-300, #d1d5db);
-  background: #fff;
+  border: 1px solid var(--pri-300);
+  background: var(--white);
   border-radius: 6px;
   cursor: pointer;
-  color: var(--neutral-600, #4b5563);
+  color: var(--pri-500);
   transition:
     background 0.2s,
     border-color 0.2s,
@@ -68,20 +69,20 @@
 }
 
 .role-icon-btn--edit:hover {
-  background: var(--neutral-100, #f3f4f6);
-  border-color: var(--neutral-400, #9ca3af);
-  color: var(--neutral-800, #1f2937);
+  background: var(--bg-100);
+  border-color: var(--pri-400);
+  color: var(--pri-800);
 }
 
 .role-icon-btn--delete {
-  color: #dc2626;
-  border-color: #fca5a5;
+  color: var(--acc-800);
+  border-color: var(--acc-300);
 }
 
 .role-icon-btn--delete:hover {
-  background: #fef2f2;
-  border-color: #f87171;
-  color: #b91c1c;
+  background: var(--acc-100);
+  border-color: var(--acc-500);
+  color: var(--acc-900);
 }
 
 .role-form {
@@ -90,6 +91,7 @@
   gap: 1rem;
   min-width: 420px;
   max-width: 640px;
+  font-family: var(--font);
 }
 
 .permissions-block {
@@ -103,15 +105,15 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
-  color: var(--neutral-600, #4b5563);
+  color: var(--pri-500);
 }
 
 .permissions-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.55rem 0.9rem;
-  background: var(--neutral-50, #f9fafb);
-  border: 1px solid var(--neutral-200, #e5e7eb);
+  background: var(--bg-50);
+  border: 1px solid var(--pri-200);
   padding: 0.75rem 0.85rem;
   border-radius: 8px;
   max-height: 260px;
@@ -132,25 +134,26 @@
   transition:
     background 0.15s,
     border-color 0.15s;
+  font-family: var(--font);
 }
 
 .perm-item input {
-  accent-color: var(--pri-600, #4f46e5);
+  accent-color: var(--pri-600);
   cursor: pointer;
 }
 
 .perm-item--active {
-  background: #eef2ff;
-  border-color: #c7d2fe;
+  background: var(--sec-100);
+  border-color: var(--sec-300);
 }
 
 .perm-item:hover {
-  background: var(--neutral-100, #f3f4f6);
+  background: var(--bg-100);
 }
 
 .perm-label {
   line-height: 1.1;
-  color: var(--neutral-700, #374151);
+  color: var(--pri-700);
 }
 
 .role-form-actions {

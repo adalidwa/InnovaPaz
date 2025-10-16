@@ -1,11 +1,12 @@
 .company-members-card {
-  background: #fff;
-  border: 1px solid var(--neutral-200, #e5e7eb);
+  background: var(--white);
+  border: 1px solid var(--pri-200);
   border-radius: 8px;
   padding: 1rem 1.25rem 1.2rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  font-family: var(--font);
 }
 
 .members-header-line {
@@ -33,20 +34,21 @@
   border-radius: 999px;
   line-height: 1;
   letter-spacing: 0.25px;
-  background: var(--neutral-200, #e5e7eb);
-  color: var(--neutral-700, #374151);
+  background: var(--pri-200);
+  color: var(--pri-700);
+  font-family: var(--font);
 }
 
 .status-badge--active {
-  background: #10b9811a;
-  color: #059669;
-  border: 1px solid #10b98140;
+  background: var(--sec-100);
+  color: var(--sec-700);
+  border: 1px solid var(--sec-300);
 }
 
 .status-badge--pending {
-  background: #11182710;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+  background: var(--pri-100);
+  color: var(--pri-500);
+  border: 1px solid var(--pri-200);
 }
 
 .icon-action-btn {
@@ -56,10 +58,10 @@
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  border: 1px solid var(--neutral-300, #d1d5db);
-  background: #fff;
+  border: 1px solid var(--pri-300);
+  background: var(--white);
   cursor: pointer;
-  color: var(--neutral-600, #4b5563);
+  color: var(--pri-500);
   transition:
     background 0.2s,
     border-color 0.2s,
@@ -67,13 +69,13 @@
 }
 
 .icon-action-btn:hover {
-  background: var(--neutral-100, #f3f4f6);
-  border-color: var(--neutral-400, #9ca3af);
-  color: var(--neutral-800, #1f2937);
+  background: var(--bg-100);
+  border-color: var(--pri-400);
+  color: var(--pri-800);
 }
 
 .icon-action-btn:active {
-  background: var(--neutral-200, #e5e7eb);
+  background: var(--pri-200);
 }
 
 /* Modal formulario invitación */
@@ -85,6 +87,7 @@
   max-width: 420px;
   margin: 0 auto;
   padding: 0.2rem 0 0.5rem 0;
+  font-family: var(--font);
 }
 
 .invite-form .input-wrapper,
@@ -103,15 +106,17 @@
   font-size: 1.08rem;
   padding: 0.7rem 0;
   border-radius: 8px;
+  font-family: var(--font);
 }
 
 /* Centrar el modal y hacerlo más amigable */
 .modal-content-info {
   border-radius: 14px;
-  box-shadow: 0 8px 32px #0002;
+  box-shadow: 0 8px 32px var(--pri-100, #0002);
   padding: 2.2rem 2.2rem 2rem 2.2rem;
   max-width: 420px;
   margin: 0 auto;
+  font-family: var(--font);
 }
 
 .modal-content-info .modal-header {
@@ -128,8 +133,9 @@
   text-align: left;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--pri-900, #242231);
+  color: var(--pri-900);
   margin: 0;
+  font-family: var(--font);
 }
 
 .modal-content-info .modal-close-button {
@@ -138,7 +144,7 @@
   margin-right: 0;
   background: none;
   border: none;
-  color: var(--neutral-400, #9ca3af);
+  color: var(--pri-400);
   cursor: pointer;
   padding: 0.2rem;
   font-size: 1.2rem;
@@ -146,7 +152,7 @@
 }
 
 .modal-content-info .modal-close-button:hover {
-  color: var(--pri-600, #4f46e5);
+  color: var(--pri-600);
 }
 
 @media (max-width: 640px) {

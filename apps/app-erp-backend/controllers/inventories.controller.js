@@ -17,7 +17,6 @@ const createProduct = async (req, res, next) => {
   } = req.body;
 
   try {
-    // Validar campos requeridos
     if (!nombre_producto || !precio_venta || !precio_costo || !empresa_id) {
       return res.status(400).json({
         success: false,
@@ -220,10 +219,9 @@ const deleteProduct = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    // En lugar de eliminar, cambiar el estado a inactivo
     const result = await pool.query(
       'UPDATE producto SET estado_id = $1, fecha_modificacion = CURRENT_TIMESTAMP WHERE producto_id = $2 RETURNING *',
-      [2, id] // Asumiendo que estado_id = 2 es "inactivo"
+      [2, id]
     );
 
     if (result.rowCount === 0) {
@@ -244,10 +242,115 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+// Buscar productos (por código, nombre, categoría)
+const searchProducts = async (req, res, next) => {
+  try {
+    const { empresa_id, query, category } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'empresa_id es requerido',
+      });
+    }
+
+    let sqlQuery = `
+      SELECT 
+        p.*,
+        c.nombre_categoria,
+        m.nombre as marca_nombre,
+        ep.nombre as estado_nombre
+      FROM producto p
+      LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
+      LEFT JOIN marca m ON p.marca_id = m.marca_id
+      LEFT JOIN estado_producto ep ON p.estado_id = ep.estado_id
+      WHERE p.empresa_id = $1
+    `;
+
+    const params = [empresa_id];
+    let paramCount = 1;
+
+    if (query) {
+      paramCount++;
+      sqlQuery += ` AND (
+        p.nombre_producto ILIKE $${paramCount} OR 
+        p.codigo ILIKE $${paramCount} OR
+        c.nombre_categoria ILIKE $${paramCount}
+      )`;
+      params.push(`%${query}%`);
+    }
+
+    if (category && category !== 'all') {
+      paramCount++;
+      sqlQuery += ` AND p.categoria_id = $${paramCount}`;
+      params.push(category);
+    }
+
+    sqlQuery += ' ORDER BY p.nombre_producto';
+
+    const result = await pool.query(sqlQuery, params);
+
+    res.json({
+      success: true,
+      products: result.rows,
+      count: result.rows.length,
+    });
+  } catch (error) {
+    console.error('Error al buscar productos:', error);
+    next(error);
+  }
+};
+
+// Buscar producto por código exacto
+const getProductByCode = async (req, res, next) => {
+  try {
+    const { code } = req.params;
+    const { empresa_id } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'empresa_id es requerido',
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT 
+        p.*,
+        c.nombre_categoria,
+        m.nombre as marca_nombre,
+        ep.nombre as estado_nombre
+      FROM producto p
+      LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
+      LEFT JOIN marca m ON p.marca_id = m.marca_id
+      LEFT JOIN estado_producto ep ON p.estado_id = ep.estado_id
+      WHERE p.codigo = $1 AND p.empresa_id = $2`,
+      [code, empresa_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Producto no encontrado',
+      });
+    }
+
+    res.json({
+      success: true,
+      product: result.rows[0],
+    });
+  } catch (error) {
+    console.error('Error al buscar producto por código:', error);
+    next(error);
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
   getProduct,
   updateProduct,
   deleteProduct,
+  searchProducts,
+  getProductByCode,
 };
