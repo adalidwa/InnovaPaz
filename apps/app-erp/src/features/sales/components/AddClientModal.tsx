@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal, Button, Input, Select } from '../../../components/common';
-import { useClientForm, useClients, type Client } from '../hooks/hooks';
+import { Modal, Button, Input } from '../../../components/common';
+import { useClientForm, useClients } from '../hooks/hooks';
+import type { Client } from '../types';
 
 interface AddClientModalProps {
   isOpen: boolean;
@@ -18,12 +19,6 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const clientTypeOptions = [
-    { value: 'regular', label: 'Cliente Regular' },
-    { value: 'corporate', label: 'Empresa/Corporativo' },
-    { value: 'wholesale', label: 'Cliente Mayorista' },
-  ];
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -40,15 +35,14 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     }
 
     try {
-      const newClient: Client = {
-        ...form,
-        id: Date.now(), // Temporal, será reemplazado por generateId en el hook
-        lastPurchase: form.lastPurchase || new Date().toISOString().split('T')[0],
-      };
-
-      addClient(form);
+      await addClient(form);
 
       if (onClientAdded) {
+        const newClient: Client = {
+          ...form,
+          id: Date.now(),
+          lastPurchase: form.lastPurchase || new Date().toISOString().split('T')[0],
+        };
         onClientAdded(newClient);
       }
 
@@ -56,6 +50,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
       onClose();
     } catch (err) {
       setError('Error al agregar el cliente. Por favor, intenta nuevamente.');
+      console.error('Error adding client:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -70,91 +65,271 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Agregar Nuevo Cliente'>
-      <form onSubmit={handleSubmit} className='space-y-4'>
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title='Agregar Nuevo Cliente'
+      size='large'
+      showCancelButton={false}
+    >
+      <form onSubmit={handleSubmit} style={{ padding: '20px' }}>
         {error && (
-          <div className='p-3 bg-red-100 border border-red-300 rounded-md text-red-700 text-sm'>
+          <div
+            style={{
+              padding: '12px',
+              backgroundColor: '#fee',
+              border: '1px solid #fcc',
+              borderRadius: '6px',
+              color: '#c33',
+              marginBottom: '20px',
+              fontSize: '14px',
+            }}
+          >
             {error}
           </div>
         )}
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '16px',
+            marginBottom: '16px',
+          }}
+        >
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: 'var(--pri-900)',
+                fontSize: '14px',
+              }}
+            >
+              Nombre del Cliente *
+            </label>
+            <Input
+              type='text'
+              value={form.name}
+              onChange={handleFormInputChange('name')}
+              placeholder='Ingrese el nombre completo'
+              required
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--pri-300)',
+                borderRadius: '6px',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: 'var(--pri-900)',
+                fontSize: '14px',
+              }}
+            >
+              NIT/CI *
+            </label>
+            <Input
+              type='text'
+              value={form.nit}
+              onChange={handleFormInputChange('nit')}
+              placeholder='Ej: 1234567890'
+              maxLength={13}
+              required
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--pri-300)',
+                borderRadius: '6px',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: 'var(--pri-900)',
+                fontSize: '14px',
+              }}
+            >
+              Teléfono *
+            </label>
+            <Input
+              type='text'
+              value={form.phone}
+              onChange={handleFormInputChange('phone')}
+              placeholder='Ej: 77888999'
+              maxLength={8}
+              required
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--pri-300)',
+                borderRadius: '6px',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: 'var(--pri-900)',
+                fontSize: '14px',
+              }}
+            >
+              Email
+            </label>
+            <Input
+              type='email'
+              value={form.email}
+              onChange={handleFormInputChange('email')}
+              placeholder='cliente@email.com'
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--pri-300)',
+                borderRadius: '6px',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: 'var(--pri-900)',
+                fontSize: '14px',
+              }}
+            >
+              Tipo de Cliente *
+            </label>
+            <select
+              value={form.type}
+              onChange={(e) => {
+                const event = {
+                  target: { value: e.target.value },
+                } as React.ChangeEvent<HTMLInputElement>;
+                handleFormInputChange('type')(event);
+              }}
+              required
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--pri-300)',
+                borderRadius: '6px',
+                fontSize: '14px',
+                backgroundColor: 'white',
+                cursor: 'pointer',
+              }}
+            >
+              <option value='regular'>Cliente Regular</option>
+              <option value='corporate'>Empresa/Corporativo</option>
+              <option value='wholesale'>Cliente Mayorista</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '500',
+                color: 'var(--pri-900)',
+                fontSize: '14px',
+              }}
+            >
+              Límite de Crédito (Bs.)
+            </label>
+            <Input
+              type='number'
+              value={form.creditLimit.toString()}
+              onChange={handleFormInputChange('creditLimit')}
+              placeholder='0.00'
+              min='0'
+              step='0.01'
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid var(--pri-300)',
+                borderRadius: '6px',
+                fontSize: '14px',
+              }}
+            />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label
+            style={{
+              display: 'block',
+              marginBottom: '8px',
+              fontWeight: '500',
+              color: 'var(--pri-900)',
+              fontSize: '14px',
+            }}
+          >
+            Dirección
+          </label>
           <Input
-            label='Nombre del Cliente *'
             type='text'
-            value={form.name}
-            onChange={handleFormInputChange('name')}
-            placeholder='Ingrese el nombre completo'
-            required
+            value={form.address}
+            onChange={handleFormInputChange('address')}
+            placeholder='Dirección completa del cliente'
             disabled={isSubmitting}
-          />
-
-          <Input
-            label='NIT *'
-            type='text'
-            value={form.nit}
-            onChange={handleFormInputChange('nit')}
-            placeholder='Ej: 1234567890'
-            maxLength={13}
-            required
-            disabled={isSubmitting}
-          />
-
-          <Input
-            label='Teléfono *'
-            type='text'
-            value={form.phone}
-            onChange={handleFormInputChange('phone')}
-            placeholder='Ej: 77888999'
-            maxLength={8}
-            required
-            disabled={isSubmitting}
-          />
-
-          <Input
-            label='Email'
-            type='email'
-            value={form.email}
-            onChange={handleFormInputChange('email')}
-            placeholder='cliente@email.com'
-            disabled={isSubmitting}
-          />
-
-          <Select
-            label='Tipo de Cliente *'
-            value={form.type}
-            onChange={(value) => handleFormInputChange('type')({ target: { value } } as any)}
-            options={clientTypeOptions}
-            required
-            disabled={isSubmitting}
-          />
-
-          <Input
-            label='Límite de Crédito (Bs.)'
-            type='number'
-            value={form.creditLimit.toString()}
-            onChange={handleFormInputChange('creditLimit')}
-            placeholder='0.00'
-            min='0'
-            step='0.01'
-            disabled={isSubmitting}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              border: '1px solid var(--pri-300)',
+              borderRadius: '6px',
+              fontSize: '14px',
+            }}
           />
         </div>
 
-        <Input
-          label='Dirección'
-          type='text'
-          value={form.address}
-          onChange={handleFormInputChange('address')}
-          placeholder='Dirección completa del cliente'
-          disabled={isSubmitting}
-        />
-
-        <div className='flex justify-end space-x-3 pt-4'>
-          <Button type='button' variant='secondary' onClick={handleClose} disabled={isSubmitting}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            paddingTop: '16px',
+            borderTop: '1px solid var(--pri-200)',
+          }}
+        >
+          <Button
+            type='button'
+            variant='secondary'
+            onClick={handleClose}
+            disabled={isSubmitting}
+            size='medium'
+          >
             Cancelar
           </Button>
-          <Button type='submit' variant='primary' disabled={isSubmitting}>
+          <Button type='submit' variant='primary' disabled={isSubmitting} size='medium'>
             {isSubmitting ? 'Guardando...' : 'Agregar Cliente'}
           </Button>
         </div>

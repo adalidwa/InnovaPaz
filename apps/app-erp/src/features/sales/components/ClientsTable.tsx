@@ -1,4 +1,5 @@
 import { useClients } from '../hooks/hooks';
+import { AddClientModal } from './AddClientModal';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
@@ -54,6 +55,11 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
 
   const handleCloseCategoriesModal = () => {
     setIsCategoriesModalOpen(false);
+  };
+
+  const handleClientAdded = () => {
+    // El hook useClients ya actualiza la lista automáticamente
+    setIsAddClientModalOpen(false);
   };
 
   const renderCategoryTag = (type: string) => {
@@ -143,7 +149,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
               </div>
               <TitleDescription
                 title='Clientes Registrados'
-                description='Gestión completa de ventas, clientes, cotizaciones y pedidos'
+                description='Gestión completa de clientes y categorías'
                 titleSize={24}
                 descriptionSize={14}
                 titleWeight='semibold'
@@ -222,15 +228,10 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
       </div>
 
       {/* Add Client Modal */}
-      <Modal
+      <AddClientModal
         isOpen={isAddClientModalOpen}
         onClose={handleCloseAddClientModal}
-        title='Agregar Nuevo Cliente'
-        message='Funcionalidad de agregar cliente en desarrollo...'
-        modalType='info'
-        confirmButtonText='Entendido'
-        size='large'
-        showCancelButton={false}
+        onClientAdded={handleClientAdded}
       />
 
       {/* Categories Management Modal */}

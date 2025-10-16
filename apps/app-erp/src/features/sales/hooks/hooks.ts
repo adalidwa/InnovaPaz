@@ -685,7 +685,7 @@ export const useClientForm = () => {
           value = Math.max(0, parseFloat(value as string) || 0);
           break;
         default:
-          value = (value as string).trim();
+          value = value as string;
       }
 
       updateField(field, value);
