@@ -1,0 +1,121 @@
+.image-upload-container {
+  margin-bottom: 1rem;
+}
+
+.image-upload-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary, #374151);
+  font-size: 0.875rem;
+}
+
+.image-upload-content {
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.image-upload-content:hover {
+  border-color: #9ca3af;
+}
+
+/* Preview de imagen */
+.image-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.preview-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.image-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Placeholder cuando no hay imagen */
+.image-placeholder {
+  padding: 2rem 1rem;
+  text-align: center;
+  background-color: #f9fafb;
+  border-radius: 6px;
+}
+
+.placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.placeholder-icon {
+  width: 48px;
+  height: 48px;
+  color: #9ca3af;
+}
+
+.placeholder-text {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Texto de ayuda */
+.upload-help-text {
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.upload-help-text small {
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+/* Estados de carga */
+.image-upload-content.uploading {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .preview-image {
+    width: 120px;
+    height: 120px;
+  }
+
+  .image-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .image-actions button {
+    width: 100%;
+  }
+}
+
+/* Animaciones */
+.image-preview {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

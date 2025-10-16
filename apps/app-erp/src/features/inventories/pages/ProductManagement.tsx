@@ -5,7 +5,7 @@ import ProductsCardCrud from '../components/ProductsCardCrud';
 import ModalImputs from '../components/ModalImputs';
 import EditProductModal from '../components/EditProductModal';
 import { useProductsContext } from '../context/ProductsContext';
-import type { ProductFormData } from '../hooks/useProducts';
+
 import type { ProductLegacy } from '../types/inventory';
 import './ProductManagement.css';
 
