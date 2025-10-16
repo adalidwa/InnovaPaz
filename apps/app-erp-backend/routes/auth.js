@@ -11,6 +11,9 @@ router.post('/login-firebase', authController.loginUser);
 // Nuevo: Login/Registro con Google
 router.post('/google-auth', authController.googleAuth);
 
+// Nuevo: Login con Google específico para ERP
+router.post('/google-login-erp', authController.googleLoginERP);
+
 // Registro coordinado (Firebase + PostgreSQL)
 router.post('/register', authController.registerUser);
 

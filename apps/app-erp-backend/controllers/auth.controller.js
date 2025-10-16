@@ -389,10 +389,89 @@ async function getMe(req, res) {
   }
 }
 
+// Nueva función específica para Google Auth en el ERP
+async function googleLoginERP(req, res) {
+  try {
+    const { idToken } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Firebase ID Token es requerido.',
+      });
+    }
+
+    // Verificar token de Firebase
+    const decodedFirebaseToken = await firebaseAuth.verifyToken(idToken);
+    if (!decodedFirebaseToken.success) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token de Firebase inválido.',
+        details: decodedFirebaseToken.error,
+      });
+    }
+
+    const { uid, email } = decodedFirebaseToken;
+
+    // Buscar usuario existente en PostgreSQL
+    const usuario = await User.findOne({ uid });
+
+    if (!usuario) {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario no encontrado. Regístrate desde el sitio web.',
+      });
+    }
+
+    // Verificar que tenga empresa asociada
+    if (!usuario.empresa_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario sin empresa asociada. Regístrate desde el sitio web.',
+      });
+    }
+
+    // Generar token JWT local
+    const localToken = jwt.sign(
+      {
+        uid: usuario.uid,
+        email: usuario.email,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      token: localToken,
+      usuario: {
+        uid: usuario.uid,
+        email: usuario.email,
+        nombre_completo: usuario.nombre_completo,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+        estado: usuario.estado,
+        preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
+        rol: usuario.rol || 'Usuario',
+      },
+    });
+  } catch (error) {
+    console.error('Error en Google Auth ERP:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+    });
+  }
+}
+
 module.exports = {
   loginDirect,
   loginUser,
   googleAuth, // Nuevo export
+  googleLoginERP, // Export de la nueva función
   verifyToken,
   verifyTokenEndpoint,
   registerUser,

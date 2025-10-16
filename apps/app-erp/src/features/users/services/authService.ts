@@ -62,7 +62,10 @@ export const checkActiveSession = async (): Promise<any> => {
 };
 
 export const redirectToMarketing = (path: string) => {
-  window.location.href = `https://innovapaz.com${path}`;
+  // Solo usar localhost ya que no hay dominio de producción aún
+  const baseUrl = 'http://localhost:5174'; // Puerto del website-erp-marketing
+
+  window.location.href = `${baseUrl}${path}`;
 };
 
 export const changeUserPassword = async (

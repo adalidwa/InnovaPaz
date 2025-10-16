@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginToERP, checkActiveSession, redirectToMarketing } from '../services/authService';
+import { signInWithGoogleERP } from '../services/googleAuthService';
 import { useUser } from '../hooks/useContextBase';
+import GoogleButton from '../components/GoogleButton';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -59,7 +61,48 @@ const LoginPage: React.FC = () => {
   };
 
   const handleRegisterRedirect = () => {
-    redirectToMarketing('/register');
+    redirectToMarketing('/'); // Redirigir al home en lugar de /register
+  };
+
+  // Nuevo: Login con Google
+  const handleGoogleLogin = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await signInWithGoogleERP();
+
+      if (!result.success) {
+        // Solo mostrar error, no redirigir automáticamente
+        if (result.error && result.error.includes('Usuario no encontrado')) {
+          setError('Usuario no encontrado en el sistema.');
+        } else {
+          setError(result.error || 'Error al iniciar sesión con Google');
+        }
+        setLoading(false);
+        return;
+      }
+
+      if (result.usuario && result.usuario.empresa_id) {
+        login(result.usuario, result.token || '');
+        navigate('/configuracion');
+      } else {
+        setError('Usuario sin empresa asociada.');
+      }
+    } catch (error: any) {
+      console.error('Error en Google login:', error);
+      // Solo mostrar error, no redirigir automáticamente
+      if (
+        error.message &&
+        (error.message.includes('Usuario no encontrado') || error.message.includes('sin empresa'))
+      ) {
+        setError('Usuario no registrado en el sistema.');
+      } else {
+        setError(error.message || 'Error inesperado. Inténtalo más tarde.');
+      }
+    }
+
+    setLoading(false);
   };
 
   if (checkingSession) {
@@ -112,9 +155,15 @@ const LoginPage: React.FC = () => {
           {error && (
             <div className='error-message'>
               {error}
-              {error.includes('Usuario sin empresa') && (
-                <button type='button' onClick={handleRegisterRedirect} className='register-link'>
-                  Registrarme desde el sitio web
+              {(error.includes('Usuario sin empresa') ||
+                error.includes('Usuario no encontrado') ||
+                error.includes('Usuario no registrado')) && (
+                <button
+                  type='button'
+                  onClick={() => redirectToMarketing('/')}
+                  className='register-link'
+                >
+                  Registrarme en el sitio web
                 </button>
               )}
             </div>
@@ -125,10 +174,16 @@ const LoginPage: React.FC = () => {
           </button>
         </form>
 
+        <div className='login-divider'>
+          <span>o</span>
+        </div>
+
+        <GoogleButton onClick={handleGoogleLogin} disabled={loading} variant='login' />
+
         <div className='login-footer'>
           <p>¿No tienes cuenta empresarial?</p>
           <button onClick={handleRegisterRedirect} className='register-button'>
-            Registrarme desde el sitio web
+            Registrarme en el sitio web
           </button>
         </div>
       </div>
@@ -137,6 +192,3 @@ const LoginPage: React.FC = () => {
 };
 
 export default LoginPage;
-
-// El login ya usa loginToERP, que ahora utiliza Firebase Auth.
-// No se requieren cambios adicionales aquí.
