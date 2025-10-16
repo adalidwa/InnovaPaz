@@ -1,4 +1,3 @@
-import React from 'react';
 import StatusTagBase from '../../../components/common/StatusTag';
 
 interface StatusTagProps {

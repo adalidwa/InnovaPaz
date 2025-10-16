@@ -1,4 +1,3 @@
-import React from 'react';
 import Button from '../../../components/common/Button';
 import { FiEye, FiCheck, FiX, FiArrowRight, FiFileText } from 'react-icons/fi';
 import { type Quote } from './QuotesManagement';

@@ -111,6 +111,7 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
 
   return (
     <Modal
+      message=''
       isOpen={isOpen}
       onClose={onClose}
       title='Gestión de Categorías de Clientes'
@@ -209,7 +210,7 @@ export const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
                       Editar
                     </Button>
                     <Button
-                      variant={category.estado === 'activo' ? 'danger' : 'success'}
+                      variant={category.estado === 'activo' ? 'accent' : 'success'}
                       size='small'
                       onClick={() =>
                         handleToggleStatus(category.categoria_cliente_id, category.estado)

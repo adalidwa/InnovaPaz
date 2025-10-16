@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
@@ -178,6 +178,7 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
 
   return (
     <Modal
+      message=''
       isOpen={isOpen}
       onClose={handleClose}
       title='Nueva Cotización'

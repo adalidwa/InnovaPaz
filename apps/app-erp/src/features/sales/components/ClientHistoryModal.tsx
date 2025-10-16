@@ -86,7 +86,13 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Historial de Cliente' size='large'>
+    <Modal
+      message=''
+      isOpen={isOpen}
+      onClose={handleClose}
+      title='Historial de Cliente'
+      size='large'
+    >
       <div className='space-y-4'>
         {!selectedClient ? (
           <div className='text-center py-8'>

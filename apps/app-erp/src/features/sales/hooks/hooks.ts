@@ -449,7 +449,7 @@ export const useQuotes = () => {
     const loadQuotes = async () => {
       try {
         setLoading(true);
-        const data = await SalesService.getAllQuotes();
+        const data = await SalesService.getAllQuotes(localStorage.getItem('empresaId') || '');
         setQuotes(data);
       } catch (error) {
         console.error('Error al cargar cotizaciones:', error);

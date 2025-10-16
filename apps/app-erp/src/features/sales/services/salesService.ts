@@ -280,30 +280,15 @@ export class SalesService {
     return [];
   }
 
-  static async getOrderById(id: number): Promise<Order | null> {
+  static async getOrderById(_id: number): Promise<Order | null> {
     return null;
   }
 
-  static async getOrdersByClient(clientId: number): Promise<Order[]> {
+  static async getOrdersByClient(_clientId: number): Promise<Order[]> {
     return [];
   }
 
   static async getPendingOrders(): Promise<Order[]> {
-    return [];
-  }
-
-  // ==================== COTIZACIONES (PLACEHOLDER) ====================
-
-  static async getAllQuotes(): Promise<Quote[]> {
-    // TODO: Implementar cuando se creen las rutas de cotizaciones
-    return [];
-  }
-
-  static async getQuoteById(id: number): Promise<Quote | null> {
-    return null;
-  }
-
-  static async getPendingQuotes(): Promise<Quote[]> {
     return [];
   }
 
@@ -336,14 +321,14 @@ export class SalesService {
   }
 
   static async getTopSellingProducts(
-    limit: number = 10
+    _limit: number = 10
   ): Promise<Array<{ product: Product; quantity: number }>> {
     // TODO: Implementar endpoint en backend
     return [];
   }
 
   static async getTopClients(
-    limit: number = 10
+    _limit: number = 10
   ): Promise<Array<{ client: Client; totalSpent: number }>> {
     // TODO: Implementar endpoint en backend
     return [];

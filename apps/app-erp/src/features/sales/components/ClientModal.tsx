@@ -79,6 +79,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({
 
   return (
     <Modal
+      message=''
       isOpen={isOpen}
       onClose={handleClose}
       title={isEditMode ? 'Editar Cliente' : 'Agregar Nuevo Cliente'}

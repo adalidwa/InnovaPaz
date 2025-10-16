@@ -65,7 +65,7 @@ const mockTransactions: SaleTransaction[] = [
 ];
 
 function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
-  const [transactions, setTransactions] = useState<SaleTransaction[]>(mockTransactions);
+  const [transactions] = useState<SaleTransaction[]>(mockTransactions);
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');

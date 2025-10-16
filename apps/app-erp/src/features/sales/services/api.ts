@@ -1,6 +1,6 @@
 const API_BASE_URL = 'http://localhost:4000/api';
 
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
