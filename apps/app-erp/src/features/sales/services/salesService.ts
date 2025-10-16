@@ -1,5 +1,5 @@
 import ApiService from './api';
-import { Client, Product, Sale, Order, Quote, SaleProduct } from '../hooks/hooks';
+import type { Client, Product, Sale, Order, Quote, SaleProduct } from '../types';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -10,7 +10,6 @@ interface ApiResponse<T> {
 
 export class SalesService {
   private static getEmpresaId(): string {
-    // Obtener empresa_id del usuario logueado
     const userStr = localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
