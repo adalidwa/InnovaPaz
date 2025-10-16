@@ -467,11 +467,98 @@ async function googleLoginERP(req, res) {
   }
 }
 
+// Nueva función para sincronizar sesión entre marketing y ERP
+async function syncSession(req, res) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token de autorización requerido',
+      });
+    }
+
+    const marketingToken = authHeader.substring(7); // Remover 'Bearer '
+
+    // Verificar token (puede ser JWT del marketing o Firebase token)
+    let decodedToken;
+    try {
+      // Intentar verificar como JWT primero
+      decodedToken = jwt.verify(marketingToken, JWT_SECRET);
+    } catch (jwtError) {
+      // Si falla, intentar verificar como Firebase token
+      const firebaseResult = await firebaseAuth.verifyToken(marketingToken);
+      if (!firebaseResult.success) {
+        return res.status(401).json({
+          success: false,
+          error: 'Token inválido',
+        });
+      }
+      decodedToken = firebaseResult;
+    }
+
+    const { uid } = decodedToken;
+
+    // Buscar usuario en PostgreSQL
+    const usuario = await User.findOne({ uid });
+
+    if (!usuario) {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario no encontrado',
+      });
+    }
+
+    // Verificar que tenga empresa asociada
+    if (!usuario.empresa_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario sin empresa asociada',
+      });
+    }
+
+    // Generar nuevo token JWT para el ERP
+    const erpToken = jwt.sign(
+      {
+        uid: usuario.uid,
+        email: usuario.email,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      token: erpToken,
+      usuario: {
+        uid: usuario.uid,
+        email: usuario.email,
+        nombre_completo: usuario.nombre_completo,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+        estado: usuario.estado,
+        preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
+        rol: usuario.rol || 'Usuario',
+      },
+    });
+  } catch (error) {
+    console.error('Error en sincronización de sesión:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno del servidor',
+    });
+  }
+}
+
 module.exports = {
   loginDirect,
   loginUser,
   googleAuth, // Nuevo export
   googleLoginERP, // Export de la nueva función
+  syncSession, // Nueva función de sincronización
   verifyToken,
   verifyTokenEndpoint,
   registerUser,

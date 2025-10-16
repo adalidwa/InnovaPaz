@@ -43,15 +43,17 @@ const LoginPage: React.FC = () => {
           console.log('✅ Usuario desde plan con empresa, redirigiendo al ERP');
           redirectToERP();
         }
-        // Si NO viene de un plan (header/exploración), solo ir al ERP si tiene empresa
-        else if (!planSeleccionado && result.userData.empresa_id) {
-          console.log('✅ Usuario desde header con empresa, redirigiendo al ERP');
-          redirectToERP();
-        }
-        // Si NO viene de un plan y no tiene empresa, quedarse en homepage para explorar
-        else if (!planSeleccionado && !result.userData.empresa_id) {
-          console.log('🏠 Usuario desde header sin empresa, volviendo a homepage para explorar');
-          navigate('/');
+        // Si NO viene de un plan (header/exploración), quedarse en la página actual
+        else if (!planSeleccionado) {
+          if (result.userData.empresa_id) {
+            // Establecer flag para redirección al ERP desde UserContext
+            localStorage.setItem('redirectToERP', 'true');
+            console.log('✅ Usuario desde header con empresa, estableciendo flag para ERP');
+            navigate('/'); // Ir a homepage, UserContext manejará la redirección
+          } else {
+            console.log('🏠 Usuario desde header sin empresa, manteniéndose para explorar');
+            navigate('/'); // Quedarse en homepage para explorar
+          }
         }
       } else {
         setError('Credenciales no válidas.');
@@ -98,12 +100,14 @@ const LoginPage: React.FC = () => {
       }
       // Si NO viene de un plan (header/exploración)
       else if (!planSeleccionado) {
-        if (result.needsCompanySetup) {
-          console.log('🏠 Usuario desde header sin empresa, volviendo a homepage para explorar');
-          navigate('/');
+        if (!result.needsCompanySetup) {
+          // Establecer flag para redirección al ERP desde UserContext
+          localStorage.setItem('redirectToERP', 'true');
+          console.log('✅ Usuario desde header con empresa, estableciendo flag para ERP');
+          navigate('/'); // Ir a homepage, UserContext manejará la redirección
         } else {
-          console.log('✅ Usuario desde header con empresa, redirigiendo al ERP');
-          redirectToERP();
+          console.log('🏠 Usuario desde header sin empresa, manteniéndose para explorar');
+          navigate('/'); // Quedarse en homepage para explorar
         }
       }
     } catch (error: any) {

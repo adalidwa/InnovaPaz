@@ -14,6 +14,9 @@ router.post('/google-auth', authController.googleAuth);
 // Nuevo: Login con Google específico para ERP
 router.post('/google-login-erp', authController.googleLoginERP);
 
+// Nuevo: Sincronización de sesión entre marketing y ERP
+router.post('/sync-session', authController.syncSession);
+
 // Registro coordinado (Firebase + PostgreSQL)
 router.post('/register', authController.registerUser);
 

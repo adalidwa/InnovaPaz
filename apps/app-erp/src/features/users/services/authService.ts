@@ -68,6 +68,40 @@ export const redirectToMarketing = (path: string) => {
   window.location.href = `${baseUrl}${path}`;
 };
 
+// Nueva función para verificar si el usuario viene del marketing site
+export const checkMarketingSession = async (): Promise<any> => {
+  try {
+    // Verificar si hay un token de sesión del marketing
+    const marketingToken = localStorage.getItem('authToken'); // Token del marketing
+    const erpToken = localStorage.getItem('token'); // Token del ERP
+
+    if (marketingToken && !erpToken) {
+      // Si hay token del marketing pero no del ERP, intentar sincronizar
+      const res = await fetch('/api/auth/sync-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${marketingToken}`,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.usuario && data.usuario.empresa_id) {
+          // Guardar token del ERP y retornar usuario
+          localStorage.setItem('token', data.token);
+          return data.usuario;
+        }
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error verificando sesión del marketing:', error);
+    return null;
+  }
+};
+
 export const changeUserPassword = async (
   userId: string,
   currentPassword: string,

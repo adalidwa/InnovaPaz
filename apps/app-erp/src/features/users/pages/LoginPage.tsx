@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginToERP, checkActiveSession, redirectToMarketing } from '../services/authService';
+import {
+  loginToERP,
+  checkActiveSession,
+  redirectToMarketing,
+  checkMarketingSession,
+} from '../services/authService';
 import { signInWithGoogleERP } from '../services/googleAuthService';
 import { useUser } from '../hooks/useContextBase';
 import GoogleButton from '../components/GoogleButton';
@@ -18,9 +23,22 @@ const LoginPage: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        // 1. Verificar sesión activa del ERP
         const userData = await checkActiveSession();
         if (userData && userData.empresa_id) {
           navigate('/configuracion');
+          return;
+        }
+
+        // 2. Si no hay sesión del ERP, verificar sesión del marketing
+        const marketingUserData = await checkMarketingSession();
+        if (marketingUserData && marketingUserData.empresa_id) {
+          // Autenticar automáticamente y redirigir
+          login(marketingUserData, localStorage.getItem('token') || '');
+          // Limpiar cualquier flag de redirección
+          localStorage.removeItem('redirectToERP');
+          navigate('/configuracion');
+          return;
         }
       } catch (error) {
         console.error('Error verificando sesión:', error);
@@ -30,7 +48,7 @@ const LoginPage: React.FC = () => {
     };
 
     checkSession();
-  }, [navigate]);
+  }, [navigate, login]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

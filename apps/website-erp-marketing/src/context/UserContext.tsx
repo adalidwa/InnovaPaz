@@ -82,20 +82,31 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setUser(fullUser);
 
         // --- LÓGICA DE REDIRECCIÓN AUTOMÁTICA ---
-        // Solo redirigir al ERP si el usuario tiene empresa configurada
+        // Solo redirigir al ERP en casos específicos:
         if (fullUser.backendSynced && fullUser.empresa_id) {
-          // ...y se encuentra en páginas públicas del sitio de marketing...
-          const publicMarketingPaths = ['/login', '/register'];
-          if (publicMarketingPaths.includes(window.location.pathname)) {
-            // ...lo redirigimos al ERP.
+          const currentPath = window.location.pathname;
+          const hasRedirectFlag = localStorage.getItem('redirectToERP') === 'true';
+          const fromPlans = window.location.search.includes('plan=');
+
+          // Redirigir solo si:
+          // 1. Viene específicamente de un plan, O
+          // 2. Hay un flag explícito de redirección (ej: botón "Acceder al ERP"), O
+          // 3. Está en la página de login (después de loguearse con empresa)
+          const shouldRedirect = fromPlans || hasRedirectFlag || currentPath === '/login';
+
+          if (shouldRedirect) {
             console.log('✅ Usuario completo con empresa, redirigiendo al ERP desde UserContext');
+            localStorage.removeItem('redirectToERP'); // Limpiar flag
             redirectToERP();
+          } else {
+            console.log(
+              '🏠 Usuario con empresa pero sin flag de redirección - manteniéndose en marketing'
+            );
           }
         }
-        // Si está autenticado pero no tiene empresa, permitir exploración
-        // NO redirigir automáticamente - solo cuando viene desde planes
+        // Si está autenticado pero no tiene empresa, permitir exploración libre
         else if (fullUser.backendSynced && !fullUser.empresa_id) {
-          console.log('🏠 Usuario sin empresa - permitiendo exploración libre');
+          console.log('🏠 Usuario sin empresa - permitiendo exploración libre en marketing');
         }
       } else {
         setUser(null);

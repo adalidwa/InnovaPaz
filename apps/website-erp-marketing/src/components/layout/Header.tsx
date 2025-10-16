@@ -7,7 +7,7 @@ import NavLink from '../ui/NavLink';
 import avatarDefault from '../../assets/images/avatarlogin.png';
 import MobileMenu from './MobileMenu';
 import './Header.css';
-import { redirectToERP } from '../../configs/appConfig'; // Importar la función de redirección
+import { goToERP } from '../../utils/erpRedirect';
 
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -66,10 +66,10 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
-  // Nueva función para ir al ERP
+  // Nueva función para ir al ERP con lógica de redirección inteligente
   const handleGoToERP = () => {
     setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
-    redirectToERP();
+    goToERP(); // Usar la nueva función que maneja la lógica de redirección
   };
 
   useEffect(() => {
