@@ -3,21 +3,33 @@ import { Modal, Button, Input } from '../../../components/common';
 import { useClientForm, useClients } from '../hooks/hooks';
 import type { Client } from '../types';
 
-interface AddClientModalProps {
+interface ClientModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onClientAdded?: (client: Client) => void;
+  client?: Client | null;
+  onSuccess?: () => void;
 }
 
-export const AddClientModal: React.FC<AddClientModalProps> = ({
+export const ClientModal: React.FC<ClientModalProps> = ({
   isOpen,
   onClose,
-  onClientAdded,
+  client = null,
+  onSuccess,
 }) => {
-  const { form, handleFormInputChange, resetForm } = useClientForm();
-  const { addClient, validateClient } = useClients();
+  const isEditMode = !!client;
+  const { form, handleFormInputChange, resetForm, loadClient } = useClientForm();
+  const { addClient, updateClient, validateClient } = useClients();
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  // Cargar datos del cliente cuando se abre en modo edición
+  React.useEffect(() => {
+    if (isOpen && client) {
+      loadClient(client);
+    } else if (isOpen && !client) {
+      resetForm();
+    }
+  }, [isOpen, client, loadClient, resetForm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,29 +47,23 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     }
 
     try {
-      console.log('Enviando cliente:', form);
-      await addClient(form);
-      console.log('Cliente agregado exitosamente');
-
-      if (onClientAdded) {
-        const newClient: Client = {
-          ...form,
-          id: Date.now(),
-          lastPurchase: form.lastPurchase || new Date().toISOString().split('T')[0],
-        };
-        onClientAdded(newClient);
+      if (isEditMode && client) {
+        console.log('Actualizando cliente:', form);
+        await updateClient(client.id, form);
+        console.log('Cliente actualizado exitosamente');
+      } else {
+        console.log('Agregando cliente:', form);
+        await addClient(form);
+        console.log('Cliente agregado exitosamente');
       }
 
       resetForm();
+      onSuccess?.();
       onClose();
     } catch (err: any) {
-      console.error('❌ Error completo:', err);
-      console.error('❌ Error message:', err?.message);
-      console.error('❌ Error response:', err?.response);
-      console.error('❌ Form data:', form);
-
+      console.error('❌ Error:', err);
       const errorMsg = err?.message || err?.toString() || 'Error desconocido';
-      setError(`Error al agregar el cliente: ${errorMsg}`);
+      setError(`Error al ${isEditMode ? 'actualizar' : 'agregar'} el cliente: ${errorMsg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +81,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title='Agregar Nuevo Cliente'
+      title={isEditMode ? 'Editar Cliente' : 'Agregar Nuevo Cliente'}
       size='large'
       showCancelButton={false}
     >
@@ -337,7 +343,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
             Cancelar
           </Button>
           <Button type='submit' variant='primary' disabled={isSubmitting} size='medium'>
-            {isSubmitting ? 'Guardando...' : 'Agregar Cliente'}
+            {isSubmitting ? 'Guardando...' : isEditMode ? 'Actualizar Cliente' : 'Agregar Cliente'}
           </Button>
         </div>
       </form>

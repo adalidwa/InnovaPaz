@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/users.controller');
 const { verifyFirebaseToken } = require('../controllers/auth.controller');
+const { checkPlanLimits } = require('../middleware/planValidation');
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
@@ -11,8 +12,8 @@ router.get('/company/:empresa_id', verifyFirebaseToken, usersController.getUsers
 // Obtener usuario por UID
 router.get('/:uid', verifyFirebaseToken, usersController.getUserById);
 
-// Crear usuario
-router.post('/', verifyFirebaseToken, usersController.createUser);
+// Crear usuario (con validación de límites de plan)
+router.post('/', verifyFirebaseToken, checkPlanLimits('create_user'), usersController.createUser);
 
 // Actualizar usuario
 router.put('/:uid', verifyFirebaseToken, usersController.updateUser);

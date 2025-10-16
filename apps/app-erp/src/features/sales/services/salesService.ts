@@ -1,334 +1,353 @@
-import dbData from '../data/db.json';
-import { Client, Product, Sale, Order, Quote, SaleProduct } from '../hooks/hooks';
+import ApiService from './api';
+import type { Client, Product, Sale, Order, Quote, SaleProduct } from '../types';
+
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  count?: number;
+  message?: string;
+}
 
 export class SalesService {
-  // Métodos para clientes
+  private static getEmpresaId(): string {
+    const userStr = localStorage.getItem('user');
+    console.log('🔍 User from localStorage:', userStr);
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      console.log('🔍 Parsed user:', user);
+      console.log('🔍 empresa_id:', user.empresa_id);
+      if (user && user.empresa_id) {
+        return user.empresa_id;
+      }
+    }
+    throw new Error(
+      'No se encontró empresa_id en el usuario. Verifica que hayas iniciado sesión correctamente.'
+    );
+  }
+
+  // ==================== CLIENTES ====================
+
   static async getAllClients(): Promise<Client[]> {
-    // Simula una llamada async
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(dbData.clients), 100);
-    });
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(`/clients/empresa/${empresaId}`);
+    return this.mapClientsFromBackend(response.data);
   }
 
   static async getClientById(id: number): Promise<Client | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const client = dbData.clients.find((c) => c.id === id) || null;
-        resolve(client);
-      }, 100);
-    });
+    try {
+      const empresaId = this.getEmpresaId();
+      const response = await ApiService.get<ApiResponse<any>>(
+        `/clients/empresa/${empresaId}/${id}`
+      );
+      return this.mapClientFromBackend(response.data);
+    } catch (error) {
+      console.error('Error al obtener cliente:', error);
+      return null;
+    }
   }
 
   static async searchClients(query: string): Promise<Client[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const filtered = dbData.clients.filter(
-          (client) =>
-            client.name.toLowerCase().includes(query.toLowerCase()) ||
-            client.email.toLowerCase().includes(query.toLowerCase()) ||
-            client.nit.includes(query) ||
-            client.phone.includes(query)
-        );
-        resolve(filtered);
-      }, 100);
-    });
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(
+      `/clients/empresa/${empresaId}?search=${encodeURIComponent(query)}`
+    );
+    return this.mapClientsFromBackend(response.data);
   }
 
-  // Métodos para productos
+  static async createClient(clientData: Omit<Client, 'id'>): Promise<Client> {
+    const empresaId = this.getEmpresaId();
+    const backendData = {
+      nombre: clientData.name,
+      email: clientData.email,
+      telefono: clientData.phone,
+      nit_ci: clientData.nit,
+      direccion: clientData.address,
+      tipo_cliente: clientData.type,
+      limite_credito: clientData.creditLimit,
+      deuda_actual: clientData.currentDebt,
+    };
+
+    const response = await ApiService.post<ApiResponse<any>>(
+      `/clients/empresa/${empresaId}`,
+      backendData
+    );
+    return this.mapClientFromBackend(response.data);
+  }
+
+  static async updateClient(id: number, clientData: Partial<Client>): Promise<Client> {
+    const empresaId = this.getEmpresaId();
+    const backendData: any = {};
+
+    if (clientData.name) backendData.nombre = clientData.name;
+    if (clientData.email) backendData.email = clientData.email;
+    if (clientData.phone) backendData.telefono = clientData.phone;
+    if (clientData.nit) backendData.nit_ci = clientData.nit;
+    if (clientData.address) backendData.direccion = clientData.address;
+    if (clientData.type) backendData.tipo_cliente = clientData.type;
+    if (clientData.creditLimit !== undefined) backendData.limite_credito = clientData.creditLimit;
+    if (clientData.currentDebt !== undefined) backendData.deuda_actual = clientData.currentDebt;
+
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/clients/empresa/${empresaId}/${id}`,
+      backendData
+    );
+    return this.mapClientFromBackend(response.data);
+  }
+
+  static async deleteClient(id: number): Promise<void> {
+    const empresaId = this.getEmpresaId();
+    await ApiService.delete(`/clients/empresa/${empresaId}/${id}`);
+  }
+
+  static async getAllClientsWithInactive(): Promise<any[]> {
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(`/clients/empresa/${empresaId}/all`);
+    return response.data;
+  }
+
+  static async activateClient(id: number): Promise<void> {
+    const empresaId = this.getEmpresaId();
+    await ApiService.put(`/clients/empresa/${empresaId}/${id}/activate`, {});
+  }
+
+  // ==================== CATEGORÍAS ====================
+
+  static async getAllCategories(): Promise<any[]> {
+    const response = await ApiService.get<ApiResponse<any[]>>(`/categories`);
+    return response.data || [];
+  }
+
+  static async createCategory(categoryData: any): Promise<any> {
+    const response = await ApiService.post<ApiResponse<any>>(`/categories`, categoryData);
+    return response.data;
+  }
+
+  static async updateCategory(id: number, categoryData: any): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(`/categories/${id}`, categoryData);
+    return response.data;
+  }
+
+  static async activateCategory(id: number): Promise<void> {
+    await ApiService.put(`/categories/${id}/activate`, {});
+  }
+
+  static async deactivateCategory(id: number): Promise<void> {
+    await ApiService.delete(`/categories/${id}`);
+  }
+
+  // ==================== PRODUCTOS ====================
+
   static async getAllProducts(): Promise<Product[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(dbData.products), 100);
-    });
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<{ success: boolean; products: any[] }>(
+      `/products?empresa_id=${empresaId}`
+    );
+    return this.mapProductsFromBackend(response.products);
   }
 
   static async getProductById(id: number): Promise<Product | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const product = dbData.products.find((p) => p.id === id) || null;
-        resolve(product);
-      }, 100);
-    });
+    try {
+      const empresaId = this.getEmpresaId();
+      const response = await ApiService.get<{ success: boolean; product: any }>(
+        `/products/${id}?empresa_id=${empresaId}`
+      );
+      return this.mapProductFromBackend(response.product);
+    } catch (error) {
+      console.error('Error al obtener producto:', error);
+      return null;
+    }
   }
 
   static async getProductByCode(code: string): Promise<Product | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const product =
-          dbData.products.find((p) => p.code.toLowerCase() === code.toLowerCase()) || null;
-        resolve(product);
-      }, 100);
-    });
+    try {
+      const empresaId = this.getEmpresaId();
+      const response = await ApiService.get<{ success: boolean; product: any }>(
+        `/products/code/${code}?empresa_id=${empresaId}`
+      );
+      return this.mapProductFromBackend(response.product);
+    } catch (error) {
+      console.error('Error al obtener producto por código:', error);
+      return null;
+    }
   }
 
   static async searchProducts(query: string, category?: string): Promise<Product[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let filtered = dbData.products.filter(
-          (product) =>
-            product.name.toLowerCase().includes(query.toLowerCase()) ||
-            product.code.toLowerCase().includes(query.toLowerCase()) ||
-            product.category.toLowerCase().includes(query.toLowerCase())
-        );
-
-        if (category && category !== 'all') {
-          filtered = filtered.filter((p) => p.category === category);
-        }
-
-        resolve(filtered);
-      }, 100);
-    });
+    const empresaId = this.getEmpresaId();
+    let url = `/products/search?empresa_id=${empresaId}&query=${encodeURIComponent(query)}`;
+    if (category && category !== 'all') {
+      url += `&category=${category}`;
+    }
+    const response = await ApiService.get<{ success: boolean; products: any[] }>(url);
+    return this.mapProductsFromBackend(response.products);
   }
 
   static async getAvailableProducts(): Promise<Product[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const available = dbData.products.filter((p) => p.status !== 'Crítico' && p.stock > 0);
-        resolve(available);
-      }, 100);
-    });
+    const products = await this.getAllProducts();
+    return products.filter((p) => p.stock > 0);
   }
 
   static async getLowStockProducts(): Promise<Product[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const lowStock = dbData.products.filter(
-          (p) => p.status === 'Crítico' || p.status === 'Bajo Stock'
-        );
-        resolve(lowStock);
-      }, 100);
-    });
+    const products = await this.getAllProducts();
+    return products.filter((p) => p.status === 'Crítico' || p.status === 'Bajo Stock');
   }
 
-  // Métodos para ventas
+  // ==================== VENTAS ====================
+
   static async getAllSales(): Promise<Sale[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(dbData.sales), 100);
-    });
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(`/sales/empresa/${empresaId}`);
+    return this.mapSalesFromBackend(response.data);
   }
 
   static async getSaleById(id: number): Promise<Sale | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const sale = dbData.sales.find((s) => s.id === id) || null;
-        resolve(sale);
-      }, 100);
-    });
+    try {
+      const empresaId = this.getEmpresaId();
+      const response = await ApiService.get<ApiResponse<any>>(`/sales/empresa/${empresaId}/${id}`);
+      return this.mapSaleFromBackend(response.data);
+    } catch (error) {
+      console.error('Error al obtener venta:', error);
+      return null;
+    }
   }
 
   static async getSalesByClient(clientId: number): Promise<Sale[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const sales = dbData.sales.filter((s) => s.clientId === clientId);
-        resolve(sales);
-      }, 100);
-    });
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(
+      `/sales/empresa/${empresaId}?clienteId=${clientId}`
+    );
+    return this.mapSalesFromBackend(response.data);
   }
 
   static async getSalesByDateRange(startDate: string, endDate: string): Promise<Sale[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const sales = dbData.sales.filter((s) => s.date >= startDate && s.date <= endDate);
-        resolve(sales);
-      }, 100);
-    });
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(
+      `/sales/empresa/${empresaId}?fechaInicio=${startDate}&fechaFin=${endDate}`
+    );
+    return this.mapSalesFromBackend(response.data);
   }
 
-  // Métodos para órdenes
-  static async getAllOrders(): Promise<Order[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(dbData.orders), 100);
+  static async createSale(saleData: {
+    clientId: number;
+    products: SaleProduct[];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: string;
+  }): Promise<Sale> {
+    const empresaId = this.getEmpresaId();
+
+    // Buscar el ID del método de pago (temporal - idealmente obtenerlo de la DB)
+    const paymentMethodMap: Record<string, number> = {
+      cash: 1,
+      credit: 2,
+      debit: 3,
+      transfer: 4,
+    };
+
+    const venta = {
+      cliente_id: saleData.clientId,
+      vendedor_id: 1, // TODO: obtener del usuario logueado
+      subtotal: saleData.subtotal,
+      total: saleData.total,
+      descuento: saleData.discount,
+      metodo_pago_id: paymentMethodMap[saleData.paymentMethod] || 1,
+      estado_venta_id: 1, // Completado
+    };
+
+    const detalles = saleData.products.map((p) => ({
+      producto_id: p.id,
+      cantidad: p.quantity,
+      precio_unitario: p.price,
+      subtotal: p.subtotal,
+      descuento: 0,
+    }));
+
+    const response = await ApiService.post<ApiResponse<any>>(`/sales/empresa/${empresaId}`, {
+      venta,
+      detalles,
     });
+
+    return this.mapSaleFromBackend(response.data);
+  }
+
+  // ==================== ÓRDENES (PLACEHOLDER) ====================
+
+  static async getAllOrders(): Promise<Order[]> {
+    // TODO: Implementar cuando se creen las rutas de órdenes
+    return [];
   }
 
   static async getOrderById(id: number): Promise<Order | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const order = dbData.orders.find((o) => o.id === id) || null;
-        resolve(order);
-      }, 100);
-    });
+    return null;
   }
 
   static async getOrdersByClient(clientId: number): Promise<Order[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const orders = dbData.orders.filter((o) => o.clientId === clientId);
-        resolve(orders);
-      }, 100);
-    });
+    return [];
   }
 
   static async getPendingOrders(): Promise<Order[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const pending = dbData.orders.filter(
-          (o) => o.status === 'pending' || o.status === 'confirmed'
-        );
-        resolve(pending);
-      }, 100);
-    });
+    return [];
   }
 
-  // Métodos para cotizaciones
+  // ==================== COTIZACIONES (PLACEHOLDER) ====================
+
   static async getAllQuotes(): Promise<Quote[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(dbData.quotes), 100);
-    });
+    // TODO: Implementar cuando se creen las rutas de cotizaciones
+    return [];
   }
 
   static async getQuoteById(id: number): Promise<Quote | null> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const quote = dbData.quotes.find((q) => q.id === id) || null;
-        resolve(quote);
-      }, 100);
-    });
+    return null;
   }
 
   static async getPendingQuotes(): Promise<Quote[]> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const pending = dbData.quotes.filter((q) => q.status === 'pending');
-        resolve(pending);
-      }, 100);
-    });
+    return [];
   }
 
-  // Métodos de estadísticas y reportes
+  // ==================== ESTADÍSTICAS ====================
+
   static async getTotalSales(period?: 'today' | 'week' | 'month' | 'year'): Promise<number> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let filteredSales = dbData.sales.filter((s) => s.status === 'completed');
-
-        if (period) {
-          const now = new Date();
-          const filterDate = new Date();
-
-          switch (period) {
-            case 'today':
-              filterDate.setHours(0, 0, 0, 0);
-              break;
-            case 'week':
-              filterDate.setDate(now.getDate() - 7);
-              break;
-            case 'month':
-              filterDate.setMonth(now.getMonth() - 1);
-              break;
-            case 'year':
-              filterDate.setFullYear(now.getFullYear() - 1);
-              break;
-          }
-
-          filteredSales = filteredSales.filter((s) => new Date(s.date) >= filterDate);
-        }
-
-        const total = filteredSales.reduce((sum, sale) => sum + sale.total, 0);
-        resolve(total);
-      }, 100);
-    });
+    try {
+      const empresaId = this.getEmpresaId();
+      const response = await ApiService.get<ApiResponse<any>>(
+        `/sales/empresa/${empresaId}/stats?periodo=${period || 'month'}`
+      );
+      return parseFloat(response.data.total_monto) || 0;
+    } catch (error) {
+      console.error('Error al obtener total de ventas:', error);
+      return 0;
+    }
   }
 
   static async getSalesCount(period?: 'today' | 'week' | 'month' | 'year'): Promise<number> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let count = dbData.sales.filter((s) => s.status === 'completed').length;
-
-        if (period) {
-          const now = new Date();
-          const filterDate = new Date();
-
-          switch (period) {
-            case 'today':
-              filterDate.setHours(0, 0, 0, 0);
-              break;
-            case 'week':
-              filterDate.setDate(now.getDate() - 7);
-              break;
-            case 'month':
-              filterDate.setMonth(now.getMonth() - 1);
-              break;
-            case 'year':
-              filterDate.setFullYear(now.getFullYear() - 1);
-              break;
-          }
-
-          count = dbData.sales.filter(
-            (s) => s.status === 'completed' && new Date(s.date) >= filterDate
-          ).length;
-        }
-
-        resolve(count);
-      }, 100);
-    });
+    try {
+      const empresaId = this.getEmpresaId();
+      const response = await ApiService.get<ApiResponse<any>>(
+        `/sales/empresa/${empresaId}/stats?periodo=${period || 'month'}`
+      );
+      return parseInt(response.data.total_ventas) || 0;
+    } catch (error) {
+      console.error('Error al obtener conteo de ventas:', error);
+      return 0;
+    }
   }
 
   static async getTopSellingProducts(
     limit: number = 10
   ): Promise<Array<{ product: Product; quantity: number }>> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const productSales: Record<number, number> = {};
-
-        // Contar ventas por producto
-        dbData.sales.forEach((sale) => {
-          if (sale.status === 'completed') {
-            sale.products.forEach((product) => {
-              productSales[product.id] = (productSales[product.id] || 0) + product.quantity;
-            });
-          }
-        });
-
-        // Crear array ordenado
-        const topProducts = Object.entries(productSales)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, limit)
-          .map(([productId, quantity]) => {
-            const product = dbData.products.find((p) => p.id === parseInt(productId));
-            return {
-              product: product!,
-              quantity,
-            };
-          })
-          .filter((item) => item.product); // Filtrar productos no encontrados
-
-        resolve(topProducts);
-      }, 100);
-    });
+    // TODO: Implementar endpoint en backend
+    return [];
   }
 
   static async getTopClients(
     limit: number = 10
   ): Promise<Array<{ client: Client; totalSpent: number }>> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const clientSales: Record<number, number> = {};
-
-        // Sumar ventas por cliente
-        dbData.sales.forEach((sale) => {
-          if (sale.status === 'completed') {
-            clientSales[sale.clientId] = (clientSales[sale.clientId] || 0) + sale.total;
-          }
-        });
-
-        // Crear array ordenado
-        const topClients = Object.entries(clientSales)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, limit)
-          .map(([clientId, totalSpent]) => {
-            const client = dbData.clients.find((c) => c.id === parseInt(clientId));
-            return {
-              client: client!,
-              totalSpent,
-            };
-          })
-          .filter((item) => item.client); // Filtrar clientes no encontrados
-
-        resolve(topClients);
-      }, 100);
-    });
+    // TODO: Implementar endpoint en backend
+    return [];
   }
 
-  // Métodos de validación
+  // ==================== VALIDACIONES ====================
+
   static validateSale(sale: Omit<Sale, 'id' | 'date' | 'time'>): string | null {
     if (!sale.clientId || !sale.clientName.trim()) {
       return 'Debe seleccionar un cliente válido';
@@ -410,7 +429,8 @@ export class SalesService {
     return null;
   }
 
-  // Utilidades
+  // ==================== UTILIDADES ====================
+
   static formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-BO', {
       style: 'currency',
@@ -424,6 +444,98 @@ export class SalesService {
 
   static calculateCartTotal(products: SaleProduct[]): number {
     return products.reduce((total, product) => total + product.subtotal, 0);
+  }
+
+  // ==================== MAPPERS ====================
+
+  private static mapClientFromBackend(data: any): Client {
+    return {
+      id: data.cliente_id,
+      name: data.nombre,
+      email: data.email || '',
+      phone: data.telefono || '',
+      nit: data.nit_ci || '',
+      address: data.direccion || '',
+      type: data.tipo_cliente || 'regular',
+      creditLimit: parseFloat(data.limite_credito) || 0,
+      currentDebt: parseFloat(data.deuda_actual) || 0,
+      lastPurchase: data.ultima_compra || '',
+      categoryName: data.categoria_nombre || 'Sin categoría',
+    };
+  }
+
+  private static mapClientsFromBackend(data: any[]): Client[] {
+    return data.map((item) => this.mapClientFromBackend(item));
+  }
+
+  private static mapProductFromBackend(data: any): Product {
+    const stock = data.stock || 0;
+    const minStock = 10; // TODO: obtener de la DB o configuración
+
+    let status: 'Disponible' | 'Bajo Stock' | 'Crítico' = 'Disponible';
+    if (stock === 0) {
+      status = 'Crítico';
+    } else if (stock < minStock) {
+      status = 'Bajo Stock';
+    }
+
+    return {
+      id: data.producto_id,
+      name: data.nombre_producto,
+      code: data.codigo || '',
+      category: data.nombre_categoria || 'Sin categoría',
+      price: parseFloat(data.precio_venta) || 0,
+      cost: parseFloat(data.precio_costo) || 0,
+      stock: stock,
+      minStock: minStock,
+      maxStock: 100, // TODO: obtener de la DB
+      status: status,
+    };
+  }
+
+  private static mapProductsFromBackend(data: any[]): Product[] {
+    return data.map((item) => this.mapProductFromBackend(item));
+  }
+
+  private static mapSaleFromBackend(data: any): Sale {
+    const paymentMethodMap: Record<number, 'cash' | 'credit' | 'debit' | 'transfer'> = {
+      1: 'cash',
+      2: 'credit',
+      3: 'debit',
+      4: 'transfer',
+    };
+
+    const statusMap: Record<number, 'completed' | 'pending' | 'cancelled'> = {
+      1: 'completed',
+      2: 'pending',
+      3: 'cancelled',
+    };
+
+    return {
+      id: data.venta_id,
+      clientId: data.cliente_id,
+      clientName: data.cliente_nombre || '',
+      date: data.fecha_venta?.split('T')[0] || '',
+      time: data.hora_venta || '',
+      products:
+        data.detalles?.map((d: any) => ({
+          id: d.producto_id,
+          name: d.producto_nombre,
+          code: d.producto_codigo,
+          price: parseFloat(d.precio_unitario),
+          quantity: d.cantidad,
+          subtotal: parseFloat(d.subtotal),
+        })) || [],
+      subtotal: parseFloat(data.subtotal) || 0,
+      discount: parseFloat(data.descuento) || 0,
+      total: parseFloat(data.total) || 0,
+      paymentMethod: paymentMethodMap[data.metodo_pago_id] || 'cash',
+      status: statusMap[data.estado_venta_id] || 'pending',
+    };
+  }
+
+  private static mapSalesFromBackend(data: any[]): Sale[] {
+    return data.map((item) => this.mapSaleFromBackend(item));
   }
 }
 

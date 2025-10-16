@@ -5,9 +5,17 @@ const {
   getProduct,
   updateProduct,
   deleteProduct,
+  searchProducts,
+  getProductByCode,
 } = require('../controllers/inventories.controller');
 
 const router = Router();
+
+// Búsqueda de productos
+router.get('/products/search', searchProducts);
+
+// Buscar producto por código
+router.get('/products/code/:code', getProductByCode);
 
 // Obtener todos los productos
 router.get('/products', getAllProducts);

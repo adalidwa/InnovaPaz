@@ -21,15 +21,15 @@ const AppRoutes = () => (
   <Routes>
     <Route path='/login' element={<LoginPage />} />
     <Route element={<ProtectedRoutes />}>
-      <Route path='/' element={<Navigate to='/configuracion/empresa#general' replace />} />
-      <Route path='/shopping/*' element={<ShoppingRoutes />} />
-      <Route path='/productos/*' element={<ProductManagementRoutes />} />
-      <Route path='/ventas/*' element={<SalesRoutes />} />
-      <Route path='/reportes/*' element={<ReportsRoutes />} />
-      <Route path='/configuracion/*' element={<UserRoutes />} />
-      <Route path='/dashboard' element={<Dashboard />} />
+      <Route path='/' element={<Navigate to='/app-erp/configuracion/empresa#general' replace />} />
+      <Route path='/app-erp/shopping/*' element={<ShoppingRoutes />} />
+      <Route path='/app-erp/productos/*' element={<ProductManagementRoutes />} />
+      <Route path='/app-erp/ventas/*' element={<SalesRoutes />} />
+      <Route path='/app-erp/reportes/*' element={<ReportsRoutes />} />
+      <Route path='/app-erp/configuracion/*' element={<UserRoutes />} />
+      <Route path='/app-erp/dashboard' element={<Dashboard />} />
     </Route>
-    <Route path='*' element={<Navigate to='/configuracion/empresa#general' replace />} />
+    <Route path='*' element={<Navigate to='/app-erp/configuracion/empresa#general' replace />} />
   </Routes>
 );
 

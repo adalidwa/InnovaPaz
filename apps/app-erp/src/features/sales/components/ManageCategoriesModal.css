@@ -1,0 +1,136 @@
+.manage-categories-modal {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.manage-categories-modal__header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.manage-categories-modal__form {
+  padding: 20px;
+  background: var(--pri-50);
+  border-radius: 8px;
+  border: 1px solid var(--pri-200);
+}
+
+.manage-categories-modal__form h3 {
+  margin: 0 0 16px 0;
+  color: var(--pri-900);
+  font-size: 16px;
+}
+
+.manage-categories-modal__form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.manage-categories-modal__form-grid label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--pri-900);
+  font-size: 14px;
+}
+
+.manage-categories-modal__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.manage-categories-modal__content {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--pri-200);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.manage-categories-modal__loading,
+.manage-categories-modal__empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--pri-600);
+  font-size: 14px;
+}
+
+.manage-categories-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.manage-categories-modal__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--pri-200);
+  border-radius: 8px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.manage-categories-modal__item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: var(--pri-300);
+}
+
+.manage-categories-modal__item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manage-categories-modal__item-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--pri-900);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.manage-categories-modal__status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.manage-categories-modal__status.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.manage-categories-modal__status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.manage-categories-modal__item-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 14px;
+  color: var(--pri-600);
+}
+
+.manage-categories-modal__item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.manage-categories-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid var(--pri-200);
+}
