@@ -29,32 +29,82 @@ async function createUser(req, res) {
   let firebaseUser;
   try {
     const { empresa_id, rol_id, nombre_completo, email, password, estado, preferencias } = req.body;
+
+    // ===== VALIDACIONES =====
+    // Validar campos requeridos
     if (!empresa_id || !rol_id || !nombre_completo || !email || !password) {
       return res.status(400).json({
         error: 'Faltan campos obligatorios: empresa_id, rol_id, nombre_completo, email, password.',
       });
     }
-    const emailRegex = /\S+@\S+\.\S+/;
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'El formato del email no es válido.' });
     }
+
+    // Validar longitud de nombre
+    if (nombre_completo.trim().length === 0) {
+      return res.status(400).json({ error: 'El nombre completo no puede estar vacío.' });
+    }
+    if (nombre_completo.length > 150) {
+      return res.status(400).json({ error: 'El nombre completo no puede exceder 150 caracteres.' });
+    }
+
+    // Validar longitud de email
+    if (email.length > 150) {
+      return res.status(400).json({ error: 'El email no puede exceder 150 caracteres.' });
+    }
+
+    // Validar contraseña
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    // Validar que la empresa exista
+    const empresa = await Company.findById(empresa_id);
+    if (!empresa) {
+      return res.status(404).json({ error: `Empresa con ID ${empresa_id} no encontrada.` });
+    }
+
+    // Validar que el rol exista y pertenezca a la empresa
+    const rol = await Role.findByIdAndCompany(rol_id, empresa_id);
+    if (!rol) {
+      return res.status(404).json({
+        error: `Rol con ID ${rol_id} no encontrado o no pertenece a la empresa.`,
+      });
+    }
+
+    // Validar que el email no esté en uso
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ error: 'El email ya está registrado.' });
+    }
+
+    // Crear usuario en Firebase
     firebaseUser = await firebaseAuth.createUser(email, password, nombre_completo);
     if (!firebaseUser.success) {
       return res
         .status(400)
         .json({ error: 'Error al crear usuario en Firebase.', details: firebaseUser.error });
     }
+
+    // Crear usuario en la base de datos
     const nuevoUsuario = await User.create({
       uid: firebaseUser.uid,
       empresa_id,
       rol_id,
       nombre_completo,
       email,
-      estado,
-      preferencias,
+      estado: estado || 'activo',
+      preferencias: preferencias || {},
     });
+
     res.status(201).json(nuevoUsuario);
   } catch (err) {
+    console.error('Error al crear usuario:', err);
+    // Rollback: eliminar usuario de Firebase si la creación en DB falla
     if (firebaseUser && firebaseUser.success) {
       await firebaseAuth.deleteUser(firebaseUser.uid);
     }
@@ -215,24 +265,77 @@ async function completeCompanySetup(req, res) {
 async function uploadUserAvatar(req, res) {
   try {
     const uid = req.params.uid;
+
+    // Validación: archivo requerido
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió ningún archivo.' });
     }
+
+    // Validación: verificar que el usuario exista
+    const usuario = await User.findById(uid);
+    if (!usuario) {
+      // Eliminar archivo temporal si el usuario no existe
+      if (req.file.path) {
+        fs.unlink(req.file.path, () => {});
+      }
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    // Validación: tipo de archivo (solo imágenes)
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP).',
+      });
+    }
+
+    // Validación: tamaño máximo (2MB para avatares)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (req.file.size > maxSize) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'El archivo es demasiado grande. Tamaño máximo: 2MB.',
+      });
+    }
+
+    // Subir a Cloudinary
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'user_avatars',
       public_id: `usuario_${uid}_avatar`,
       overwrite: true,
+      transformation: [
+        { width: 300, height: 300, crop: 'fill', gravity: 'face' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' },
+      ],
     });
+
+    // Eliminar archivo temporal
     fs.unlink(req.file.path, () => {});
+
+    // Actualizar base de datos
     const usuarioActualizado = await User.findByIdAndUpdate(uid, {
       avatar_url: result.secure_url,
+      avatar_public_id: result.public_id,
     });
-    if (!usuarioActualizado) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
     console.log('[BACKEND] POST /api/users/upload/avatar/:uid - Respuesta:', {
       avatar_url: result.secure_url,
+      avatar_public_id: result.public_id,
     });
-    res.json({ avatar_url: result.secure_url });
+
+    res.json({
+      avatar_url: result.secure_url,
+      avatar_public_id: result.public_id,
+      message: 'Avatar subido exitosamente.',
+    });
   } catch (err) {
+    console.error('Error al subir avatar:', err);
+    // Eliminar archivo temporal en caso de error
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, () => {});
+    }
     res.status(500).json({ error: 'Error al subir el avatar.', details: err.message });
   }
 }

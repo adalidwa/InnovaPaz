@@ -75,6 +75,55 @@ async function createCompany(req, res) {
   try {
     const { nombre, tipo_empresa_id, plan_id, nombre_completo, email, password } = req.body;
 
+    // ===== VALIDACIONES =====
+    // Validar campos requeridos
+    if (!nombre || nombre.trim() === '') {
+      return res.status(400).json({ error: 'El nombre de la empresa es requerido.' });
+    }
+    if (!tipo_empresa_id) {
+      return res.status(400).json({ error: 'El tipo de empresa es requerido.' });
+    }
+    if (!plan_id) {
+      return res.status(400).json({ error: 'El plan es requerido.' });
+    }
+    if (!nombre_completo || nombre_completo.trim() === '') {
+      return res.status(400).json({ error: 'El nombre completo del usuario es requerido.' });
+    }
+    if (!email || email.trim() === '') {
+      return res.status(400).json({ error: 'El email es requerido.' });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    // Validar longitud de campos
+    if (nombre.length > 150) {
+      return res
+        .status(400)
+        .json({ error: 'El nombre de la empresa no puede exceder 150 caracteres.' });
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'El formato del email no es válido.' });
+    }
+
+    // Validar que el tipo de empresa exista
+    const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+    if (!tipoEmpresa) {
+      return res
+        .status(404)
+        .json({ error: `Tipo de empresa con ID ${tipo_empresa_id} no encontrado.` });
+    }
+
+    // Validar que el plan exista
+    const Plan = require('../models/plan.model');
+    const plan = await Plan.findById(plan_id);
+    if (!plan) {
+      return res.status(404).json({ error: `Plan con ID ${plan_id} no encontrado.` });
+    }
+
     // Crear usuario en Firebase
     firebaseUser = await firebaseAuth.createUser(email, password, nombre_completo);
     if (!firebaseUser.success) {
@@ -122,6 +171,7 @@ async function createCompany(req, res) {
       subscription: subscriptionResult,
     });
   } catch (err) {
+    console.error('Error al crear empresa:', err);
     if (firebaseUser && firebaseUser.success) {
       await firebaseAuth.deleteUser(firebaseUser.uid);
     }
@@ -230,17 +280,56 @@ async function createCompanyType(req, res) {
 async function uploadCompanyLogo(req, res) {
   try {
     const empresaId = req.params.empresa_id;
+
+    // Validación: archivo requerido
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió ningún archivo.' });
     }
+
+    // Validación: verificar que la empresa exista
+    const empresa = await Company.findById(empresaId);
+    if (!empresa) {
+      // Eliminar archivo temporal si la empresa no existe
+      if (req.file.path) {
+        fs.unlink(req.file.path, () => {});
+      }
+      return res.status(404).json({ error: 'Empresa no encontrada.' });
+    }
+
+    // Validación: tipo de archivo (solo imágenes)
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP).',
+      });
+    }
+
+    // Validación: tamaño máximo (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (req.file.size > maxSize) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'El archivo es demasiado grande. Tamaño máximo: 5MB.',
+      });
+    }
+
+    // Subir a Cloudinary
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'company_logos',
       public_id: `empresa_${empresaId}_logo`,
       overwrite: true,
+      transformation: [
+        { width: 500, height: 500, crop: 'limit' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' },
+      ],
     });
+
+    // Eliminar archivo temporal
     fs.unlink(req.file.path, () => {});
-    const empresa = await Company.findById(empresaId);
-    if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada.' });
+
+    // Actualizar base de datos
     let ajustesObj = empresa.ajustes;
     if (typeof ajustesObj === 'string') {
       try {
@@ -249,15 +338,27 @@ async function uploadCompanyLogo(req, res) {
         ajustesObj = {};
       }
     }
+
     ajustesObj.identidad_visual = ajustesObj.identidad_visual || {};
     ajustesObj.identidad_visual.logo_url = result.secure_url;
+
     await Company.findByIdAndUpdate(empresaId, {
       ajustes: JSON.stringify(ajustesObj),
       logo_url: result.secure_url,
       logo_public_id: result.public_id,
     });
-    res.json({ logo_url: result.secure_url, logo_public_id: result.public_id });
+
+    res.json({
+      logo_url: result.secure_url,
+      logo_public_id: result.public_id,
+      message: 'Logo subido exitosamente.',
+    });
   } catch (err) {
+    console.error('Error al subir logo:', err);
+    // Eliminar archivo temporal en caso de error
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, () => {});
+    }
     res.status(500).json({ error: 'Error al subir el logo.', details: err.message });
   }
 }
