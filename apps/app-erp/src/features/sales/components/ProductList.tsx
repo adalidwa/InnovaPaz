@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import ProductCard, { type Product } from './ProductCard';
+import SalesService from '../services/salesService';
 import './ProductList.css';
 
 interface ProductListProps {
@@ -7,37 +9,56 @@ interface ProductListProps {
   searchTerm?: string;
 }
 
-// Mock products data
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    code: 'COC500',
-    name: 'Coca Cola 500ml',
-    price: 3.5,
-    stock: 48,
-  },
-  {
-    id: '2',
-    code: 'ARR1KG',
-    name: 'Arroz Paisana 1kg',
-    price: 12.0,
-    stock: 15,
-  },
-  {
-    id: '3',
-    code: 'PAC355',
-    name: 'Cerveza Paceña 355ml',
-    price: 8.5,
-    stock: 72,
-  },
-];
+function ProductList({ products, onAddToCart, searchTerm = '' }: ProductListProps) {
+  const [loadedProducts, setLoadedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-function ProductList({ products = mockProducts, onAddToCart, searchTerm = '' }: ProductListProps) {
-  const filteredProducts = products.filter(
+  useEffect(() => {
+    if (!products) {
+      loadProducts();
+    }
+  }, [products]);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await SalesService.getAvailableProducts();
+      setLoadedProducts(data);
+    } catch (err: any) {
+      console.error('Error al cargar productos:', err);
+      setError('Error al cargar productos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const currentProducts = products || loadedProducts;
+
+  const filteredProducts = currentProducts.filter(
     (product) =>
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.code.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className='product-list__empty'>
+        <p className='product-list__empty-text'>Cargando productos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='product-list__empty'>
+        <p className='product-list__empty-text' style={{ color: 'var(--danger)' }}>
+          {error}
+        </p>
+      </div>
+    );
+  }
 
   if (filteredProducts.length === 0) {
     return (

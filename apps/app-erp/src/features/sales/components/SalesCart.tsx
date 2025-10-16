@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import Button from '../../../components/common/Button';
-import Input from '../../../components/common/Input';
 import CartItem from './CartItem';
 import CartSummary from './CartSummary';
 import PaymentMethod from './PaymentMethod';
+import ClientSelector, { type Client } from './ClientSelector';
+import SalesService from '../services/salesService';
 import './SalesCart.css';
 
 interface CartItemData {
@@ -21,7 +22,6 @@ interface SalesCartProps {
   onCancel?: () => void;
 }
 
-// Mock data para demostración cuando no se pasan props
 const mockCartItems: CartItemData[] = [
   {
     id: '1',
@@ -39,13 +39,12 @@ function SalesCart({
   onCancel,
 }: SalesCartProps) {
   const [internalCartItems, setInternalCartItems] = useState<CartItemData[]>(mockCartItems);
-  const [customerName, setCustomerName] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('efectivo');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const taxRate = 0.13; // 13% tax
 
-  // Usar cartItems externos o internos
   const currentCartItems = cartItems || internalCartItems;
 
   const calculateSubtotal = () => {
@@ -79,29 +78,53 @@ function SalesCart({
   };
 
   const handleProcessSale = async () => {
-    setIsProcessing(true);
-
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const saleData = {
-      items: currentCartItems,
-      customer: customerName,
-      paymentMethod,
-      subtotal: calculateSubtotal(),
-      taxAmount: calculateTaxAmount(),
-      total: calculateTotal(),
-      timestamp: new Date().toISOString(),
-    };
-
-    if (onProcessSale) {
-      onProcessSale(saleData);
-    } else {
-      console.log('Venta procesada:', saleData);
-      setInternalCartItems([]);
+    if (!selectedClient) {
+      alert('Por favor selecciona un cliente');
+      return;
     }
 
-    setIsProcessing(false);
+    if (currentCartItems.length === 0) {
+      alert('El carrito está vacío');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const subtotal = calculateSubtotal();
+      const total = calculateTotal();
+
+      const saleData = {
+        clientId: selectedClient.id,
+        products: currentCartItems.map((item) => ({
+          id: parseInt(item.id),
+          quantity: item.quantity,
+          price: item.price,
+          subtotal: item.price * item.quantity,
+        })),
+        subtotal,
+        discount: 0,
+        total,
+        paymentMethod,
+      };
+
+      await SalesService.createSale(saleData);
+
+      if (onProcessSale) {
+        onProcessSale(saleData);
+      } else {
+        setInternalCartItems([]);
+        setSelectedClient(null);
+        setPaymentMethod('cash');
+      }
+
+      alert('¡Venta procesada exitosamente!');
+    } catch (error: any) {
+      console.error('Error al procesar venta:', error);
+      alert(error.message || 'Error al procesar la venta');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCancel = () => {
@@ -109,8 +132,8 @@ function SalesCart({
       onCancel();
     } else {
       setInternalCartItems([]);
-      setCustomerName('');
-      setPaymentMethod('efectivo');
+      setSelectedClient(null);
+      setPaymentMethod('cash');
     }
   };
 
@@ -134,13 +157,7 @@ function SalesCart({
 
         <div className='sales-cart__content'>
           <div className='sales-cart__section'>
-            <Input
-              label='Cliente (opcional)'
-              placeholder='Nombre del cliente'
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              disabled={isProcessing}
-            />
+            <ClientSelector onSelectClient={setSelectedClient} selectedClient={selectedClient} />
           </div>
 
           <div className='sales-cart__section'>
@@ -203,7 +220,7 @@ function SalesCart({
                 fullWidth
                 onClick={handleProcessSale}
                 loading={isProcessing}
-                disabled={currentCartItems.length === 0}
+                disabled={currentCartItems.length === 0 || !selectedClient}
                 className='sales-cart__process-btn'
               >
                 {isProcessing ? 'Procesando...' : 'Procesar Venta'}
