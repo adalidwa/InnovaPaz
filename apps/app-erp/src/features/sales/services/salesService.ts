@@ -110,6 +110,31 @@ export class SalesService {
     await ApiService.put(`/clients/empresa/${empresaId}/${id}/activate`, {});
   }
 
+  // ==================== CATEGORÍAS ====================
+
+  static async getAllCategories(): Promise<any[]> {
+    const response = await ApiService.get<ApiResponse<any[]>>(`/categories`);
+    return response.data || [];
+  }
+
+  static async createCategory(categoryData: any): Promise<any> {
+    const response = await ApiService.post<ApiResponse<any>>(`/categories`, categoryData);
+    return response.data;
+  }
+
+  static async updateCategory(id: number, categoryData: any): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(`/categories/${id}`, categoryData);
+    return response.data;
+  }
+
+  static async activateCategory(id: number): Promise<void> {
+    await ApiService.put(`/categories/${id}/activate`, {});
+  }
+
+  static async deactivateCategory(id: number): Promise<void> {
+    await ApiService.delete(`/categories/${id}`);
+  }
+
   // ==================== PRODUCTOS ====================
 
   static async getAllProducts(): Promise<Product[]> {
@@ -435,6 +460,7 @@ export class SalesService {
       creditLimit: parseFloat(data.limite_credito) || 0,
       currentDebt: parseFloat(data.deuda_actual) || 0,
       lastPurchase: data.ultima_compra || '',
+      categoryName: data.categoria_nombre || 'Sin categoría',
     };
   }
 

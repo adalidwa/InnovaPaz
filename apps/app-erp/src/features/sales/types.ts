@@ -7,6 +7,7 @@ export type Client = {
   nit: string;
   address: string;
   type: 'regular' | 'corporate' | 'wholesale';
+  categoryName?: string;
   creditLimit: number;
   currentDebt: number;
   lastPurchase: string;

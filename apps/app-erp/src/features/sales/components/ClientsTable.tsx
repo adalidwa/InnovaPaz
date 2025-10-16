@@ -1,6 +1,7 @@
 import { useClients } from '../hooks/hooks';
 import { ClientModal } from './ClientModal';
 import { ManageClientsModal } from './ManageClientsModal';
+import { ManageCategoriesModal } from './ManageCategoriesModal';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
@@ -86,27 +87,18 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
     handleCloseClientModal();
   };
 
-  const renderCategoryTag = (type: string) => {
-    const getCategoryClass = (t: string) => {
-      switch (t) {
-        case 'corporate':
-          return 'clients-table__category clients-table__category--vip';
-        case 'wholesale':
-          return 'clients-table__category clients-table__category--wholesale';
-        case 'regular':
-          return 'clients-table__category clients-table__category--retail';
-        default:
-          return 'clients-table__category';
-      }
-    };
+  const renderCategoryTag = (categoryName: string) => {
+    let categoryClass = 'clients-table__category';
 
-    const categoryLabels: Record<string, string> = {
-      corporate: 'Cliente VIP',
-      wholesale: 'Mayorista',
-      regular: 'Minorista',
-    };
+    if (categoryName?.toLowerCase().includes('vip')) {
+      categoryClass += ' clients-table__category--vip';
+    } else if (categoryName?.toLowerCase().includes('mayorista')) {
+      categoryClass += ' clients-table__category--wholesale';
+    } else {
+      categoryClass += ' clients-table__category--retail';
+    }
 
-    return <span className={getCategoryClass(type)}>{categoryLabels[type] || type}</span>;
+    return <span className={categoryClass}>{categoryName || 'Sin categoría'}</span>;
   };
 
   const columns: TableColumn<Client>[] = [
@@ -131,7 +123,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
       className: 'clients-table__nit-cell',
     },
     {
-      key: 'type',
+      key: 'categoryName',
       header: 'Categoría',
       render: (value) => renderCategoryTag(value as string),
       className: 'clients-table__category-cell',
@@ -282,15 +274,12 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
       />
 
       {/* Categories Management Modal */}
-      <Modal
+      <ManageCategoriesModal
         isOpen={isCategoriesModalOpen}
         onClose={handleCloseCategoriesModal}
-        title='Gestión de Categorías'
-        message='Funcionalidad de gestión de categorías en desarrollo...'
-        modalType='info'
-        confirmButtonText='Entendido'
-        size='medium'
-        showCancelButton={false}
+        onCategoryChanged={() => {
+          /* Recargar si es necesario */
+        }}
       />
     </>
   );

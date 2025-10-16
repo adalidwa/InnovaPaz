@@ -7,6 +7,7 @@ const taskRoutes = require('./routes/task.routes');
 const inventoryRoutes = require('./routes/inventories.routes');
 const catalogRoutes = require('./routes/catalog.routes');
 const clientsRoutes = require('./routes/clients.routes');
+const categoriesRoutes = require('./routes/categories.routes');
 const salesRoutes = require('./routes/sales.routes');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(taskRoutes);
 app.use('/api', inventoryRoutes);
 app.use('/api', catalogRoutes);
 app.use('/api/clients', clientsRoutes);
+app.use('/api/categories', categoriesRoutes);
 app.use('/api/sales', salesRoutes);
 
 app.use((err, req, res, next) => {
