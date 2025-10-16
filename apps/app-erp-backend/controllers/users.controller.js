@@ -3,6 +3,7 @@ const Company = require('../models/company.model');
 const Role = require('../models/role.model');
 const { firebaseAuth } = require('../utils/firebaseAdmin');
 const cloudinary = require('../utils/cloudinaryConfig');
+const { checkPlanLimits } = require('../middleware/planValidation');
 const fs = require('fs');
 
 async function getUsersByCompany(req, res) {
