@@ -113,26 +113,29 @@ export class SalesService {
   // ==================== CATEGORÍAS ====================
 
   static async getAllCategories(): Promise<any[]> {
-    const response = await ApiService.get<ApiResponse<any[]>>(`/categories`);
+    const response = await ApiService.get<ApiResponse<any[]>>(`/client-categories`);
     return response.data || [];
   }
 
   static async createCategory(categoryData: any): Promise<any> {
-    const response = await ApiService.post<ApiResponse<any>>(`/categories`, categoryData);
+    const response = await ApiService.post<ApiResponse<any>>(`/client-categories`, categoryData);
     return response.data;
   }
 
   static async updateCategory(id: number, categoryData: any): Promise<any> {
-    const response = await ApiService.put<ApiResponse<any>>(`/categories/${id}`, categoryData);
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/client-categories/${id}`,
+      categoryData
+    );
     return response.data;
   }
 
   static async activateCategory(id: number): Promise<void> {
-    await ApiService.put(`/categories/${id}/activate`, {});
+    await ApiService.put(`/client-categories/${id}/activate`, {});
   }
 
   static async deactivateCategory(id: number): Promise<void> {
-    await ApiService.delete(`/categories/${id}`);
+    await ApiService.delete(`/client-categories/${id}`);
   }
 
   // ==================== PRODUCTOS ====================

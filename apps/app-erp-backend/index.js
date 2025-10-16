@@ -26,7 +26,7 @@ app.use(taskRoutes);
 app.use('/api', inventoryRoutes);
 app.use('/api', catalogRoutes);
 app.use('/api/clients', clientsRoutes);
-app.use('/api/categories', categoriesRoutes);
+app.use('/api/client-categories', categoriesRoutes);
 app.use('/api/sales', salesRoutes);
 
 app.use((err, req, res, next) => {
