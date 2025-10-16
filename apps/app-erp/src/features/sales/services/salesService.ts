@@ -99,6 +99,17 @@ export class SalesService {
     await ApiService.delete(`/clients/empresa/${empresaId}/${id}`);
   }
 
+  static async getAllClientsWithInactive(): Promise<any[]> {
+    const empresaId = this.getEmpresaId();
+    const response = await ApiService.get<ApiResponse<any[]>>(`/clients/empresa/${empresaId}/all`);
+    return response.data;
+  }
+
+  static async activateClient(id: number): Promise<void> {
+    const empresaId = this.getEmpresaId();
+    await ApiService.put(`/clients/empresa/${empresaId}/${id}/activate`, {});
+  }
+
   // ==================== PRODUCTOS ====================
 
   static async getAllProducts(): Promise<Product[]> {

@@ -156,3 +156,65 @@ module.exports = {
   updateClient,
   deleteClient,
 };
+
+// Obtener todos los clientes (incluye inactivos)
+const getAllClientsIncludingInactive = async (req, res) => {
+  try {
+    const { empresaId } = req.params;
+    const { search } = req.query;
+
+    const clients = await ClientModel.findAllByEmpresa(empresaId, search);
+
+    res.status(200).json({
+      success: true,
+      data: clients,
+      count: clients.length,
+    });
+  } catch (error) {
+    console.error('Error al obtener todos los clientes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener clientes',
+      error: error.message,
+    });
+  }
+};
+
+// Activar cliente
+const activateClient = async (req, res) => {
+  try {
+    const { empresaId, clienteId } = req.params;
+
+    const activatedClient = await ClientModel.activate(clienteId, empresaId);
+
+    if (!activatedClient) {
+      return res.status(404).json({
+        success: false,
+        message: 'Cliente no encontrado',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Cliente activado exitosamente',
+      data: activatedClient,
+    });
+  } catch (error) {
+    console.error('Error al activar cliente:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al activar cliente',
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  getAllClients,
+  getClientById,
+  createClient,
+  updateClient,
+  deleteClient,
+  getAllClientsIncludingInactive,
+  activateClient,
+};

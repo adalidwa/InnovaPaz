@@ -156,6 +156,44 @@ class ClientModel {
       [amount, clienteId]
     );
   }
+
+  // Obtener todos los clientes (incluye inactivos)
+  static async findAllByEmpresa(empresaId, searchTerm = null) {
+    let query = `
+      SELECT c.*, cc.nombre as categoria_nombre
+      FROM clientes c
+      LEFT JOIN categorias_cliente cc ON c.categoria_cliente_id = cc.categoria_cliente_id
+      WHERE c.empresa_id = $1
+    `;
+
+    const params = [empresaId];
+
+    if (searchTerm) {
+      query += ` AND (
+        c.nombre ILIKE $2 OR 
+        c.email ILIKE $2 OR 
+        c.nit_ci ILIKE $2 OR 
+        c.telefono ILIKE $2
+      )`;
+      params.push(`%${searchTerm}%`);
+    }
+
+    query += ` ORDER BY c.estado DESC, c.fecha_registro DESC`;
+
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  // Activar cliente
+  static async activate(clienteId, empresaId) {
+    const result = await pool.query(
+      `UPDATE clientes SET estado = 'activo'
+       WHERE cliente_id = $1 AND empresa_id = $2
+       RETURNING *`,
+      [clienteId, empresaId]
+    );
+    return result.rows[0];
+  }
 }
 
 module.exports = ClientModel;

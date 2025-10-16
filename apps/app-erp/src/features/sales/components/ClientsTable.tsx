@@ -1,5 +1,6 @@
 import { useClients } from '../hooks/hooks';
 import { ClientModal } from './ClientModal';
+import { ManageClientsModal } from './ManageClientsModal';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
@@ -21,6 +22,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [isManageClientsModalOpen, setIsManageClientsModalOpen] = useState(false);
 
   const handleEditClient = (client: Client) => {
     setSelectedClient(client);
@@ -51,12 +53,16 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
   };
 
   const handleAddNewClient = () => {
-    if (onAddClient) {
-      onAddClient();
-    } else {
-      setSelectedClient(null);
-      setIsClientModalOpen(true);
-    }
+    setSelectedClient(null);
+    setIsClientModalOpen(true);
+  };
+
+  const handleOpenManageClients = () => {
+    setIsManageClientsModalOpen(true);
+  };
+
+  const handleCloseManageClients = () => {
+    setIsManageClientsModalOpen(false);
   };
 
   const handleManageCategories = () => {
@@ -184,7 +190,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
                 <Button
                   variant='primary'
                   size='medium'
-                  onClick={handleAddNewClient}
+                  onClick={handleOpenManageClients}
                   icon={
                     <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
                       <path d='M16 4C18.21 4 20 5.79 20 8S18.21 12 16 12 12 10.21 12 8 13.79 4 16 4M16 14C20.42 14 24 15.79 24 18V20H8V18C8 15.79 11.58 14 16 14M6 6H2V4H6V6M6 10H2V8H6V10M6 14H2V12H6V14Z' />
@@ -264,6 +270,15 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
         confirmButtonText='Sí, Desactivar'
         cancelButtonText='Cancelar'
         size='medium'
+      />
+
+      {/* Manage Clients Modal */}
+      <ManageClientsModal
+        isOpen={isManageClientsModalOpen}
+        onClose={handleCloseManageClients}
+        onClientStatusChanged={() => {
+          /* Recargar lista de clientes activos */
+        }}
       />
 
       {/* Categories Management Modal */}
