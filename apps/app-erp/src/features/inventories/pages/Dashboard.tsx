@@ -153,9 +153,6 @@ const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) =>
       <ProductsHeader
         title='Dashboard de Inventario'
         subtitle={`Resumen general de tu ${businessType === 'ferreteria' ? 'ferretería' : businessType === 'licoreria' ? 'licorería' : 'minimarket'}`}
-        buttonText='Generar reporte'
-        buttonVariant='primary'
-        hasIcon={false}
       />
       <SummaryCardsRow />
       <div className='dashboard-row'>

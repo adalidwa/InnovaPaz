@@ -5,6 +5,7 @@ import SalesRoutes from './sales/SalesRoutes';
 import ReportsRoutes from './reports/ReportsRoutes';
 import UserRoutes from './users/UserRoutes';
 import Dashboard from '../features/inventories/pages/Dashboard';
+import { ProductsProvider } from '../features/inventories/context/ProductsContext';
 
 const AppRoutes = () => (
   <Routes>
@@ -13,7 +14,14 @@ const AppRoutes = () => (
     <Route path='/productos/*' element={<ProductManagementRoutes />} />
     <Route path='/reportes/*' element={<ReportsRoutes />} />
     <Route path='/configuracion/*' element={<UserRoutes />} />
-    <Route path='/dashboard' element={<Dashboard />} />
+    <Route
+      path='/dashboard'
+      element={
+        <ProductsProvider>
+          <Dashboard />
+        </ProductsProvider>
+      }
+    />
     <Route path='/ventas/*' element={<SalesRoutes />} />
   </Routes>
 );
