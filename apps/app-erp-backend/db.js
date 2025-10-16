@@ -1,8 +1,19 @@
 const { Pool } = require('pg');
 const { db, env } = require('./config');
 
+// 🔍 DEBUG: Ver qué valores estamos recibiendo
+console.log('🔍 Configuración de DB:', {
+  host: db.host,
+  port: db.port,
+  database: db.database,
+  user: db.user,
+  password: db.password ? '***' : 'undefined',
+});
+
 // Habilitar SSL para conexiones de Render
 const needsSsl = db.host && db.host.includes('render.com');
+console.log('🔍 ¿Necesita SSL?:', needsSsl);
+
 const sslConfig = needsSsl ? { ssl: { rejectUnauthorized: false } } : {};
 
 const pool = new Pool({
