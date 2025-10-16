@@ -1,7 +1,9 @@
 const { Pool } = require('pg');
 const { db, env } = require('./config');
 
-const sslConfig = env === 'production' ? { ssl: { rejectUnauthorized: false } } : {};
+// Habilitar SSL para conexiones de Render
+const needsSsl = db.host && db.host.includes('render.com');
+const sslConfig = needsSsl ? { ssl: { rejectUnauthorized: false } } : {};
 
 const pool = new Pool({
   user: db.user,
