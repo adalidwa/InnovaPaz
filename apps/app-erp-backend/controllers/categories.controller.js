@@ -4,6 +4,7 @@ const CategoryModel = require('../models/category.model');
 const getAllCategories = async (req, res) => {
   try {
     const categories = await CategoryModel.findAll();
+    console.log('📦 Categorías obtenidas:', categories);
 
     res.status(200).json({
       success: true,
