@@ -181,7 +181,7 @@ const LoginPage: React.FC = () => {
                   onClick={() => redirectToMarketing('/')}
                   className='register-link'
                 >
-                  Registrarme en el sitio web
+                  Registrarte en el sitio web
                 </button>
               )}
             </div>
@@ -201,7 +201,7 @@ const LoginPage: React.FC = () => {
         <div className='login-footer'>
           <p>¿No tienes cuenta empresarial?</p>
           <button onClick={handleRegisterRedirect} className='register-button'>
-            Registrarme en el sitio web
+            Registrate en el sitio web
           </button>
         </div>
       </div>
