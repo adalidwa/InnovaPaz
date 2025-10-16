@@ -3,7 +3,7 @@ import type { Product, ProductLegacy, CreateProductRequest } from '../types/inve
 import { productService } from '../services/productService';
 
 // Empresa ID de prueba - puedes cambiar esto por el ID de tu empresa
-const EMPRESA_ID = '93d5a3c0-a091-40ab-97de-e26a285c7318';
+const EMPRESA_ID = '6b838f74-c3ee-4195-8218-c501a81e0849';
 
 export interface ProductFormData {
   id?: string; // ID del producto para edición

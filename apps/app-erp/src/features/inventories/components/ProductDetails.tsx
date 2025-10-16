@@ -75,12 +75,6 @@ function ProductDetails({ product }: ProductDetailsProps) {
           )}
         </div>
       </div>
-
-      {product.image && (
-        <div className='product-image-section'>
-          <img src={product.image} alt={product.name} className='product-image' />
-        </div>
-      )}
     </div>
   );
 }
