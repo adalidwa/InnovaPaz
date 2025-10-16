@@ -11,19 +11,11 @@ import { useUser } from './features/users/hooks/useContextBase';
 function App() {
   const location = useLocation();
   const { user, loading } = useUser();
-  // Solo tomamos empresaId si el usuario está logueado y tiene empresa_id
   const empresaId = user?.empresa_id || '';
 
-  // Detectar si estamos en la ruta de login
   const isLoginRoute = useMemo(() => location.pathname === '/login', [location.pathname]);
 
-  const getCurrentModule = (): string => {
-    const path = location.pathname;
-    if (path.startsWith('/ventas')) return 'ventas';
-    return 'inventario';
-  };
-
-  const currentModule = getCurrentModule();
+  const currentModule = 'dashboard';
   const sidebarConfig = getSidebarConfig(currentModule);
   const subtitle = 'Ferretería';
 
