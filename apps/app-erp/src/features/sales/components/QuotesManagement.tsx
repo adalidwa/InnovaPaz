@@ -4,6 +4,7 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import QuoteCard from './QuoteCard';
 import SalesService from '../services/salesService';
 import NewQuoteModal from './NewQuoteModal';
+import QuoteDetailsModal from './QuoteDetailsModal';
 import './QuotesManagement.css';
 
 export interface Quote {
@@ -50,6 +51,8 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Obtener empresaId del localStorage
   const empresaId = localStorage.getItem('empresaId') || '5dc644b0-3ce9-4c41-a83d-c7da2962214d';
@@ -133,8 +136,8 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
   };
 
   const handleViewDetails = (quote: Quote) => {
-    console.log('Viendo detalles:', quote.quoteNumber);
-    // Aquí puedes implementar navegación a una página de detalles
+    setSelectedQuoteId(quote.id);
+    setIsDetailsModalOpen(true);
   };
 
   const filteredQuotes = quotes.filter((quote) => {
@@ -272,6 +275,17 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
         onClose={() => setIsModalOpen(false)}
         onSuccess={loadQuotes}
       />
+
+      {isDetailsModalOpen && selectedQuoteId && (
+        <QuoteDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedQuoteId(null);
+          }}
+          quoteId={selectedQuoteId}
+        />
+      )}
     </div>
   );
 }

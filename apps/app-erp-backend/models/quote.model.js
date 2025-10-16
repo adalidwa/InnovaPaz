@@ -56,7 +56,7 @@ class QuoteModel {
     const result = await pool.query(
       `SELECT 
         dc.*,
-        p.nombre AS producto_nombre,
+        p.nombre_producto AS producto_nombre,
         p.codigo AS producto_codigo
        FROM detalle_cotizacion dc
        INNER JOIN producto p ON dc.producto_id = p.producto_id
