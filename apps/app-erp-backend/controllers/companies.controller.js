@@ -237,24 +237,64 @@ async function deleteCompany(req, res) {
 async function changePlan(req, res) {
   try {
     const { planId } = req.body;
-    const empresa = await Company.findByIdAndUpdate(req.params.empresa_id, { plan_id: planId });
-    if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada.' });
-    res.json({ mensaje: 'Plan cambiado correctamente.', empresa });
+
+    // ===== VALIDACIONES =====
+    if (!planId) {
+      return res.status(400).json({ error: 'El campo planId es requerido.' });
+    }
+
+    // Validar que el plan exista
+    const Plan = require('../models/plan.model');
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({ error: `Plan con ID ${planId} no encontrado.` });
+    }
+
+    // Validar que la empresa exista
+    const empresa = await Company.findById(req.params.empresa_id);
+    if (!empresa) {
+      return res.status(404).json({ error: 'Empresa no encontrada.' });
+    }
+
+    const empresaActualizada = await Company.findByIdAndUpdate(req.params.empresa_id, {
+      plan_id: planId,
+    });
+    res.json({ mensaje: 'Plan cambiado correctamente.', empresa: empresaActualizada });
   } catch (err) {
-    res.status(400).json({ error: 'Error al cambiar el plan de la empresa.' });
+    console.error('Error al cambiar plan:', err);
+    res
+      .status(400)
+      .json({ error: 'Error al cambiar el plan de la empresa.', details: err.message });
   }
 }
 
 async function updateSubscriptionStatus(req, res) {
   try {
     const { status } = req.body;
+
+    // ===== VALIDACIONES =====
+    if (!status) {
+      return res.status(400).json({ error: 'El campo status es requerido.' });
+    }
+
+    // Validar valores de estado de suscripción
+    const estadosValidos = ['en_prueba', 'activa', 'expirada', 'cancelada', 'suspendida'];
+    if (!estadosValidos.includes(status)) {
+      return res.status(400).json({
+        error: `Estado de suscripción no válido. Valores permitidos: ${estadosValidos.join(', ')}`,
+      });
+    }
+
     const empresa = await Company.findByIdAndUpdate(req.params.empresa_id, {
       estado_suscripcion: status,
     });
     if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada.' });
     res.json({ mensaje: 'Estado de suscripción actualizado.', empresa });
   } catch (err) {
-    res.status(400).json({ error: 'Error al actualizar el estado de suscripción.' });
+    console.error('Error al actualizar estado de suscripción:', err);
+    res
+      .status(400)
+      .json({ error: 'Error al actualizar el estado de suscripción.', details: err.message });
   }
 }
 

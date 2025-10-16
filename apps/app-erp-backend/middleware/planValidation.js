@@ -150,19 +150,34 @@ async function checkSpecificPermission(plan, permission, empresaId) {
   switch (permission) {
     case 'create_user':
       const currentUsers = await User.find({ empresa_id: empresaId });
-      if (limits.max_usuarios !== -1 && currentUsers.length >= limits.max_usuarios) {
+      const maxUsuarios = limits.max_usuarios || 2;
+      if (maxUsuarios !== -1 && currentUsers.length >= maxUsuarios) {
         return {
           allowed: false,
-          reason: `Has alcanzado el límite de usuarios (${limits.max_usuarios}) para tu plan ${plan.nombre_plan}`,
+          reason: `Has alcanzado el límite de usuarios (${maxUsuarios}) para tu plan ${plan.nombre_plan}`,
           current: currentUsers.length,
-          limit: limits.max_usuarios,
+          limit: maxUsuarios,
+        };
+      }
+      break;
+
+    case 'create_role':
+      const Role = require('../models/role.model');
+      const currentRoles = await Role.find({ empresa_id: empresaId });
+      const maxRoles = limits.max_roles || 2;
+      if (maxRoles !== -1 && currentRoles.length >= maxRoles) {
+        return {
+          allowed: false,
+          reason: `Has alcanzado el límite de roles (${maxRoles}) para tu plan ${plan.nombre_plan}`,
+          current: currentRoles.length,
+          limit: maxRoles,
         };
       }
       break;
 
     case 'access_module':
       const module = permission.split(':')[1]; // ej: "access_module:reportes"
-      if (module && !limits.modulos.includes(module)) {
+      if (module && limits.modulos && !limits.modulos.includes(module)) {
         return {
           allowed: false,
           reason: `El módulo ${module} no está disponible en tu plan ${plan.nombre_plan}`,
@@ -185,6 +200,15 @@ async function checkSpecificPermission(plan, permission, empresaId) {
         return {
           allowed: false,
           reason: `Las integraciones API no están disponibles en tu plan ${plan.nombre_plan}`,
+        };
+      }
+      break;
+
+    case 'export_data':
+      if (!limits.features?.exportacion) {
+        return {
+          allowed: false,
+          reason: `La exportación de datos no está disponible en tu plan ${plan.nombre_plan}`,
         };
       }
       break;
@@ -239,6 +263,7 @@ async function getUsageInfo(empresaId) {
         precio: plan.precio_mensual,
         features: limits.features || {},
         modulos: limits.modulos || [],
+        soporte: limits.soporte || {},
       },
       subscription: await checkSubscriptionStatus(empresa),
     };
@@ -247,7 +272,13 @@ async function getUsageInfo(empresaId) {
     // Retornar datos por defecto en caso de error
     return {
       usuarios: { current: 1, limit: 2, percentage: 50 },
-      plan: { nombre: 'Plan Básico', precio: 10, features: {}, modulos: [] },
+      plan: {
+        nombre: 'Plan Básico',
+        precio: 10,
+        features: {},
+        modulos: [],
+        soporte: {},
+      },
       subscription: { isActive: false, status: 'error', message: 'Error al obtener información' },
     };
   }
