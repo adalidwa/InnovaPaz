@@ -8,6 +8,7 @@ const inventoryRoutes = require('./routes/inventories.routes');
 const catalogRoutes = require('./routes/catalog.routes');
 const clientsRoutes = require('./routes/clients.routes');
 const categoriesRoutes = require('./routes/categories.routes');
+const quotesRoutes = require('./routes/quotes.routes');
 const salesRoutes = require('./routes/sales.routes');
 
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api', catalogRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/client-categories', categoriesRoutes);
 app.use('/api/sales', salesRoutes);
+app.use('/api/quotes', quotesRoutes);
 
 app.use((err, req, res, next) => {
   return res.json({

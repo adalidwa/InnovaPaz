@@ -540,6 +540,67 @@ export class SalesService {
   private static mapSalesFromBackend(data: any[]): Sale[] {
     return data.map((item) => this.mapSaleFromBackend(item));
   }
+
+  // ==================== COTIZACIONES API ====================
+
+  static async getAllQuotes(empresaId: string): Promise<any[]> {
+    const response = await ApiService.get<ApiResponse<any[]>>(`/quotes?empresaId=${empresaId}`);
+    return response.data || [];
+  }
+
+  static async getQuoteById(quoteId: number, empresaId: string): Promise<any> {
+    const response = await ApiService.get<ApiResponse<any>>(
+      `/quotes/${quoteId}?empresaId=${empresaId}`
+    );
+    return response.data;
+  }
+
+  static async createQuote(quoteData: any, empresaId: string): Promise<any> {
+    const response = await ApiService.post<ApiResponse<any>>(
+      `/quotes?empresaId=${empresaId}`,
+      quoteData
+    );
+    return response.data;
+  }
+
+  static async updateQuote(quoteId: number, quoteData: any, empresaId: string): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/quotes/${quoteId}?empresaId=${empresaId}`,
+      quoteData
+    );
+    return response.data;
+  }
+
+  static async updateQuoteStatus(
+    quoteId: number,
+    estadoId: number,
+    empresaId: string
+  ): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/quotes/${quoteId}/status?empresaId=${empresaId}`,
+      { estadoId }
+    );
+    return response.data;
+  }
+
+  static async convertQuoteToOrder(quoteId: number, empresaId: string): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/quotes/${quoteId}/convert?empresaId=${empresaId}`,
+      {}
+    );
+    return response.data;
+  }
+
+  static async deleteQuote(quoteId: number, empresaId: string): Promise<void> {
+    await ApiService.delete(`/quotes/${quoteId}?empresaId=${empresaId}`);
+  }
+
+  static async generateQuoteNumber(empresaId: string): Promise<string> {
+    const response = await ApiService.get<ApiResponse<{ numero_cotizacion: string }>>(
+      `/quotes/generate-number?empresaId=${empresaId}`
+    );
+    return response.data.numero_cotizacion;
+  }
 }
 
 export default SalesService;
