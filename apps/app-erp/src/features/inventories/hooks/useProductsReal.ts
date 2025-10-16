@@ -1,9 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { Product, ProductLegacy, CreateProductRequest } from '../types/inventory';
 import { productService } from '../services/productService';
-
-// Empresa ID de prueba - puedes cambiar esto por el ID de tu empresa
-const EMPRESA_ID = '0f27a6ee-a329-4555-8dff-076fc7c02306';
+import { useUser } from '../../users/hooks/useContextBase';
 
 export interface ProductFormData {
   id?: string; // ID del producto para edición
@@ -24,6 +22,7 @@ export interface ProductFormData {
 }
 
 export const useProducts = () => {
+  const { user } = useUser(); // Obtener usuario logueado
   const [allProducts, setAllProducts] = useState<ProductLegacy[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,11 +44,16 @@ export const useProducts = () => {
 
   // Cargar productos del backend
   const loadProducts = useCallback(async () => {
+    // No cargar productos si no hay usuario logueado
+    if (!user?.empresa_id) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const backendProducts = await productService.getAllProducts(EMPRESA_ID);
+      const backendProducts = await productService.getAllProducts(user.empresa_id);
       const legacyProducts = backendProducts.map(convertToLegacyProduct);
 
       setAllProducts(legacyProducts);
@@ -60,7 +64,7 @@ export const useProducts = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.empresa_id]);
 
   // Cargar productos al montar el componente
   useEffect(() => {
@@ -69,6 +73,11 @@ export const useProducts = () => {
 
   const addProduct = useCallback(
     async (productData: ProductFormData) => {
+      // Verificar que el usuario esté logueado
+      if (!user?.empresa_id) {
+        return { success: false, error: 'Usuario no autenticado' };
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -81,7 +90,7 @@ export const useProducts = () => {
           precio_venta: productData.price,
           precio_costo: productData.cost,
           stock: productData.stock,
-          empresa_id: EMPRESA_ID,
+          empresa_id: user.empresa_id,
           categoria_id: productData.category ? parseInt(productData.category) : undefined,
           marca_id: productData.brand ? parseInt(productData.brand) : undefined,
           estado_id: 1, // Por defecto activo
@@ -105,7 +114,7 @@ export const useProducts = () => {
         setLoading(false);
       }
     },
-    [loadProducts]
+    [loadProducts, user?.empresa_id]
   );
 
   const updateProduct = useCallback(
