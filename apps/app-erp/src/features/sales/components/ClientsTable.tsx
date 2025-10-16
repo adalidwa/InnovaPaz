@@ -1,64 +1,34 @@
-import { useState } from 'react';
+import { useClients } from '../hooks/hooks';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Modal from '../../../components/common/Modal';
 import './ClientsTable.css';
-
-export interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  nit_ci: string;
-  category: 'Mayorista' | 'Cliente VIP' | 'Minorista';
-}
+import { useState } from 'react';
 
 interface ClientsTableProps {
   onAddClient?: () => void;
   onManageCategories?: () => void;
 }
 
-// Datos de ejemplo basados en la imagen
-const mockClients: Client[] = [
-  {
-    id: '1',
-    name: 'Juan Pérez',
-    email: 'juan@email.com',
-    phone: '70123456',
-    nit_ci: '123456789',
-    category: 'Mayorista',
-  },
-  {
-    id: '2',
-    name: 'María García',
-    email: 'maria@email.com',
-    phone: '71234567',
-    nit_ci: '987654321',
-    category: 'Cliente VIP',
-  },
-  {
-    id: '3',
-    name: 'Pedro López',
-    email: 'pedro@email.com',
-    phone: '72345678',
-    nit_ci: '456789123',
-    category: 'Minorista',
-  },
-];
-
 function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const { currentClients, loading, deleteClient } = useClients();
+
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
 
-  const handleEditClient = (client: Client) => {
+  const handleEditClient = (client: any) => {
     console.log('Editando cliente:', client);
+    // TODO: Implementar edición de cliente
   };
 
-  const handleDeleteClient = (client: Client) => {
+  const handleDeleteClient = async (client: any) => {
     if (window.confirm(`¿Está seguro de eliminar al cliente ${client.name}?`)) {
-      setClients(clients.filter((c) => c.id !== client.id));
+      try {
+        await deleteClient(client.id);
+      } catch (error) {
+        alert('Error al eliminar cliente');
+      }
     }
   };
 
@@ -86,24 +56,30 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
     setIsCategoriesModalOpen(false);
   };
 
-  const renderCategoryTag = (category: Client['category']) => {
-    const getCategoryClass = (cat: string) => {
-      switch (cat) {
-        case 'Cliente VIP':
+  const renderCategoryTag = (type: string) => {
+    const getCategoryClass = (t: string) => {
+      switch (t) {
+        case 'corporate':
           return 'clients-table__category clients-table__category--vip';
-        case 'Mayorista':
+        case 'wholesale':
           return 'clients-table__category clients-table__category--wholesale';
-        case 'Minorista':
+        case 'regular':
           return 'clients-table__category clients-table__category--retail';
         default:
           return 'clients-table__category';
       }
     };
 
-    return <span className={getCategoryClass(category)}>{category}</span>;
+    const categoryLabels: Record<string, string> = {
+      corporate: 'Cliente VIP',
+      wholesale: 'Mayorista',
+      regular: 'Minorista',
+    };
+
+    return <span className={getCategoryClass(type)}>{categoryLabels[type] || type}</span>;
   };
 
-  const columns: TableColumn<Client>[] = [
+  const columns: TableColumn<any>[] = [
     {
       key: 'name',
       header: 'Nombre',
@@ -120,25 +96,38 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
       className: 'clients-table__phone-cell',
     },
     {
-      key: 'nit_ci',
+      key: 'nit',
       header: 'NIT/CI',
       className: 'clients-table__nit-cell',
     },
     {
-      key: 'category',
+      key: 'type',
       header: 'Categoría',
       render: (value) => renderCategoryTag(value),
       className: 'clients-table__category-cell',
     },
   ];
 
-  const actions: TableAction<Client>[] = [
+  const actions: TableAction<any>[] = [
     {
       label: 'Editar',
       onClick: handleEditClient,
       variant: 'primary',
     },
+    {
+      label: 'Eliminar',
+      onClick: handleDeleteClient,
+      variant: 'danger',
+    },
   ];
+
+  if (loading) {
+    return (
+      <div className='clients-table'>
+        <div className='clients-table__loading'>Cargando clientes...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -222,7 +211,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
           {/* Table Section */}
           <div className='clients-table__content'>
             <Table
-              data={clients}
+              data={currentClients}
               columns={columns}
               actions={actions}
               className='clients-table__table'
