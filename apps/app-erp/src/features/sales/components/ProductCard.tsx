@@ -100,8 +100,8 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
 
   return (
     <>
-      <div className={`product-card ${className}`}>
-        <div className='product-card__header'>
+      <div className={`product-card-sales ${className}`}>
+        <div className='product-card-sales__header'>
           <StatusTag
             text={product.code}
             backgroundColor='var(--pri-100)'
@@ -110,7 +110,7 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
             height={24}
             radius={6}
             uppercase={true}
-            className='product-card__code-tag'
+            className='product-card-sales__code-tag'
           />
 
           <StatusTag
@@ -120,21 +120,21 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
             width='auto'
             height={24}
             radius={6}
-            className='product-card__stock-tag'
+            className='product-card-sales__stock-tag'
           />
         </div>
 
-        <div className='product-card__content'>
-          <h3 className='product-card__title'>{product.name}</h3>
-          <div className='product-card__price'>
+        <div className='product-card-sales__content'>
+          <h3 className='product-card-sales__title'>{product.name}</h3>
+          <div className='product-card-sales__price'>
             {product.currency || 'Bs.'} {product.price.toFixed(2)}
           </div>
         </div>
 
-        <div className='product-card__actions'>
+        <div className='product-card-sales__actions'>
           {showQuantityInput ? (
-            <div className='product-card__quantity-section'>
-              <div className='product-card__quantity-input'>
+            <div className='product-card-sales__quantity-section'>
+              <div className='product-card-sales__quantity-input'>
                 <Input
                   type='number'
                   value={quantity}
@@ -146,12 +146,12 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
                   autoFocus
                 />
               </div>
-              <div className='product-card__quantity-actions'>
+              <div className='product-card-sales__quantity-actions'>
                 <Button
                   variant='outline'
                   size='small'
                   onClick={handleCancel}
-                  className='product-card__cancel-btn'
+                  className='product-card-sales__cancel-btn'
                 >
                   Cancelar
                 </Button>
@@ -160,7 +160,7 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
                   size='small'
                   onClick={handleAddClick}
                   disabled={!quantity || parseInt(quantity, 10) <= 0}
-                  className='product-card__confirm-btn'
+                  className='product-card-sales__confirm-btn'
                 >
                   Agregar
                 </Button>
@@ -168,7 +168,7 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
             </div>
           ) : (
             <button
-              className='product-card__add-btn'
+              className='product-card-sales__add-btn'
               onClick={handleAddClick}
               disabled={product.stock === 0}
               aria-label={`Agregar ${product.name} al carrito`}

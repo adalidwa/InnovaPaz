@@ -15,7 +15,7 @@ function ProductCode({ code, className = '' }: ProductCodeProps) {
       height={24}
       radius={6}
       uppercase={true}
-      className={`product-card__code-tag ${className}`}
+      className={`product-card-sales__code-tag ${className}`}
     />
   );
 }

@@ -4,7 +4,7 @@
    ============================================ */
 
 /* Base Styles - Mobile First (320px+) */
-.product-card {
+.product-card-sales {
   background: var(--white);
   border: 1px solid var(--pri-100);
   border-radius: 12px;
@@ -23,13 +23,13 @@
   /* Remove overflow: hidden to allow natural growth */
 }
 
-.product-card:hover {
+.product-card-sales:hover {
   box-shadow: var(--card-hover-shadow);
   transform: translateY(-2px);
 }
 
 /* Header Section */
-.product-card__header {
+.product-card-sales__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -40,7 +40,7 @@
 }
 
 /* StatusTag customizations for ProductCard */
-.product-card__code-tag {
+.product-card-sales__code-tag {
   font-weight: 600;
   letter-spacing: 0.5px;
   max-width: 60%;
@@ -50,14 +50,14 @@
   white-space: nowrap;
 }
 
-.product-card__stock-tag {
+.product-card-sales__stock-tag {
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 /* Content Section */
-.product-card__content {
+.product-card-sales__content {
   flex-grow: 1;
   margin-bottom: 16px;
   display: flex;
@@ -65,7 +65,7 @@
   gap: 8px;
 }
 
-.product-card__title {
+.product-card-sales__title {
   font: var(--font-14);
   font-weight: 500;
   color: var(--pri-800);
@@ -82,7 +82,7 @@
   min-height: 2.8em;
 }
 
-.product-card__price {
+.product-card-sales__price {
   font: var(--font-16);
   font-weight: 700;
   color: var(--sec-700);
@@ -93,7 +93,7 @@
 }
 
 /* Actions Section */
-.product-card__actions {
+.product-card-sales__actions {
   display: flex;
   justify-content: flex-end;
   align-items: flex-start;
@@ -103,7 +103,7 @@
   width: 100%;
 }
 
-.product-card__add-btn {
+.product-card-sales__add-btn {
   background: var(--sec-700);
   color: var(--white);
   border: none;
@@ -119,24 +119,24 @@
   flex-shrink: 0;
 }
 
-.product-card__add-btn:hover:not(:disabled) {
+.product-card-sales__add-btn:hover:not(:disabled) {
   background: var(--sec-600);
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(42, 168, 161, 0.35);
 }
 
-.product-card__add-btn:active:not(:disabled) {
+.product-card-sales__add-btn:active:not(:disabled) {
   transform: scale(0.95);
 }
 
-.product-card__add-btn:disabled {
+.product-card-sales__add-btn:disabled {
   background: var(--pri-300);
   cursor: not-allowed;
   box-shadow: none;
 }
 
 /* Quantity Input Section */
-.product-card__quantity-section {
+.product-card-sales__quantity-section {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -144,15 +144,15 @@
   box-sizing: border-box;
 }
 
-.product-card__quantity-input {
+.product-card-sales__quantity-input {
   width: 100%;
 }
 
-.product-card__quantity-input .input-wrapper {
+.product-card-sales__quantity-input .input-wrapper {
   margin: 0;
 }
 
-.product-card__quantity-input .input {
+.product-card-sales__quantity-input .input {
   font: var(--font-14);
   padding: 10px 12px;
   border-radius: 6px;
@@ -162,7 +162,7 @@
   min-height: 40px;
 }
 
-.product-card__quantity-actions {
+.product-card-sales__quantity-actions {
   display: flex;
   gap: 10px;
   width: 100%;
@@ -171,8 +171,8 @@
 }
 
 /* Button styles that allow natural sizing */
-.product-card__quantity-actions .product-card__cancel-btn,
-.product-card__quantity-actions .product-card__confirm-btn {
+.product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+.product-card-sales__quantity-actions .product-card-sales__confirm-btn {
   flex: 1;
   min-width: 90px !important; /* Ensure minimum readable width */
   padding: 10px 12px !important;
@@ -191,31 +191,31 @@
 }
 
 /* Specific colors for cancel button */
-.product-card__quantity-actions .product-card__cancel-btn {
+.product-card-sales__quantity-actions .product-card-sales__cancel-btn {
   background-color: var(--pri-100) !important;
   color: var(--pri-700) !important;
   border: 1px solid var(--pri-200) !important;
 }
 
-.product-card__quantity-actions .product-card__cancel-btn:hover {
+.product-card-sales__quantity-actions .product-card-sales__cancel-btn:hover {
   background-color: var(--pri-200) !important;
   color: var(--pri-800) !important;
   border-color: var(--pri-300) !important;
 }
 
 /* Specific colors for confirm button */
-.product-card__quantity-actions .product-card__confirm-btn {
+.product-card-sales__quantity-actions .product-card-sales__confirm-btn {
   background-color: var(--sec-700) !important;
   color: var(--white) !important;
   border: 1px solid var(--sec-700) !important;
 }
 
-.product-card__quantity-actions .product-card__confirm-btn:hover {
+.product-card-sales__quantity-actions .product-card-sales__confirm-btn:hover {
   background-color: var(--sec-600) !important;
   border-color: var(--sec-600) !important;
 }
 
-.product-card__quantity-actions .product-card__confirm-btn:disabled {
+.product-card-sales__quantity-actions .product-card-sales__confirm-btn:disabled {
   background-color: var(--pri-300) !important;
   color: var(--pri-500) !important;
   border-color: var(--pri-300) !important;
@@ -228,35 +228,35 @@
 
 /* Small Mobile (375px+) */
 @media (min-width: 375px) {
-  .product-card {
+  .product-card-sales {
     padding: 18px;
     min-height: 220px;
   }
 
-  .product-card__content {
+  .product-card-sales__content {
     margin-bottom: 18px;
   }
 
-  .product-card__code-tag,
-  .product-card__stock-tag {
+  .product-card-sales__code-tag,
+  .product-card-sales__stock-tag {
     height: 26px;
   }
 
-  .product-card__title {
+  .product-card-sales__title {
     font: var(--font-15);
   }
 
-  .product-card__price {
+  .product-card-sales__price {
     font: var(--font-18);
   }
 
-  .product-card__add-btn {
+  .product-card-sales__add-btn {
     width: 38px;
     height: 38px;
   }
 
-  .product-card__quantity-actions .product-card__cancel-btn,
-  .product-card__quantity-actions .product-card__confirm-btn {
+  .product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+  .product-card-sales__quantity-actions .product-card-sales__confirm-btn {
     min-width: 95px !important;
     padding: 10px 14px !important;
     font-size: 12px !important;
@@ -266,35 +266,35 @@
 
 /* Large Mobile (425px+) */
 @media (min-width: 425px) {
-  .product-card {
+  .product-card-sales {
     padding: 20px;
     min-height: 240px;
   }
 
-  .product-card__header {
+  .product-card-sales__header {
     margin-bottom: 16px;
   }
 
-  .product-card__content {
+  .product-card-sales__content {
     margin-bottom: 20px;
     gap: 10px;
   }
 
-  .product-card__title {
+  .product-card-sales__title {
     font: var(--font-16);
   }
 
-  .product-card__price {
+  .product-card-sales__price {
     font: var(--font-20);
   }
 
-  .product-card__add-btn {
+  .product-card-sales__add-btn {
     width: 40px;
     height: 40px;
   }
 
-  .product-card__quantity-actions .product-card__cancel-btn,
-  .product-card__quantity-actions .product-card__confirm-btn {
+  .product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+  .product-card-sales__quantity-actions .product-card-sales__confirm-btn {
     min-width: 100px !important;
     padding: 11px 16px !important;
     font-size: 13px !important;
@@ -304,60 +304,60 @@
 
 /* Tablet (768px+) */
 @media (min-width: 768px) {
-  .product-card {
+  .product-card-sales {
     padding: 24px;
     min-height: 260px;
     border-radius: 16px;
   }
 
-  .product-card__header {
+  .product-card-sales__header {
     margin-bottom: 18px;
     min-height: 30px;
   }
 
-  .product-card__content {
+  .product-card-sales__content {
     margin-bottom: 24px;
     gap: 12px;
   }
 
-  .product-card__code-tag,
-  .product-card__stock-tag {
+  .product-card-sales__code-tag,
+  .product-card-sales__stock-tag {
     height: 28px;
   }
 
-  .product-card__title {
+  .product-card-sales__title {
     font: var(--font-16);
     line-height: 1.4;
     -webkit-line-clamp: 2;
   }
 
-  .product-card__price {
+  .product-card-sales__price {
     font: var(--font-22);
   }
 
-  .product-card__add-btn {
+  .product-card-sales__add-btn {
     width: 44px;
     height: 44px;
   }
 
-  .product-card__quantity-section {
+  .product-card-sales__quantity-section {
     flex-direction: row;
     align-items: flex-end;
     gap: 14px;
   }
 
-  .product-card__quantity-input {
+  .product-card-sales__quantity-input {
     flex: 0 0 90px;
     max-width: 90px;
   }
 
-  .product-card__quantity-actions {
+  .product-card-sales__quantity-actions {
     flex: 1;
     gap: 10px;
   }
 
-  .product-card__quantity-actions .product-card__cancel-btn,
-  .product-card__quantity-actions .product-card__confirm-btn {
+  .product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+  .product-card-sales__quantity-actions .product-card-sales__confirm-btn {
     flex: 1;
     min-width: 85px !important;
     padding: 9px 8px !important;
@@ -368,37 +368,37 @@
 
 /* Desktop (1024px+) */
 @media (min-width: 1024px) {
-  .product-card {
+  .product-card-sales {
     min-height: 280px;
   }
 
-  .product-card:hover {
+  .product-card-sales:hover {
     transform: translateY(-3px);
   }
 
-  .product-card__title {
+  .product-card-sales__title {
     font: var(--font-18);
   }
 
-  .product-card__price {
+  .product-card-sales__price {
     font: var(--font-25);
   }
 
-  .product-card__add-btn:hover:not(:disabled) {
+  .product-card-sales__add-btn:hover:not(:disabled) {
     transform: scale(1.08);
   }
 
-  .product-card__quantity-section {
+  .product-card-sales__quantity-section {
     gap: 16px;
   }
 
-  .product-card__quantity-input {
+  .product-card-sales__quantity-input {
     flex: 0 0 100px;
     max-width: 100px;
   }
 
-  .product-card__quantity-actions .product-card__cancel-btn,
-  .product-card__quantity-actions .product-card__confirm-btn {
+  .product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+  .product-card-sales__quantity-actions .product-card-sales__confirm-btn {
     min-width: 90px !important;
     padding: 10px 10px !important;
     font-size: 12px !important;
@@ -408,41 +408,41 @@
 
 /* Large Desktop (1200px+) */
 @media (min-width: 1200px) {
-  .product-card {
+  .product-card-sales {
     padding: 28px;
     min-height: 300px;
   }
 
-  .product-card__header {
+  .product-card-sales__header {
     margin-bottom: 20px;
   }
 
-  .product-card__content {
+  .product-card-sales__content {
     margin-bottom: 28px;
     gap: 14px;
   }
 
-  .product-card__title {
+  .product-card-sales__title {
     font: var(--font-20);
     line-height: 1.3;
   }
 
-  .product-card__code-tag,
-  .product-card__stock-tag {
+  .product-card-sales__code-tag,
+  .product-card-sales__stock-tag {
     height: 30px;
   }
 
-  .product-card__quantity-section {
+  .product-card-sales__quantity-section {
     gap: 18px;
   }
 
-  .product-card__quantity-input {
+  .product-card-sales__quantity-input {
     flex: 0 0 110px;
     max-width: 110px;
   }
 
-  .product-card__quantity-actions .product-card__cancel-btn,
-  .product-card__quantity-actions .product-card__confirm-btn {
+  .product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+  .product-card-sales__quantity-actions .product-card-sales__confirm-btn {
     min-width: 95px !important;
     padding: 11px 12px !important;
     font-size: 13px !important;
@@ -451,78 +451,78 @@
 }
 
 /* States and Accessibility */
-.product-card:focus-within {
+.product-card-sales:focus-within {
   outline: 2px solid var(--sec-600);
   outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .product-card,
-  .product-card__add-btn {
+  .product-card-sales,
+  .product-card-sales__add-btn {
     transition: none;
   }
 
-  .product-card:hover {
+  .product-card-sales:hover {
     transform: none;
   }
 
-  .product-card__add-btn:hover:not(:disabled) {
+  .product-card-sales__add-btn:hover:not(:disabled) {
     transform: none;
   }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .product-card {
+  .product-card-sales {
     border: 2px solid var(--pri-600);
   }
 
-  .product-card__code-tag {
+  .product-card-sales__code-tag {
     border: 1px solid var(--pri-600);
   }
 
-  .product-card__stock-tag {
+  .product-card-sales__stock-tag {
     border: 1px solid var(--sec-700);
   }
 }
 
 /* Very small screens */
 @media (max-width: 320px) {
-  .product-card {
+  .product-card-sales {
     padding: 14px;
     min-height: 220px;
   }
 
-  .product-card__header {
+  .product-card-sales__header {
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
     margin-bottom: 10px;
   }
 
-  .product-card__code-tag,
-  .product-card__stock-tag {
+  .product-card-sales__code-tag,
+  .product-card-sales__stock-tag {
     max-width: 100%;
     align-self: flex-start;
     height: 24px;
     font-size: 10px;
   }
 
-  .product-card__title {
+  .product-card-sales__title {
     font: var(--font-13);
   }
 
-  .product-card__price {
+  .product-card-sales__price {
     font: var(--font-16);
   }
 
-  .product-card__add-btn {
+  .product-card-sales__add-btn {
     width: 34px;
     height: 34px;
   }
 
-  .product-card__quantity-actions .product-card__cancel-btn,
-  .product-card__quantity-actions .product-card__confirm-btn {
+  .product-card-sales__quantity-actions .product-card-sales__cancel-btn,
+  .product-card-sales__quantity-actions .product-card-sales__confirm-btn {
     min-width: 85px !important;
     font-size: 11px !important;
     padding: 9px 10px !important;
@@ -532,25 +532,25 @@
 
 /* Better responsive stock tags for very small screens */
 @media (max-width: 479px) {
-  .product-card__header {
+  .product-card-sales__header {
     flex-wrap: wrap;
   }
 
-  .product-card__code-tag,
-  .product-card__stock-tag {
+  .product-card-sales__code-tag,
+  .product-card-sales__stock-tag {
     font-size: 10px;
     padding: 3px 6px;
     height: 22px;
     min-width: fit-content;
   }
 
-  .product-card__stock-tag {
+  .product-card-sales__stock-tag {
     margin-left: auto;
   }
 }
 
 /* Grid compatibility - Allow cards to grow naturally */
-.product-card {
+.product-card-sales {
   max-width: 100%;
   flex: 1;
   align-self: stretch;
@@ -558,66 +558,66 @@
 
 /* Responsive minimum widths that accommodate button content */
 @media (min-width: 480px) {
-  .product-card {
+  .product-card-sales {
     min-width: 220px; /* Increased to accommodate buttons */
     max-width: none;
   }
 }
 
 @media (min-width: 768px) {
-  .product-card {
+  .product-card-sales {
     min-width: 240px; /* Increased for horizontal layout */
   }
 }
 
 @media (min-width: 1024px) {
-  .product-card {
+  .product-card-sales {
     min-width: 270px; /* Increased for larger buttons */
   }
 }
 
 @media (min-width: 1200px) {
-  .product-card {
+  .product-card-sales {
     min-width: 300px; /* Increased for even larger buttons */
   }
 }
 
 /* Ensure proper box-sizing for all elements */
-.product-card * {
+.product-card-sales * {
   box-sizing: border-box;
 }
 
-.product-card__content {
+.product-card-sales__content {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
 }
 
 /* Allow natural button sizing without transform issues */
-.product-card__quantity-actions .product-card__cancel-btn:active,
-.product-card__quantity-actions .product-card__confirm-btn:active {
+.product-card-sales__quantity-actions .product-card-sales__cancel-btn:active,
+.product-card-sales__quantity-actions .product-card-sales__confirm-btn:active {
   transform: translateY(1px) !important;
 }
 
 /* Ensure gap consistency */
-.product-card__quantity-section {
+.product-card-sales__quantity-section {
   gap: 12px;
 }
 
 @media (min-width: 768px) {
-  .product-card__quantity-section {
+  .product-card-sales__quantity-section {
     gap: 14px;
   }
 }
 
 @media (min-width: 1024px) {
-  .product-card__quantity-section {
+  .product-card-sales__quantity-section {
     gap: 16px;
   }
 }
 
 @media (min-width: 1200px) {
-  .product-card__quantity-section {
+  .product-card-sales__quantity-section {
     gap: 18px;
   }
 }
