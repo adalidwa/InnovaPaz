@@ -7,6 +7,7 @@ import EditProductModal from '../components/EditProductModal';
 import { useProductsContext } from '../context/ProductsContext';
 
 import type { ProductLegacy } from '../types/inventory';
+import type { ProductFormData } from '../hooks/useProductsReal';
 import './ProductManagement.css';
 
 function ProductManagement() {

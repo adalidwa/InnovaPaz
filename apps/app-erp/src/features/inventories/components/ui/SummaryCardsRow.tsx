@@ -1,4 +1,3 @@
-import React from 'react';
 import SummaryCard from './SummaryCard';
 import { FaCube, FaDollarSign, FaExclamationTriangle, FaExchangeAlt } from 'react-icons/fa';
 import { useProductsContext } from '../../context/ProductsContext';

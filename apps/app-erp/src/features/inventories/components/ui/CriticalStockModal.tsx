@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { FaTimes, FaExclamationTriangle, FaWarehouse, FaEye } from 'react-icons/fa';
+import { FaTimes, FaWarehouse, FaEye } from 'react-icons/fa';
 import Button from '../../../../components/common/Button';
 import type { CriticalProduct } from '../../types/inventory';
 import './CriticalStockModal.css';
@@ -241,7 +241,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
     });
   }, [statusFilter, categoryFilter]);
 
-  const getProgressPercentage = (current: number, min: number, max: number) => {
+  const getProgressPercentage = (current: number, max: number) => {
     return Math.min((current / max) * 100, 100);
   };
 
@@ -379,7 +379,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
                       <div
                         className={`critical-stock-modal__progress-fill critical-stock-modal__progress-fill--${product.status}`}
                         style={{
-                          width: `${getProgressPercentage(product.currentStock, product.minStock, product.maxStock)}%`,
+                          width: `${getProgressPercentage(product.currentStock, product.maxStock)}%`,
                         }}
                       />
                     </div>
