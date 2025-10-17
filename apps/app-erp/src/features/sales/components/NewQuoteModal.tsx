@@ -2,16 +2,10 @@ import { useState, useEffect } from 'react';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
+import ClientSelector, { type Client } from './ClientSelector';
+import ProductSelector, { type Product } from './ProductSelector';
 import SalesService from '../services/salesService';
 import './NewQuoteModal.css';
-
-interface Product {
-  id: number;
-  name: string;
-  code: string;
-  price: number;
-  stock: number;
-}
 
 interface QuoteProduct {
   producto_id: number;
@@ -31,9 +25,8 @@ interface NewQuoteModalProps {
 
 function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
   const [loading, setLoading] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<QuoteProduct[]>([]);
-  const [searchProduct, setSearchProduct] = useState('');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -41,14 +34,32 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
   const [observations, setObservations] = useState('');
   const [globalDiscount, setGlobalDiscount] = useState(0);
 
+  // Estados para modales
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+
   const empresaId = localStorage.getItem('empresaId') || '5dc644b0-3ce9-4c41-a83d-c7da2962214d';
 
   useEffect(() => {
     if (isOpen) {
-      loadProducts();
       setDefaultValidUntil();
     }
   }, [isOpen]);
+
+  // Autocompletar datos cuando se selecciona un cliente
+  useEffect(() => {
+    if (selectedClient) {
+      setClientName(selectedClient.name);
+      setClientEmail(selectedClient.email || '');
+      setClientPhone(selectedClient.phone || '');
+    } else {
+      setClientName('');
+      setClientEmail('');
+      setClientPhone('');
+    }
+  }, [selectedClient]);
 
   const setDefaultValidUntil = () => {
     const date = new Date();
@@ -56,22 +67,7 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
     setValidUntil(date.toISOString().split('T')[0]);
   };
 
-  const loadProducts = async () => {
-    try {
-      const data = await SalesService.getAllProducts();
-      setProducts(data);
-    } catch (err) {
-      console.error('Error al cargar productos:', err);
-    }
-  };
-
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      p.code.toLowerCase().includes(searchProduct.toLowerCase())
-  );
-
-  const handleAddProduct = (product: Product) => {
+  const handleSelectProduct = (product: Product) => {
     const exists = selectedProducts.find((p) => p.producto_id === product.id);
     if (!exists) {
       setSelectedProducts([
@@ -86,7 +82,6 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
           descuento: 0,
         },
       ]);
-      setSearchProduct('');
     }
   };
 
@@ -117,20 +112,25 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
   };
 
   const handleSubmit = async () => {
+    // Validaciones con modales
     if (!clientName.trim()) {
-      alert('Ingrese el nombre del cliente');
+      setModalMessage('Ingrese el nombre del cliente');
+      setShowWarningModal(true);
       return;
     }
     if (!clientEmail.trim()) {
-      alert('Ingrese el email del cliente');
+      setModalMessage('Ingrese el email del cliente');
+      setShowWarningModal(true);
       return;
     }
     if (!validUntil) {
-      alert('Ingrese la fecha de validez');
+      setModalMessage('Ingrese la fecha de validez');
+      setShowWarningModal(true);
       return;
     }
     if (selectedProducts.length === 0) {
-      alert('Agregue al menos un producto');
+      setModalMessage('Agregue al menos un producto');
+      setShowWarningModal(true);
       return;
     }
 
@@ -153,18 +153,26 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
       };
 
       await SalesService.createQuote(quoteData, empresaId);
-      alert('Cotización creada exitosamente');
-      onSuccess();
-      handleClose();
+
+      setModalMessage(`Cotización ${quoteNumber} creada exitosamente`);
+      setShowSuccessModal(true);
     } catch (err: any) {
       console.error('Error al crear cotización:', err);
-      alert('Error al crear la cotización: ' + (err.message || 'Error desconocido'));
+      setModalMessage(err.message || 'Error desconocido al crear la cotización');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSuccessConfirm = () => {
+    setShowSuccessModal(false);
+    onSuccess();
+    handleClose();
+  };
+
   const handleClose = () => {
+    setSelectedClient(null);
     setClientName('');
     setClientEmail('');
     setClientPhone('');
@@ -172,198 +180,214 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
     setObservations('');
     setGlobalDiscount(0);
     setSelectedProducts([]);
-    setSearchProduct('');
     onClose();
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title='Nueva Cotización'
-      message=''
-      size='large'
-      closeOnOverlayClick={false}
-      showConfirmButton={false}
-    >
-      <div className='new-quote-modal__wrapper'>
-        {/* Información del Cliente */}
-        <section className='new-quote-modal__section'>
-          <h3>Información del Cliente</h3>
-          <div className='new-quote-modal__grid'>
-            <Input
-              label='Nombre del Cliente'
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              placeholder='Ingrese el nombre'
-              required
-            />
-            <Input
-              label='Email'
-              type='email'
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
-              placeholder='cliente@email.com'
-              required
-            />
-          </div>
-          <div className='new-quote-modal__grid'>
-            <Input
-              label='Teléfono'
-              value={clientPhone}
-              onChange={(e) => setClientPhone(e.target.value)}
-              placeholder='Ingrese el teléfono'
-            />
-            <Input
-              label='Válida hasta'
-              type='date'
-              value={validUntil}
-              onChange={(e) => setValidUntil(e.target.value)}
-              required
-            />
-          </div>
-        </section>
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={handleClose}
+        title='Nueva Cotización'
+        message=''
+        size='large'
+        closeOnOverlayClick={false}
+        showConfirmButton={false}
+      >
+        <div className='new-quote-modal__wrapper'>
+          {/* Información del Cliente */}
+          <section className='new-quote-modal__section'>
+            <h3>Información del Cliente</h3>
 
-        {/* Productos */}
-        <section className='new-quote-modal__section'>
-          <h3>Productos</h3>
-          <div className='new-quote-modal__search-wrapper'>
-            <Input
-              label='Buscar Producto'
-              value={searchProduct}
-              onChange={(e) => setSearchProduct(e.target.value)}
-              placeholder='Buscar por nombre o código...'
-            />
-            {searchProduct && filteredProducts.length > 0 && (
-              <div className='new-quote-modal__search-results'>
-                {filteredProducts.slice(0, 5).map((product) => (
-                  <div
-                    key={product.id}
-                    className='new-quote-modal__search-item'
-                    onClick={() => handleAddProduct(product)}
-                  >
-                    <span className='new-quote-modal__product-code'>{product.code}</span>
-                    <span className='new-quote-modal__product-name'>{product.name}</span>
-                    <span className='new-quote-modal__product-price'>
-                      Bs. {product.price.toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            {/* Selector de Cliente */}
+            <ClientSelector onSelectClient={setSelectedClient} selectedClient={selectedClient} />
 
-          {selectedProducts.length > 0 && (
-            <div className='new-quote-modal__products-table'>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unit.</th>
-                    <th>Descuento</th>
-                    <th>Subtotal</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedProducts.map((product, index) => (
-                    <tr key={index}>
-                      <td>
-                        <strong>{product.name}</strong>
-                        <br />
-                        <small>{product.code}</small>
-                      </td>
-                      <td>
-                        <input
-                          type='number'
-                          min='1'
-                          value={product.cantidad}
-                          onChange={(e) =>
-                            handleUpdateQuantity(index, parseInt(e.target.value) || 1)
-                          }
-                          className='new-quote-modal__quantity-input'
-                        />
-                      </td>
-                      <td>Bs. {product.precio_unitario.toFixed(2)}</td>
-                      <td>
-                        <input
-                          type='number'
-                          min='0'
-                          step='0.01'
-                          value={product.descuento}
-                          onChange={(e) =>
-                            handleUpdateDiscount(index, parseFloat(e.target.value) || 0)
-                          }
-                          className='new-quote-modal__discount-input'
-                        />
-                      </td>
-                      <td>
-                        <strong>Bs. {product.subtotal.toFixed(2)}</strong>
-                      </td>
-                      <td>
-                        <button
-                          type='button'
-                          className='new-quote-modal__remove-btn'
-                          onClick={() => handleRemoveProduct(index)}
-                        >
-                          ×
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        {/* Resumen */}
-        <section className='new-quote-modal__summary-section'>
-          <div className='new-quote-modal__observations-wrapper'>
-            <label htmlFor='observations'>Observaciones</label>
-            <textarea
-              id='observations'
-              value={observations}
-              onChange={(e) => setObservations(e.target.value)}
-              placeholder='Observaciones adicionales...'
-              rows={4}
-            />
-          </div>
-          <div className='new-quote-modal__totals-wrapper'>
-            <div className='new-quote-modal__total-line'>
-              <span>Subtotal:</span>
-              <strong>Bs. {calculateSubtotal().toFixed(2)}</strong>
-            </div>
-            <div className='new-quote-modal__total-line'>
-              <span>Descuento global:</span>
-              <input
-                type='number'
-                min='0'
-                step='0.01'
-                value={globalDiscount}
-                onChange={(e) => setGlobalDiscount(parseFloat(e.target.value) || 0)}
-                className='new-quote-modal__discount-input'
+            {/* Campos autocompletados o editables */}
+            <div className='new-quote-modal__grid'>
+              <Input
+                label='Nombre del Cliente'
+                value={clientName}
+                onChange={(e) => setClientName(e.target.value)}
+                placeholder='Ingrese el nombre'
+                required
+                disabled={!!selectedClient}
+              />
+              <Input
+                label='Email'
+                type='email'
+                value={clientEmail}
+                onChange={(e) => setClientEmail(e.target.value)}
+                placeholder='cliente@email.com'
+                required
               />
             </div>
-            <div className='new-quote-modal__total-line new-quote-modal__total-final'>
-              <span>Total:</span>
-              <strong>Bs. {calculateTotal().toFixed(2)}</strong>
+            <div className='new-quote-modal__grid'>
+              <Input
+                label='Teléfono'
+                value={clientPhone}
+                onChange={(e) => setClientPhone(e.target.value)}
+                placeholder='Ingrese el teléfono'
+              />
+              <Input
+                label='Válida hasta'
+                type='date'
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+                required
+              />
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Footer con botones */}
-        <footer className='new-quote-modal__footer'>
-          <Button variant='outline' size='medium' onClick={handleClose} disabled={loading}>
-            Cancelar
-          </Button>
-          <Button variant='primary' size='medium' onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Guardando...' : 'Crear Cotización'}
-          </Button>
-        </footer>
-      </div>
-    </Modal>
+          {/* Productos */}
+          <section className='new-quote-modal__section'>
+            <h3>Productos</h3>
+
+            {/* Selector de Productos */}
+            <ProductSelector onSelectProduct={handleSelectProduct} />
+
+            {selectedProducts.length > 0 && (
+              <div className='new-quote-modal__products-table'>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Cantidad</th>
+                      <th>Precio Unit.</th>
+                      <th>Descuento</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedProducts.map((product, index) => (
+                      <tr key={index}>
+                        <td>
+                          <strong>{product.name}</strong>
+                          <br />
+                          <small>{product.code}</small>
+                        </td>
+                        <td>
+                          <input
+                            type='number'
+                            min='1'
+                            value={product.cantidad}
+                            onChange={(e) =>
+                              handleUpdateQuantity(index, parseInt(e.target.value) || 1)
+                            }
+                            className='new-quote-modal__quantity-input'
+                          />
+                        </td>
+                        <td>Bs. {product.precio_unitario.toFixed(2)}</td>
+                        <td>
+                          <input
+                            type='number'
+                            min='0'
+                            step='0.01'
+                            value={product.descuento}
+                            onChange={(e) =>
+                              handleUpdateDiscount(index, parseFloat(e.target.value) || 0)
+                            }
+                            className='new-quote-modal__discount-input'
+                          />
+                        </td>
+                        <td>
+                          <strong>Bs. {product.subtotal.toFixed(2)}</strong>
+                        </td>
+                        <td>
+                          <button
+                            type='button'
+                            className='new-quote-modal__remove-btn'
+                            onClick={() => handleRemoveProduct(index)}
+                          >
+                            ×
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          {/* Resumen */}
+          <section className='new-quote-modal__summary-section'>
+            <div className='new-quote-modal__observations-wrapper'>
+              <label htmlFor='observations'>Observaciones</label>
+              <textarea
+                id='observations'
+                value={observations}
+                onChange={(e) => setObservations(e.target.value)}
+                placeholder='Observaciones adicionales...'
+                rows={4}
+              />
+            </div>
+            <div className='new-quote-modal__totals-wrapper'>
+              <div className='new-quote-modal__total-line'>
+                <span>Subtotal:</span>
+                <strong>Bs. {calculateSubtotal().toFixed(2)}</strong>
+              </div>
+              <div className='new-quote-modal__total-line'>
+                <span>Descuento global:</span>
+                <input
+                  type='number'
+                  min='0'
+                  step='0.01'
+                  value={globalDiscount}
+                  onChange={(e) => setGlobalDiscount(parseFloat(e.target.value) || 0)}
+                  className='new-quote-modal__discount-input'
+                />
+              </div>
+              <div className='new-quote-modal__total-line new-quote-modal__total-final'>
+                <span>Total:</span>
+                <strong>Bs. {calculateTotal().toFixed(2)}</strong>
+              </div>
+            </div>
+          </section>
+
+          {/* Footer con botones */}
+          <footer className='new-quote-modal__footer'>
+            <Button variant='outline' size='medium' onClick={handleClose} disabled={loading}>
+              Cancelar
+            </Button>
+            <Button variant='primary' size='medium' onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Guardando...' : 'Crear Cotización'}
+            </Button>
+          </footer>
+        </div>
+      </Modal>
+
+      {/* Modal de Advertencia */}
+      <Modal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        title='Atención'
+        message={modalMessage}
+        modalType='warning'
+        confirmButtonText='Entendido'
+      />
+
+      {/* Modal de Error */}
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title='Error al Crear Cotización'
+        message={modalMessage}
+        modalType='error'
+        confirmButtonText='Entendido'
+      />
+
+      {/* Modal de Éxito */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={handleSuccessConfirm}
+        title='¡Cotización Creada!'
+        message={modalMessage}
+        modalType='success'
+        confirmButtonText='Aceptar'
+        onConfirm={handleSuccessConfirm}
+      />
+    </>
   );
 }
 
