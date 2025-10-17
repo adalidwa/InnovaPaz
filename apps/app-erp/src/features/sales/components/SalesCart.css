@@ -6,14 +6,14 @@
   border-radius: 8px;
   border: 1px solid var(--pri-200);
   min-height: auto;
-  overflow: hidden;
+  overflow: visible; /* Cambiado de hidden a visible */
 }
 
 .sales-cart__container {
   max-width: 100%;
   margin: 0 auto;
   padding: 0;
-  overflow: hidden;
+  overflow: visible; /* Cambiado de hidden a visible */
 }
 
 .sales-cart__header {
@@ -51,7 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  overflow: hidden;
+  overflow: visible; /* Cambiado de hidden a visible */
 }
 
 .sales-cart__section {
@@ -60,7 +60,8 @@
   padding: 16px;
   border: none;
   border-bottom: 1px solid var(--pri-100);
-  overflow: hidden;
+  overflow: visible; /* Cambiado de hidden a visible */
+  position: relative; /* Agregado para contexto de stacking */
 }
 
 .sales-cart__section:last-child {
@@ -69,7 +70,9 @@
 
 .sales-cart__items {
   margin-bottom: 0;
-  overflow: hidden;
+  overflow-y: auto; /* Cambiado: solo scroll vertical para items */
+  overflow-x: hidden;
+  max-height: 400px; /* Límite de altura para scroll */
 }
 
 .sales-cart__items .cart-item {
@@ -312,27 +315,27 @@
   }
 }
 
-/* Scrollbar styling for cart content */
-.sales-cart__container {
+/* Scrollbar styling for cart items */
+.sales-cart__items {
   scrollbar-width: thin;
   scrollbar-color: var(--pri-300) var(--pri-100);
 }
 
-.sales-cart__container::-webkit-scrollbar {
+.sales-cart__items::-webkit-scrollbar {
   width: 6px;
 }
 
-.sales-cart__container::-webkit-scrollbar-track {
+.sales-cart__items::-webkit-scrollbar-track {
   background: var(--pri-100);
   border-radius: 3px;
 }
 
-.sales-cart__container::-webkit-scrollbar-thumb {
+.sales-cart__items::-webkit-scrollbar-thumb {
   background: var(--pri-300);
   border-radius: 3px;
 }
 
-.sales-cart__container::-webkit-scrollbar-thumb:hover {
+.sales-cart__items::-webkit-scrollbar-thumb:hover {
   background: var(--pri-400);
 }
 
@@ -342,14 +345,6 @@
 .sales-cart *::before,
 .sales-cart *::after {
   box-sizing: border-box;
-}
-
-/* Prevent any horizontal overflow */
-.sales-cart__section,
-.sales-cart__items,
-.sales-cart__actions {
-  max-width: 100%;
-  overflow-x: hidden;
 }
 
 /* Banner de éxito */
