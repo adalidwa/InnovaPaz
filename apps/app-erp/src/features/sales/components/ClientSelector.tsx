@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { IoPersonOutline, IoCheckmarkCircle, IoSearchOutline } from 'react-icons/io5';
+import { FiUsers } from 'react-icons/fi';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import SalesService from '../services/salesService';
@@ -139,7 +141,10 @@ function ClientSelector({ onSelectClient, selectedClient }: ClientSelectorProps)
                         onClick={() => handleSelectClient(client)}
                         type='button'
                       >
-                        <div className='client-selector__result-name'>{client.name}</div>
+                        <div className='client-selector__result-name'>
+                          <IoPersonOutline size={18} className='client-selector__result-icon' />
+                          {client.name}
+                        </div>
                         <div className='client-selector__result-details'>
                           {client.nit && client.nit !== '0' && <span>NIT: {client.nit}</span>}
                           {client.phone && <span> • Tel: {client.phone}</span>}
@@ -148,13 +153,19 @@ function ClientSelector({ onSelectClient, selectedClient }: ClientSelectorProps)
                     ))}
                     {searchTerm && (
                       <div className='client-selector__results-footer'>
-                        Mostrando {clients.length} resultado{clients.length !== 1 ? 's' : ''}
+                        <FiUsers size={14} />
+                        <span>
+                          Mostrando {clients.length} resultado{clients.length !== 1 ? 's' : ''}
+                        </span>
                       </div>
                     )}
                   </>
                 ) : (
                   <div className='client-selector__no-results'>
-                    {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                    <IoSearchOutline size={32} className='client-selector__no-results-icon' />
+                    <p>
+                      {searchTerm ? 'No se encontraron clientes' : 'No hay clientes registrados'}
+                    </p>
                   </div>
                 )}
               </div>
@@ -173,7 +184,10 @@ function ClientSelector({ onSelectClient, selectedClient }: ClientSelectorProps)
       ) : (
         <div className='client-selector__selected'>
           <div className='client-selector__selected-info'>
-            <strong>{selectedClient.name}</strong>
+            <strong>
+              <IoCheckmarkCircle size={24} className='client-selector__check-icon' />
+              {selectedClient.name}
+            </strong>
             <div className='client-selector__selected-details'>
               {selectedClient.nit && selectedClient.nit !== '0' && (
                 <span>NIT: {selectedClient.nit}</span>
