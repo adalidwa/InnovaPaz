@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import TitleDescription from '../../../components/common/TitleDescription';
+import { useSales } from '../hooks/hooks';
 import './SalesHistory.css';
 
 export interface SaleTransaction {
@@ -15,7 +16,7 @@ export interface SaleTransaction {
   subtotal: number;
   tax: number;
   total: number;
-  paymentMethod: 'Efectivo' | 'Tarjeta' | 'Transferencia';
+  paymentMethod: 'Efectivo' | 'Tarjeta' | 'Transferencia' | 'Débito';
   vendor: string;
 }
 
@@ -24,62 +25,78 @@ interface SalesHistoryProps {
   onExportPDF?: () => void;
 }
 
-// Datos de ejemplo basados en la imagen
-const mockTransactions: SaleTransaction[] = [
-  {
-    id: '1',
-    saleNumber: 'VTA-2024-001',
-    date: '2024-03-20 10:30',
-    client: 'Juan Pérez',
-    items: 'Coca Cola 500ml (2), Arroz 1kg (1)',
-    subtotal: 19.0,
-    tax: 2.47,
-    total: 21.47,
-    paymentMethod: 'Efectivo',
-    vendor: 'Carlos Mendoza',
-  },
-  {
-    id: '2',
-    saleNumber: 'VTA-2024-002',
-    date: '2024-03-20 11:15',
-    client: 'María García',
-    items: 'Cerveza Paceña 355ml (6)',
-    subtotal: 51.0,
-    tax: 6.63,
-    total: 57.63,
-    paymentMethod: 'Tarjeta',
-    vendor: 'Ana Flores',
-  },
-  {
-    id: '3',
-    saleNumber: 'VTA-2024-003',
-    date: '2024-03-20 14:45',
-    client: 'Cliente General',
-    items: 'Coca Cola 500ml (1), Pan (3)',
-    subtotal: 8.5,
-    tax: 1.11,
-    total: 9.61,
-    paymentMethod: 'Efectivo',
-    vendor: 'Carlos Mendoza',
-  },
-];
-
 function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
-  const [transactions] = useState<SaleTransaction[]>(mockTransactions);
-  const [searchTerm, setSearchTerm] = useState('');
+  // Obtenemos las ventas del backend mediante el hook useSales
+  const { sales, loading, searchTerm, handleSearchChange } = useSales();
+
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Todos');
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
+  // Mapeamos el formato del paymentMethod del backend al formato del componente
+  const mapPaymentMethod = (method: string): SaleTransaction['paymentMethod'] => {
+    const methodMap: Record<string, SaleTransaction['paymentMethod']> = {
+      cash: 'Efectivo',
+      credit: 'Tarjeta',
+      debit: 'Débito',
+      transfer: 'Transferencia',
+    };
+    return methodMap[method] || 'Efectivo';
   };
+
+  // Convertimos las ventas del backend al formato del componente
+  const transactions: SaleTransaction[] = useMemo(() => {
+    return sales.map((sale) => ({
+      id: sale.id.toString(),
+      saleNumber: `VTA-${sale.date.split('-')[0]}-${String(sale.id).padStart(3, '0')}`,
+      date: `${sale.date} ${sale.time || ''}`.trim(),
+      client: sale.clientName,
+      items: sale.products.map((p) => `${p.name} (${p.quantity})`).join(', '),
+      subtotal: sale.subtotal,
+      tax: sale.total - sale.subtotal, // Calculamos el impuesto como la diferencia
+      total: sale.total,
+      paymentMethod: mapPaymentMethod(sale.paymentMethod),
+      vendor: 'Sistema', // TODO: Obtener del backend cuando esté disponible
+    }));
+  }, [sales]);
+
+  // Filtramos las transacciones según los criterios
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((transaction) => {
+      // Filtro por búsqueda
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        transaction.saleNumber.toLowerCase().includes(searchLower) ||
+        transaction.client.toLowerCase().includes(searchLower) ||
+        transaction.items.toLowerCase().includes(searchLower);
+
+      if (!matchesSearch) return false;
+
+      // Filtro por fecha desde
+      if (dateFrom && transaction.date < dateFrom) {
+        return false;
+      }
+
+      // Filtro por fecha hasta
+      if (dateTo && transaction.date > dateTo) {
+        return false;
+      }
+
+      // Filtro por método de pago
+      if (paymentMethod !== 'Todos' && transaction.paymentMethod !== paymentMethod) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [transactions, searchTerm, dateFrom, dateTo, paymentMethod]);
 
   const handleExportExcel = () => {
     if (onExportExcel) {
       onExportExcel();
     } else {
-      console.log('Exportando a Excel...');
+      console.log('Exportando a Excel...', filteredTransactions);
+      alert('Funcionalidad de exportación a Excel en desarrollo');
     }
   };
 
@@ -87,12 +104,15 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
     if (onExportPDF) {
       onExportPDF();
     } else {
-      console.log('Exportando a PDF...');
+      console.log('Exportando a PDF...', filteredTransactions);
+      alert('Funcionalidad de exportación a PDF en desarrollo');
     }
   };
 
   const handleViewTransaction = (transaction: SaleTransaction) => {
     console.log('Viendo transacción:', transaction);
+    // TODO: Abrir modal con detalle de la transacción
+    alert(`Ver detalles de ${transaction.saleNumber}`);
   };
 
   const formatCurrency = (amount: number) => {
@@ -106,6 +126,8 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
           return 'sales-history__payment sales-history__payment--cash';
         case 'Tarjeta':
           return 'sales-history__payment sales-history__payment--card';
+        case 'Débito':
+          return 'sales-history__payment sales-history__payment--card';
         case 'Transferencia':
           return 'sales-history__payment sales-history__payment--transfer';
         default:
@@ -117,14 +139,16 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
   };
 
   // Calcular totales
-  const totals = transactions.reduce(
-    (acc, transaction) => ({
-      subtotal: acc.subtotal + transaction.subtotal,
-      tax: acc.tax + transaction.tax,
-      total: acc.total + transaction.total,
-    }),
-    { subtotal: 0, tax: 0, total: 0 }
-  );
+  const totals = useMemo(() => {
+    return filteredTransactions.reduce(
+      (acc, transaction) => ({
+        subtotal: acc.subtotal + transaction.subtotal,
+        tax: acc.tax + transaction.tax,
+        total: acc.total + transaction.total,
+      }),
+      { subtotal: 0, tax: 0, total: 0 }
+    );
+  }, [filteredTransactions]);
 
   const columns: TableColumn<SaleTransaction>[] = [
     {
@@ -190,8 +214,21 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
     { value: 'Todos', label: 'Todos' },
     { value: 'Efectivo', label: 'Efectivo' },
     { value: 'Tarjeta', label: 'Tarjeta' },
+    { value: 'Débito', label: 'Débito' },
     { value: 'Transferencia', label: 'Transferencia' },
   ];
+
+  if (loading) {
+    return (
+      <div className='sales-history'>
+        <div className='sales-history__container'>
+          <div className='sales-history__loading'>
+            <p>Cargando historial de ventas...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='sales-history'>
@@ -226,7 +263,7 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
                 type='text'
                 placeholder='N° venta, cliente...'
                 value={searchTerm}
-                onChange={handleSearch}
+                onChange={handleSearchChange}
                 className='sales-history__search'
                 leftIcon={
                   <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
@@ -307,11 +344,13 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
         {/* Table Section */}
         <div className='sales-history__content'>
           <div className='sales-history__table-header'>
-            <h3 className='sales-history__table-title'>Historial de Transacciones</h3>
+            <h3 className='sales-history__table-title'>
+              Historial de Transacciones ({filteredTransactions.length})
+            </h3>
           </div>
 
           <Table
-            data={transactions}
+            data={filteredTransactions}
             columns={columns}
             actions={actions}
             className='sales-history__table'
@@ -319,24 +358,26 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
           />
 
           {/* Totals Row */}
-          <div className='sales-history__totals'>
-            <div className='sales-history__totals-content'>
-              <div className='sales-history__total-item'>
-                <span className='sales-history__total-label'>Subtotal</span>
-                <span className='sales-history__total-value'>
-                  {formatCurrency(totals.subtotal)}
-                </span>
-              </div>
-              <div className='sales-history__total-item'>
-                <span className='sales-history__total-label'>Impuestos</span>
-                <span className='sales-history__total-value'>{formatCurrency(totals.tax)}</span>
-              </div>
-              <div className='sales-history__total-item sales-history__total-item--grand'>
-                <span className='sales-history__total-label'>Total General</span>
-                <span className='sales-history__total-value'>{formatCurrency(totals.total)}</span>
+          {filteredTransactions.length > 0 && (
+            <div className='sales-history__totals'>
+              <div className='sales-history__totals-content'>
+                <div className='sales-history__total-item'>
+                  <span className='sales-history__total-label'>Subtotal</span>
+                  <span className='sales-history__total-value'>
+                    {formatCurrency(totals.subtotal)}
+                  </span>
+                </div>
+                <div className='sales-history__total-item'>
+                  <span className='sales-history__total-label'>Impuestos</span>
+                  <span className='sales-history__total-value'>{formatCurrency(totals.tax)}</span>
+                </div>
+                <div className='sales-history__total-item sales-history__total-item--grand'>
+                  <span className='sales-history__total-label'>Total General</span>
+                  <span className='sales-history__total-value'>{formatCurrency(totals.total)}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
