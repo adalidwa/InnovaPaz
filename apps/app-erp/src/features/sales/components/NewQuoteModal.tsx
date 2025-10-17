@@ -178,7 +178,6 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
 
   return (
     <Modal
-      message=''
       isOpen={isOpen}
       onClose={handleClose}
       title='Nueva Cotización'
