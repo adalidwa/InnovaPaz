@@ -13,14 +13,8 @@ interface CartItem {
 
 function PointOfSale() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '2',
-      name: 'Arroz Paisana 1kg',
-      price: 12.0,
-      quantity: 1,
-    },
-  ]);
+  // Carrito inicia vacío - no hay productos precargados
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
 
   const handleSearch = (term: string) => {

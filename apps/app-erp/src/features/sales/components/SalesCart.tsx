@@ -22,30 +22,22 @@ interface SalesCartProps {
   onCancel?: () => void;
 }
 
-const mockCartItems: CartItemData[] = [
-  {
-    id: '1',
-    name: 'Arroz Paisana 1kg',
-    price: 12.0,
-    quantity: 1,
-  },
-];
-
 function SalesCart({
-  cartItems = mockCartItems,
+  cartItems = [],
   onQuantityChange,
   onRemoveItem,
   onProcessSale,
   onCancel,
 }: SalesCartProps) {
-  const [internalCartItems, setInternalCartItems] = useState<CartItemData[]>(mockCartItems);
+  // Carrito inicia vacío - no hay productos precargados
+  const [internalCartItems, setInternalCartItems] = useState<CartItemData[]>([]);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
 
   const taxRate = 0.13; // 13% tax
 
-  const currentCartItems = cartItems || internalCartItems;
+  const currentCartItems = cartItems.length > 0 ? cartItems : internalCartItems;
 
   const calculateSubtotal = () => {
     return currentCartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
