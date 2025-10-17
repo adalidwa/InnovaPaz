@@ -249,7 +249,7 @@ export class SalesService {
 
     const venta = {
       cliente_id: saleData.clientId,
-      vendedor_id: 1, // TODO: obtener del usuario logueado
+      vendedor_id: 3, // TODO: obtener del usuario logueado
       subtotal: saleData.subtotal,
       total: saleData.total,
       descuento: saleData.discount,

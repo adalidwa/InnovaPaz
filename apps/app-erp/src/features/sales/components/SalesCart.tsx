@@ -34,6 +34,7 @@ function SalesCart({
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [saleSuccess, setSaleSuccess] = useState(false);
 
   const taxRate = 0.13; // 13% tax
 
@@ -70,13 +71,14 @@ function SalesCart({
   };
 
   const handleProcessSale = async () => {
+    // Validaciones
     if (!selectedClient) {
-      alert('Por favor selecciona un cliente');
+      alert('❌ Por favor selecciona un cliente');
       return;
     }
 
     if (currentCartItems.length === 0) {
-      alert('El carrito está vacío');
+      alert('❌ El carrito está vacío. Agrega productos para continuar.');
       return;
     }
 
@@ -90,6 +92,8 @@ function SalesCart({
         clientId: selectedClient.id,
         products: currentCartItems.map((item) => ({
           id: parseInt(item.id),
+          name: item.name,
+          code: item.id,
           quantity: item.quantity,
           price: item.price,
           subtotal: item.price * item.quantity,
@@ -100,8 +104,17 @@ function SalesCart({
         paymentMethod,
       };
 
+      console.log('📤 Enviando venta al backend:', saleData);
+
+      // Crear la venta en el backend
       await SalesService.createSale(saleData);
 
+      console.log('✅ Venta procesada exitosamente');
+
+      // Marcar como éxito
+      setSaleSuccess(true);
+
+      // Limpiar el carrito y cliente
       if (onProcessSale) {
         onProcessSale(saleData);
       } else {
@@ -110,10 +123,20 @@ function SalesCart({
         setPaymentMethod('cash');
       }
 
-      alert('¡Venta procesada exitosamente!');
+      // Mostrar mensaje de éxito
+      alert(
+        `✅ ¡Venta procesada exitosamente!\n\nTotal: Bs. ${total.toFixed(2)}\nCliente: ${selectedClient.name}\nMétodo de pago: ${getPaymentMethodLabel(paymentMethod)}`
+      );
+
+      // Resetear estado de éxito después de 3 segundos
+      setTimeout(() => {
+        setSaleSuccess(false);
+      }, 3000);
     } catch (error: any) {
-      console.error('Error al procesar venta:', error);
-      alert(error.message || 'Error al procesar la venta');
+      console.error('❌ Error al procesar venta:', error);
+      const errorMessage =
+        error.response?.data?.message || error.message || 'Error desconocido al procesar la venta';
+      alert(`❌ Error al procesar la venta:\n\n${errorMessage}\n\nPor favor, intenta nuevamente.`);
     } finally {
       setIsProcessing(false);
     }
@@ -123,10 +146,26 @@ function SalesCart({
     if (onCancel) {
       onCancel();
     } else {
+      if (currentCartItems.length > 0) {
+        const confirmCancel = confirm(
+          '¿Estás seguro de cancelar la venta? Se perderán los productos del carrito.'
+        );
+        if (!confirmCancel) return;
+      }
       setInternalCartItems([]);
       setSelectedClient(null);
       setPaymentMethod('cash');
     }
+  };
+
+  const getPaymentMethodLabel = (method: string): string => {
+    const labels: Record<string, string> = {
+      cash: 'Efectivo',
+      credit: 'Tarjeta de Crédito',
+      debit: 'Tarjeta de Débito',
+      transfer: 'Transferencia',
+    };
+    return labels[method] || method;
   };
 
   const subtotal = calculateSubtotal();
@@ -147,6 +186,10 @@ function SalesCart({
           </div>
         </div>
 
+        {saleSuccess && (
+          <div className='sales-cart__success-banner'>✅ Venta procesada exitosamente</div>
+        )}
+
         <div className='sales-cart__content'>
           <div className='sales-cart__section'>
             <ClientSelector onSelectClient={setSelectedClient} selectedClient={selectedClient} />
@@ -162,6 +205,7 @@ function SalesCart({
                     </svg>
                   </div>
                   <p className='sales-cart__empty-text'>No hay productos en el carrito</p>
+                  <p className='sales-cart__empty-hint'>Agrega productos desde la lista</p>
                 </div>
               ) : (
                 currentCartItems.map((item) => (
@@ -212,7 +256,7 @@ function SalesCart({
                 fullWidth
                 onClick={handleProcessSale}
                 loading={isProcessing}
-                disabled={currentCartItems.length === 0 || !selectedClient}
+                disabled={currentCartItems.length === 0 || !selectedClient || isProcessing}
                 className='sales-cart__process-btn'
               >
                 {isProcessing ? 'Procesando...' : 'Procesar Venta'}

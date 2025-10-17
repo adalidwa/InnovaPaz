@@ -1,7 +1,7 @@
 const pool = require('../db');
 
 class SaleModel {
-  // Obtener todas las ventas de una empresa CON DETALLES
+  // Obtener todas las ventas de una empresa
   static async findByEmpresa(empresaId, filters = {}) {
     let query = `
       SELECT v.*, 
@@ -41,24 +41,7 @@ class SaleModel {
     query += ` ORDER BY v.fecha_venta DESC, v.hora_venta DESC`;
 
     const result = await pool.query(query, params);
-
-    // Obtener detalles para cada venta
-    const ventas = result.rows;
-    for (const venta of ventas) {
-      const detallesResult = await pool.query(
-        `SELECT dv.*, 
-          p.codigo as producto_codigo,
-          p.nombre_producto as producto_nombre,
-          p.imagen as producto_imagen
-        FROM detalle_venta dv
-        LEFT JOIN producto p ON dv.producto_id = p.producto_id
-        WHERE dv.venta_id = $1`,
-        [venta.venta_id]
-      );
-      venta.detalles = detallesResult.rows;
-    }
-
-    return ventas;
+    return result.rows;
   }
 
   // Obtener venta por ID con detalles
@@ -155,7 +138,7 @@ class SaleModel {
 
       const venta = ventaResult.rows[0];
 
-      // Insertar detalles de venta
+      // Insertar detalles de venta y actualizar stock
       for (const detalle of detalles) {
         await client.query(
           `INSERT INTO detalle_venta (
@@ -170,11 +153,27 @@ class SaleModel {
             detalle.descuento || 0,
           ]
         );
+
+        // Actualizar stock del producto
+        await client.query(
+          `UPDATE producto 
+           SET stock = stock - $1,
+               cantidad_vendidos = cantidad_vendidos + $1
+           WHERE producto_id = $2`,
+          [detalle.cantidad, detalle.producto_id]
+        );
       }
+
+      // Actualizar última compra del cliente
+      await client.query(
+        `UPDATE clientes SET ultima_compra = CURRENT_DATE
+         WHERE cliente_id = $1`,
+        [cliente_id]
+      );
 
       await client.query('COMMIT');
 
-      // Obtener venta con detalles
+      // Retornar venta completa con detalles
       return await this.findByIdWithDetails(venta.venta_id, empresa_id);
     } catch (error) {
       await client.query('ROLLBACK');
@@ -187,58 +186,83 @@ class SaleModel {
   // Actualizar estado de venta
   static async updateStatus(ventaId, empresaId, estadoVentaId) {
     const result = await pool.query(
-      `UPDATE ventas 
-       SET estado_venta_id = $1 
+      `UPDATE ventas SET estado_venta_id = $1
        WHERE venta_id = $2 AND empresa_id = $3
        RETURNING *`,
       [estadoVentaId, ventaId, empresaId]
     );
-
     return result.rows[0];
   }
 
-  // Cancelar venta
+  // Cancelar venta (devolver stock)
   static async cancel(ventaId, empresaId) {
-    return await this.updateStatus(ventaId, empresaId, 3); // 3 = Cancelada
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      // Obtener detalles de la venta
+      const detallesResult = await client.query(`SELECT * FROM detalle_venta WHERE venta_id = $1`, [
+        ventaId,
+      ]);
+
+      // Devolver stock
+      for (const detalle of detallesResult.rows) {
+        await client.query(
+          `UPDATE producto 
+           SET stock = stock + $1,
+               cantidad_vendidos = cantidad_vendidos - $1
+           WHERE producto_id = $2`,
+          [detalle.cantidad, detalle.producto_id]
+        );
+      }
+
+      // Actualizar estado de venta a cancelado (asumiendo estado_id = 3)
+      const result = await client.query(
+        `UPDATE ventas SET estado_venta_id = 3
+         WHERE venta_id = $1 AND empresa_id = $2
+         RETURNING *`,
+        [ventaId, empresaId]
+      );
+
+      await client.query('COMMIT');
+      return result.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
-  // Obtener estadísticas
+  // Obtener estadísticas de ventas
   static async getStats(empresaId, periodo = 'month') {
-    let fechaInicio;
-    const fechaFin = new Date();
+    let dateFilter = '';
 
     switch (periodo) {
       case 'today':
-        fechaInicio = new Date();
-        fechaInicio.setHours(0, 0, 0, 0);
+        dateFilter = 'AND DATE(v.fecha_venta) = CURRENT_DATE';
         break;
       case 'week':
-        fechaInicio = new Date();
-        fechaInicio.setDate(fechaFin.getDate() - 7);
+        dateFilter = "AND v.fecha_venta >= CURRENT_DATE - INTERVAL '7 days'";
         break;
       case 'month':
-        fechaInicio = new Date();
-        fechaInicio.setMonth(fechaFin.getMonth() - 1);
+        dateFilter = "AND v.fecha_venta >= CURRENT_DATE - INTERVAL '30 days'";
         break;
       case 'year':
-        fechaInicio = new Date();
-        fechaInicio.setFullYear(fechaFin.getFullYear() - 1);
+        dateFilter = "AND v.fecha_venta >= CURRENT_DATE - INTERVAL '1 year'";
         break;
-      default:
-        fechaInicio = new Date();
-        fechaInicio.setMonth(fechaFin.getMonth() - 1);
     }
 
     const result = await pool.query(
       `SELECT 
         COUNT(*) as total_ventas,
-        COALESCE(SUM(total), 0) as total_monto,
-        COALESCE(AVG(total), 0) as promedio_venta
-       FROM ventas
-       WHERE empresa_id = $1
-       AND fecha_venta BETWEEN $2 AND $3
-       AND estado_venta_id = 1`,
-      [empresaId, fechaInicio, fechaFin]
+        COALESCE(SUM(v.total), 0) as total_monto,
+        COALESCE(AVG(v.total), 0) as promedio_venta
+       FROM ventas v
+       WHERE v.empresa_id = $1 
+       AND v.estado_venta_id IN (1, 2) ${dateFilter}`,
+      [empresaId]
     );
 
     return result.rows[0];
