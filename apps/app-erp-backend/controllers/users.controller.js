@@ -229,19 +229,56 @@ async function completeCompanySetup(req, res) {
       estado_suscripcion: 'en_prueba',
     });
 
-    // Crear rol de administrador
-    const nuevoRol = await Role.create({
-      empresa_id: nuevaEmpresa.empresa_id,
-      nombre_rol: 'Administrador',
-      permisos: { full_access: true },
-      es_predeterminado: true,
-      estado: 'activo',
-    });
+    // ===== ACTIVAR SUSCRIPCIÓN Y PERÍODO DE PRUEBA (SI APLICA) =====
+    const SubscriptionService = require('../services/subscriptionService');
+    const subscriptionResult = await SubscriptionService.setupInitialSubscription(
+      nuevaEmpresa.empresa_id,
+      plan_id
+    );
+
+    // ===== CREAR ROLES PREDETERMINADOS SEGÚN TIPO DE EMPRESA Y PLAN =====
+    const { obtenerRolesPorTipoEmpresa } = require('../utils/constants');
+    const TypeCompany = require('../models/typeCompany.model');
+    const Plan = require('../models/plan.model');
+
+    // Obtener datos del tipo de empresa y plan
+    const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+    const plan = await Plan.findById(plan_id);
+
+    if (!tipoEmpresa || !plan) {
+      throw new Error('Tipo de empresa o plan no encontrado');
+    }
+
+    // Obtener límite de roles según el plan
+    const limiteRoles = plan.limites?.roles || null; // null = ilimitado (Premium)
+
+    // Obtener roles predeterminados para este tipo de empresa
+    const rolesConfig = obtenerRolesPorTipoEmpresa(tipoEmpresa.tipo_empresa, limiteRoles);
+
+    let rolAdministrador;
+
+    // Crear todos los roles predeterminados
+    for (const rolConfig of rolesConfig) {
+      const rolCreado = await Role.create({
+        empresa_id: nuevaEmpresa.empresa_id,
+        nombre_rol: rolConfig.nombre,
+        permisos: rolConfig.permisos,
+        es_predeterminado: true,
+        estado: 'activo',
+      });
+
+      // Guardar referencia al rol Administrador
+      if (rolConfig.nombre === 'Administrador') {
+        rolAdministrador = rolCreado;
+      }
+    }
+
+    const rol_id = rolAdministrador?.rol_id || null;
 
     // Actualizar usuario
     const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
       empresa_id: nuevaEmpresa.empresa_id,
-      rol_id: nuevoRol.rol_id,
+      rol_id,
       estado: 'activo',
     });
 
@@ -250,7 +287,8 @@ async function completeCompanySetup(req, res) {
       mensaje: 'Configuración de empresa completada.',
       empresa: nuevaEmpresa,
       usuario: usuarioActualizado,
-      rol: nuevoRol,
+      rol: rolAdministrador,
+      suscripcion: subscriptionResult,
     });
   } catch (err) {
     console.error('Error en completeCompanySetup:', err);

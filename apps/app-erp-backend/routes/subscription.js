@@ -7,6 +7,9 @@ const { checkPlanLimits } = require('../middleware/planValidation');
 // Obtener información de suscripción actual
 router.get('/info', verifyFirebaseToken, subscriptionController.getSubscriptionInfo);
 
+// TESTING - Obtener información sin auth
+router.get('/test', subscriptionController.getSubscriptionInfoTest);
+
 // Obtener facturas de la empresa
 router.get('/invoices', verifyFirebaseToken, subscriptionController.getInvoices);
 

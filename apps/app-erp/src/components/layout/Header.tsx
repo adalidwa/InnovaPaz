@@ -56,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
   }, [showUserDropdown]);
 
   const goToProfile = () => {
-    navigate('/configuracion/perfil');
+    navigate('/app-erp/configuracion/perfil');
     setShowUserDropdown(false);
   };
 

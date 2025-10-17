@@ -7,24 +7,22 @@ import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import { FiEdit2, FiUserPlus } from 'react-icons/fi';
 import './CompanyMembersSection.css';
+import { getRolesByEmpresa, type Rol } from '../services/rolesService';
 
 interface Member {
   id: string;
   nombre: string;
   email: string;
   rol: string;
+  rol_nombre?: string;
   estado: 'activo' | 'pendiente';
 }
-
-const roleOptions = [
-  { value: 'Administrador', label: 'Administrador' },
-  { value: 'Vendedor', label: 'Vendedor' },
-  { value: 'Inventario', label: 'Inventario' },
-];
 
 function CompanyMembersSection() {
   const [members, setMembers] = useState<Member[]>([]);
   const [empresaId, setEmpresaId] = useState('');
+  const [roles, setRoles] = useState<Rol[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState({ nombre: '', email: '', rol: '' });
@@ -44,8 +42,17 @@ function CompanyMembersSection() {
         });
         if (resUser.ok) {
           const dataUser = await resUser.json();
-          setEmpresaId(dataUser.usuario.empresa_id);
-          const resMembers = await fetch(`/api/users/company/${dataUser.usuario.empresa_id}`, {
+          const empId = dataUser.usuario.empresa_id;
+          setEmpresaId(empId);
+
+          // Cargar roles de la empresa
+          setLoadingRoles(true);
+          const rolesData = await getRolesByEmpresa(empId, token);
+          setRoles(rolesData);
+          setLoadingRoles(false);
+
+          // Cargar miembros
+          const resMembers = await fetch(`/api/users/company/${empId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -60,20 +67,27 @@ function CompanyMembersSection() {
                   nombre_completo: string;
                   email: string;
                   rol_id: string;
+                  rol?: { nombre_rol?: string };
                   estado: 'activo' | 'pendiente';
-                }) => ({
-                  id: m.uid,
-                  nombre: m.nombre_completo,
-                  email: m.email,
-                  rol: m.rol_id,
-                  estado: m.estado,
-                })
+                }) => {
+                  // Buscar el nombre del rol
+                  const rolObj = rolesData.find((r) => r.rol_id === m.rol_id);
+                  return {
+                    id: m.uid,
+                    nombre: m.nombre_completo,
+                    email: m.email,
+                    rol: m.rol_id,
+                    rol_nombre: rolObj?.nombre_rol || m.rol?.nombre_rol || 'Sin rol',
+                    estado: m.estado,
+                  };
+                }
               )
             );
           }
         }
       } catch (error) {
         console.error('Error obteniendo miembros:', error);
+        setLoadingRoles(false);
       }
     };
     fetchMembers();
@@ -138,7 +152,11 @@ function CompanyMembersSection() {
   const columns: TableColumn<Member>[] = [
     { key: 'nombre', header: 'Nombre' },
     { key: 'email', header: 'Email' },
-    { key: 'rol', header: 'Rol' },
+    {
+      key: 'rol_nombre',
+      header: 'Rol',
+      render: (_, row) => row.rol_nombre || 'Sin rol',
+    },
     {
       key: 'estado',
       header: 'Estado',
@@ -233,15 +251,16 @@ function CompanyMembersSection() {
             required
             value={inviteForm.rol}
             onChange={(e) => updateInvite('rol', e.target.value)}
-            options={roleOptions}
-            placeholder='Seleccionar rol'
+            options={roles.map((r) => ({ value: r.rol_id, label: r.nombre_rol }))}
+            placeholder={loadingRoles ? 'Cargando roles...' : 'Seleccionar rol'}
+            disabled={loadingRoles}
           />
           <div className='invite-actions'>
             <Button
               variant='primary'
               size='medium'
               onClick={handleInvite}
-              disabled={!inviteForm.nombre || !inviteForm.email || !inviteForm.rol}
+              disabled={!inviteForm.nombre || !inviteForm.email || !inviteForm.rol || loadingRoles}
             >
               Enviar Invitación
             </Button>

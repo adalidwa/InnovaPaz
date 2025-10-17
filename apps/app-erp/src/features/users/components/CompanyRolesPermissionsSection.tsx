@@ -4,14 +4,17 @@ import Button from '../../../components/common/Button';
 import Table, { type TableColumn } from '../../../components/common/Table';
 import Modal from '../../../components/common/Modal';
 import Input from '../../../components/common/Input';
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiLock } from 'react-icons/fi';
 import './CompanyRolesPermissionsSection.css';
-
-interface Role {
-  id: string;
-  nombre: string;
-  permisos: string[];
-}
+import {
+  getRolesByEmpresa,
+  createRol,
+  updateRol,
+  deleteRol,
+  getRolesStats,
+  type Rol,
+  type RolStats,
+} from '../services/rolesService';
 
 const AVAILABLE_PERMISSIONS: { code: string; label: string; group?: string }[] = [
   { code: 'users.read', label: 'Ver Usuarios' },
@@ -25,15 +28,17 @@ const AVAILABLE_PERMISSIONS: { code: string; label: string; group?: string }[] =
 ];
 
 function CompanyRolesPermissionsSection() {
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<Rol[]>([]);
   const [empresaId, setEmpresaId] = useState('');
+  const [stats, setStats] = useState<RolStats | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const [createEditOpen, setCreateEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editingRole, setEditingRole] = useState<Rol | null>(null);
   const [formName, setFormName] = useState('');
   const [formPerms, setFormPerms] = useState<string[]>([]);
-  const [deletingRole, setDeletingRole] = useState<Role | null>(null);
+  const [deletingRole, setDeletingRole] = useState<Rol | null>(null);
 
   const resetForm = () => {
     setFormName('');
@@ -46,9 +51,13 @@ function CompanyRolesPermissionsSection() {
     setCreateEditOpen(true);
   };
 
-  const openEdit = (role: Role) => {
+  const openEdit = (role: Rol) => {
+    if (role.es_predeterminado) {
+      alert('No puedes editar roles predeterminados del sistema');
+      return;
+    }
     setEditingRole(role);
-    setFormName(role.nombre);
+    setFormName(role.nombre_rol);
     setFormPerms(role.permisos);
     setCreateEditOpen(true);
   };
@@ -61,37 +70,33 @@ function CompanyRolesPermissionsSection() {
 
   useEffect(() => {
     const fetchRoles = async () => {
+      setLoading(true);
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
+
         const resUser = await fetch('/api/auth/me', {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         });
+
         if (resUser.ok) {
           const dataUser = await resUser.json();
-          setEmpresaId(dataUser.usuario.empresa_id);
-          const resRoles = await fetch(`/api/roles?empresa_id=${dataUser.usuario.empresa_id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          if (resRoles.ok) {
-            const dataRoles = await resRoles.json();
-            setRoles(
-              dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
-                id: r.rol_id,
-                nombre: r.nombre_rol,
-                permisos: Array.isArray(r.permisos) ? r.permisos : [],
-              }))
-            );
-          }
+          const empId = dataUser.usuario.empresa_id;
+          setEmpresaId(empId);
+
+          const rolesData = await getRolesByEmpresa(empId, token);
+          setRoles(rolesData);
+
+          const statsData = await getRolesStats(empId, token);
+          setStats(statsData);
         }
       } catch (error) {
-        console.error('Error obteniendo roles:', error);
+        console.error('Error al cargar roles:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchRoles();
@@ -101,81 +106,35 @@ function CompanyRolesPermissionsSection() {
     if (!formName.trim() || !empresaId) return;
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    setLoading(true);
     try {
       if (editingRole) {
-        const res = await fetch(`/api/roles/${editingRole.id}`, {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            nombre_rol: formName.trim(),
-            permisos: formPerms,
-          }),
-        });
-        if (res.ok) {
-          setCreateEditOpen(false);
-          resetForm();
-          const resRoles = await fetch(`/api/roles?empresa_id=${empresaId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          if (resRoles.ok) {
-            const dataRoles = await resRoles.json();
-            setRoles(
-              dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
-                id: r.rol_id,
-                nombre: r.nombre_rol,
-                permisos: Array.isArray(r.permisos) ? r.permisos : [],
-              }))
-            );
-          }
-        }
+        await updateRol(editingRole.rol_id, formName.trim(), formPerms, token);
       } else {
-        const res = await fetch('/api/roles', {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            empresa_id: empresaId,
-            nombre_rol: formName.trim(),
-            permisos: formPerms,
-            es_predeterminado: false,
-            estado: 'activo',
-          }),
-        });
-        if (res.ok) {
-          setCreateEditOpen(false);
-          resetForm();
-          const resRoles = await fetch(`/api/roles?empresa_id=${empresaId}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          if (resRoles.ok) {
-            const dataRoles = await resRoles.json();
-            setRoles(
-              dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
-                id: r.rol_id,
-                nombre: r.nombre_rol,
-                permisos: Array.isArray(r.permisos) ? r.permisos : [],
-              }))
-            );
-          }
-        }
+        await createRol(empresaId, formName.trim(), formPerms, token);
       }
-    } catch {
-      alert('Error al guardar el rol');
+
+      const rolesData = await getRolesByEmpresa(empresaId, token);
+      setRoles(rolesData);
+
+      const statsData = await getRolesStats(empresaId, token);
+      setStats(statsData);
+
+      setCreateEditOpen(false);
+      resetForm();
+    } catch (error: any) {
+      alert(error.message || 'Error al guardar el rol');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const confirmDelete = (role: Role) => {
+  const confirmDelete = (role: Rol) => {
+    if (role.es_predeterminado) {
+      alert('No puedes eliminar roles predeterminados del sistema');
+      return;
+    }
     setDeletingRole(role);
     setDeleteOpen(true);
   };
@@ -184,49 +143,43 @@ function CompanyRolesPermissionsSection() {
     if (!deletingRole || !empresaId) return;
     const token = localStorage.getItem('token');
     if (!token) return;
+
+    setLoading(true);
     try {
-      const res = await fetch(`/api/roles/${deletingRole.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      if (res.ok) {
-        setDeleteOpen(false);
-        setDeletingRole(null);
-        const resRoles = await fetch(`/api/roles?empresa_id=${empresaId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        if (resRoles.ok) {
-          const dataRoles = await resRoles.json();
-          setRoles(
-            dataRoles.map((r: { rol_id: string; nombre_rol: string; permisos: string[] }) => ({
-              id: r.rol_id,
-              nombre: r.nombre_rol,
-              permisos: Array.isArray(r.permisos) ? r.permisos : [],
-            }))
-          );
-        }
-      }
-    } catch {
-      alert('Error al eliminar el rol');
+      await deleteRol(deletingRole.rol_id, token);
+
+      const rolesData = await getRolesByEmpresa(empresaId, token);
+      setRoles(rolesData);
+
+      const statsData = await getRolesStats(empresaId, token);
+      setStats(statsData);
+
+      setDeleteOpen(false);
+      setDeletingRole(null);
+    } catch (error: any) {
+      alert(error.message || 'Error al eliminar el rol');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const columns: TableColumn<Role>[] = [
+  const columns: TableColumn<Rol>[] = [
     {
-      key: 'nombre',
+      key: 'nombre_rol',
       header: 'Nombre del Rol',
-      render: (v: string) => <span className='role-name-cell'>{v}</span>,
+      render: (v: string, row: Rol) => (
+        <span className='role-name-cell'>
+          {row.es_predeterminado && (
+            <FiLock size={14} style={{ marginRight: '8px', color: 'var(--pri-600)' }} />
+          )}
+          {v}
+        </span>
+      ),
     },
     {
       key: 'permisos',
       header: 'Permisos Activos',
-      render: (_: unknown, row: Role) => (
+      render: (_: unknown, row: Rol) => (
         <span className='perm-count'>
           {row.permisos.length} permiso{row.permisos.length !== 1 ? 's' : ''}
         </span>
@@ -236,23 +189,33 @@ function CompanyRolesPermissionsSection() {
     {
       key: 'acciones',
       header: 'Acciones',
-      render: (_: unknown, row: Role) => (
+      render: (_: unknown, row: Rol) => (
         <div className='roles-actions'>
           <button
             type='button'
-            className='role-icon-btn role-icon-btn--edit'
-            aria-label={`Editar rol ${row.nombre}`}
+            className='icon-action-btn'
+            aria-label={`Editar ${row.nombre_rol}`}
             onClick={() => openEdit(row)}
+            disabled={row.es_predeterminado}
+            style={{
+              opacity: row.es_predeterminado ? 0.5 : 1,
+              cursor: row.es_predeterminado ? 'not-allowed' : 'pointer',
+            }}
           >
-            <FiEdit2 size={15} />
+            <FiEdit2 size={16} />
           </button>
           <button
             type='button'
-            className='role-icon-btn role-icon-btn--delete'
-            aria-label={`Eliminar rol ${row.nombre}`}
+            className='icon-action-btn icon-action-btn--danger'
+            aria-label={`Eliminar ${row.nombre_rol}`}
             onClick={() => confirmDelete(row)}
+            disabled={row.es_predeterminado}
+            style={{
+              opacity: row.es_predeterminado ? 0.5 : 1,
+              cursor: row.es_predeterminado ? 'not-allowed' : 'pointer',
+            }}
           >
-            <FiTrash2 size={15} />
+            <FiTrash2 size={16} />
           </button>
         </div>
       ),
@@ -266,7 +229,7 @@ function CompanyRolesPermissionsSection() {
       <div className='roles-header-line'>
         <TitleDescription
           title='Roles y Permisos'
-          description='Define qué puede hacer cada tipo de miembro'
+          description='Define qué pueden hacer los miembros de tu equipo'
           titleSize={16}
           descriptionSize={12}
           titleWeight='semibold'
@@ -274,84 +237,115 @@ function CompanyRolesPermissionsSection() {
           spacing='.35rem'
           maxWidth='100%'
         />
-        <Button variant='primary' size='medium' icon={<FiPlus size={16} />} onClick={openCreate}>
-          Crear Rol
+        {stats && (
+          <div className='roles-stats-badge'>
+            <span className='roles-stats-count'>
+              {stats.roles_personalizados} / {stats.limite_roles} roles personalizados
+            </span>
+            {stats.puede_crear_mas ? (
+              <span className='roles-stats-status roles-stats-status--available'>Disponible</span>
+            ) : (
+              <span className='roles-stats-status roles-stats-status--limit'>Límite alcanzado</span>
+            )}
+          </div>
+        )}
+        <Button
+          variant='primary'
+          size='small'
+          onClick={openCreate}
+          disabled={!stats?.puede_crear_mas || loading}
+          className='roles-btn-add'
+        >
+          <FiPlus size={16} /> Nuevo Rol
         </Button>
       </div>
 
-      <Table<Role>
-        data={roles}
-        columns={columns}
-        emptyMessage='Sin roles'
-        className='roles-table'
-        rowClassName={(row) =>
-          editingRole && row.id === editingRole.id ? 'table-row--active' : ''
-        }
-      />
+      {loading && !roles.length ? (
+        <div className='loading-indicator'>Cargando roles...</div>
+      ) : (
+        <Table<Rol>
+          data={roles}
+          columns={columns}
+          emptyMessage='Sin roles definidos aún'
+          className='roles-table'
+          rowClassName={(row) =>
+            editingRole && row.rol_id === editingRole.rol_id ? 'table-row--active' : ''
+          }
+        />
+      )}
+
       <Modal
         isOpen={createEditOpen}
         onClose={() => {
           setCreateEditOpen(false);
           resetForm();
         }}
-        title={editingRole ? 'Editar Rol' : 'Crear Rol'}
+        title={editingRole ? 'Editar Rol' : 'Crear Nuevo Rol'}
         message=''
         showCancelButton
-        cancelButtonText='Cerrar'
+        cancelButtonText='Cancelar'
         showConfirmButton={false}
         modalType='info'
-        size='large'
       >
-        <div className='role-form'>
+        <div className='roles-form'>
           <Input
             label='Nombre del Rol'
-            placeholder='Ej: Supervisor'
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
-            required
+            placeholder='Ej: Vendedor, Supervisor, etc.'
           />
-
-          <div className='permissions-block'>
-            <span className='permissions-block-title'>
-              Permisos ({formPerms.length} seleccionados)
-            </span>
-            <div className='permissions-list'>
-              {AVAILABLE_PERMISSIONS.map((p) => {
-                const active = formPerms.includes(p.code);
-                return (
-                  <label key={p.code} className={`perm-item ${active ? 'perm-item--active' : ''}`}>
-                    <input type='checkbox' checked={active} onChange={() => togglePerm(p.code)} />
-                    <span className='perm-label'>{p.label}</span>
-                  </label>
-                );
-              })}
+          <div className='perms-section'>
+            <label className='perms-label'>Permisos</label>
+            <div className='perms-grid'>
+              {AVAILABLE_PERMISSIONS.map((perm) => (
+                <div key={perm.code} className='perm-checkbox-item'>
+                  <input
+                    type='checkbox'
+                    id={perm.code}
+                    checked={formPerms.includes(perm.code)}
+                    onChange={() => togglePerm(perm.code)}
+                  />
+                  <label htmlFor={perm.code}>{perm.label}</label>
+                </div>
+              ))}
             </div>
           </div>
-
-          <div className='role-form-actions'>
+          <div className='roles-form-actions'>
+            <Button
+              variant='secondary'
+              size='small'
+              onClick={() => {
+                setCreateEditOpen(false);
+                resetForm();
+              }}
+            >
+              Cancelar
+            </Button>
             <Button
               variant='primary'
-              size='medium'
+              size='small'
               onClick={handleSave}
-              disabled={!formName.trim()}
+              disabled={!formName.trim() || loading}
             >
-              {editingRole ? 'Guardar Cambios' : 'Crear Rol'}
+              {loading ? 'Guardando...' : editingRole ? 'Actualizar' : 'Crear Rol'}
             </Button>
           </div>
         </div>
       </Modal>
+
       <Modal
         isOpen={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
+        onClose={() => {
+          setDeleteOpen(false);
+          setDeletingRole(null);
+        }}
         title='Eliminar Rol'
-        message={`¿Seguro que deseas eliminar el rol "${deletingRole?.nombre}"? Esta acción no se puede deshacer.`}
-        modalType='warning'
-        showConfirmButton
-        confirmButtonText='Eliminar'
+        message={`¿Seguro que deseas eliminar el rol "${deletingRole?.nombre_rol}"? Esta acción no se puede deshacer.`}
         showCancelButton
-        cancelButtonText='Cancelar'
+        showConfirmButton
+        confirmButtonText={loading ? 'Eliminando...' : 'Eliminar'}
         onConfirm={handleDelete}
-        onCancel={() => setDeleteOpen(false)}
+        modalType='error'
       />
     </div>
   );

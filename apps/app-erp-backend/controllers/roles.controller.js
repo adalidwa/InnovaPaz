@@ -57,6 +57,35 @@ async function createRole(req, res) {
       return res.status(400).json({ error: 'Los permisos deben ser un objeto JSON.' });
     }
 
+    // ⚠️ VALIDACIÓN IMPORTANTE: Los roles personalizados (no predeterminados)
+    // deben verificar el límite del plan a través del middleware
+    // Los roles predeterminados solo se crean al registrar la empresa
+    if (!es_predeterminado) {
+      // Este endpoint solo debe usarse para roles personalizados
+      // Los predeterminados se crean automáticamente en el registro
+      const rolesPersonalizados = await Role.count({
+        empresa_id,
+        es_predeterminado: false,
+      });
+
+      // Obtener límite del plan
+      const Plan = require('../models/plan.model');
+      const plan = await Plan.findById(empresa.plan_id);
+      const limiteRoles = plan?.limites?.roles || 2;
+
+      // Si no es ilimitado, validar
+      if (limiteRoles !== null && limiteRoles !== -1) {
+        if (rolesPersonalizados >= limiteRoles) {
+          return res.status(403).json({
+            error: `Has alcanzado el límite de roles personalizados (${limiteRoles}) para tu plan.`,
+            current: rolesPersonalizados,
+            limit: limiteRoles,
+            suggestion: 'Considera actualizar tu plan para crear más roles personalizados.',
+          });
+        }
+      }
+    }
+
     const nuevoRol = await Role.create({
       empresa_id,
       nombre_rol,
@@ -64,7 +93,13 @@ async function createRole(req, res) {
       es_predeterminado: es_predeterminado || false,
       estado: estado || 'activo',
     });
-    res.status(201).json(nuevoRol);
+
+    res.status(201).json({
+      rol: nuevoRol,
+      mensaje: es_predeterminado
+        ? 'Rol predeterminado creado exitosamente'
+        : 'Rol personalizado creado exitosamente',
+    });
   } catch (err) {
     console.error('Error al crear rol:', err);
     res.status(400).json({ error: 'Error al crear el rol.', details: err.message });
@@ -120,11 +155,46 @@ async function updateRole(req, res) {
 
 async function deleteRole(req, res) {
   try {
-    const rol = await Role.findByIdAndDelete(req.params.rol_id);
-    if (!rol) return res.status(404).json({ error: 'Rol no encontrado.' });
-    res.json({ mensaje: 'Rol eliminado correctamente.' });
+    // Buscar el rol primero para validar
+    const rol = await Role.findById(req.params.rol_id);
+
+    if (!rol) {
+      return res.status(404).json({ error: 'Rol no encontrado.' });
+    }
+
+    // ⚠️ VALIDACIÓN CRÍTICA: No se pueden eliminar roles predeterminados
+    if (rol.es_predeterminado) {
+      return res.status(403).json({
+        error: 'No se pueden eliminar roles predeterminados.',
+        mensaje:
+          'Los roles predeterminados son esenciales para el funcionamiento del sistema y solo pueden editarse.',
+        rol_afectado: rol.nombre_rol,
+        sugerencia: 'Puedes editar los permisos de este rol, pero no eliminarlo.',
+      });
+    }
+
+    // Verificar si hay usuarios asignados a este rol
+    const User = require('../models/user.model');
+    const usuariosConRol = await User.count({ rol_id: req.params.rol_id });
+
+    if (usuariosConRol > 0) {
+      return res.status(400).json({
+        error: 'No se puede eliminar el rol porque tiene usuarios asignados.',
+        usuarios_afectados: usuariosConRol,
+        sugerencia: 'Reasigna los usuarios a otro rol antes de eliminar este.',
+      });
+    }
+
+    // Si pasa todas las validaciones, eliminar el rol
+    await Role.findByIdAndDelete(req.params.rol_id);
+
+    res.json({
+      mensaje: 'Rol personalizado eliminado correctamente.',
+      rol_eliminado: rol.nombre_rol,
+    });
   } catch (err) {
-    res.status(400).json({ error: 'Error al eliminar el rol.' });
+    console.error('Error al eliminar rol:', err);
+    res.status(400).json({ error: 'Error al eliminar el rol.', details: err.message });
   }
 }
 
@@ -140,6 +210,92 @@ async function setDefaultRole(req, res) {
   }
 }
 
+/**
+ * Buscar rol de Administrador por nombre (no por ID)
+ * Útil para verificar permisos de administrador en cualquier empresa
+ */
+async function isAdministrador(empresaId, rolId) {
+  try {
+    const rol = await Role.findById(rolId);
+
+    if (!rol || rol.empresa_id !== empresaId) {
+      return false;
+    }
+
+    // Buscar por nombre, no por ID fijo
+    return rol.nombre_rol === 'Administrador';
+  } catch (err) {
+    console.error('Error al verificar rol administrador:', err);
+    return false;
+  }
+}
+
+/**
+ * Obtener el rol de Administrador de una empresa
+ */
+async function getAdministradorRole(req, res) {
+  try {
+    const { empresa_id } = req.params;
+
+    // Buscar el rol Administrador por nombre (no por ID)
+    const rolAdmin = await Role.findOne({
+      empresa_id,
+      nombre_rol: 'Administrador',
+    });
+
+    if (!rolAdmin) {
+      return res.status(404).json({
+        error: 'Rol de Administrador no encontrado para esta empresa.',
+        sugerencia: 'Verifica que la empresa esté correctamente configurada.',
+      });
+    }
+
+    res.json({
+      rol: rolAdmin,
+      mensaje: 'Rol de Administrador encontrado exitosamente',
+    });
+  } catch (err) {
+    console.error('Error al obtener rol administrador:', err);
+    res.status(500).json({ error: 'Error al obtener el rol de administrador.' });
+  }
+}
+
+/**
+ * Obtener estadísticas de roles de una empresa
+ */
+async function getRoleStats(req, res) {
+  try {
+    const { empresa_id } = req.params;
+
+    const [rolesPredeterminados, rolesPersonalizados, totalRoles] = await Promise.all([
+      Role.count({ empresa_id, es_predeterminado: true }),
+      Role.count({ empresa_id, es_predeterminado: false }),
+      Role.count({ empresa_id }),
+    ]);
+
+    // Obtener límite del plan
+    const Company = require('../models/company.model');
+    const Plan = require('../models/plan.model');
+    const empresa = await Company.findById(empresa_id);
+    const plan = await Plan.findById(empresa.plan_id);
+
+    const limiteRoles = plan?.limites?.roles || 2;
+
+    res.json({
+      roles_predeterminados: rolesPredeterminados,
+      roles_personalizados: rolesPersonalizados,
+      total_roles: totalRoles,
+      limite_personalizados: limiteRoles === null ? 'Ilimitado' : limiteRoles,
+      disponibles:
+        limiteRoles === null ? 'Ilimitado' : Math.max(0, limiteRoles - rolesPersonalizados),
+      porcentaje_uso: limiteRoles === null ? 0 : (rolesPersonalizados / limiteRoles) * 100,
+    });
+  } catch (err) {
+    console.error('Error al obtener estadísticas de roles:', err);
+    res.status(500).json({ error: 'Error al obtener estadísticas de roles.' });
+  }
+}
+
 module.exports = {
   getRolesByCompany,
   getRoleById,
@@ -147,4 +303,7 @@ module.exports = {
   updateRole,
   deleteRole,
   setDefaultRole,
+  isAdministrador,
+  getAdministradorRole,
+  getRoleStats,
 };

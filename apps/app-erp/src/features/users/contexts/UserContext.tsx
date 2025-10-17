@@ -19,11 +19,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
           if (res.ok) {
             const data = await res.json();
+            console.log('📥 Usuario cargado desde /api/auth/me:', data.usuario); // DEBUG
             setUser({
               uid: data.usuario.uid,
               nombre_completo: data.usuario.nombre_completo,
               email: data.usuario.email,
-              rol: data.usuario.rol || '',
+              rol: data.usuario.rol || 'Sin rol', // Asegurar que siempre tenga un valor
               empresa_id: data.usuario.empresa_id,
               avatar_url: data.usuario.avatar_url || null,
               rol_id: data.usuario.rol_id || '',

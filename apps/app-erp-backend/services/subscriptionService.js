@@ -212,53 +212,106 @@ class SubscriptionService {
   }
 
   /**
-   * Obtener información detallada de la suscripción
+   * Obtener información detallada de la suscripción con JOINS
    */
   static async getSubscriptionInfo(empresaId) {
     try {
-      const empresa = await Company.findById(empresaId);
-      if (!empresa) {
+      console.log('🔍 getSubscriptionInfo - Buscando empresa:', empresaId);
+
+      // Consulta con JOIN para obtener toda la información relacionada
+      const pool = require('../db');
+      const query = `
+        SELECT 
+          e.empresa_id,
+          e.nombre as empresa_nombre,
+          e.tipo_empresa_id,
+          e.plan_id,
+          e.estado_suscripcion,
+          e.fecha_fin_prueba,
+          e.fecha_fin_periodo_actual,
+          e.fecha_creacion,
+          e.tamano_empresa,
+          e.email,
+          e.logo_url,
+          p.nombre_plan,
+          p.precio_mensual,
+          p.limites,
+          te.tipo_empresa
+        FROM empresas e
+        LEFT JOIN planes p ON e.plan_id = p.plan_id
+        LEFT JOIN tipos_empresa te ON e.tipo_empresa_id = te.tipo_id
+        WHERE e.empresa_id = $1
+      `;
+
+      const result = await pool.query(query, [empresaId]);
+      const empresaCompleta = result.rows[0];
+
+      if (!empresaCompleta) {
         throw new Error('Empresa no encontrada');
       }
 
-      const plan = await Plan.findById(empresa.plan_id);
-      if (!plan) {
-        throw new Error('Plan no encontrado');
-      }
+      console.log('� Empresa completa encontrada:', {
+        empresa_id: empresaCompleta.empresa_id,
+        empresa_nombre: empresaCompleta.empresa_nombre,
+        tipo_empresa_id: empresaCompleta.tipo_empresa_id,
+        tipo_empresa: empresaCompleta.tipo_empresa,
+        plan_id: empresaCompleta.plan_id,
+        nombre_plan: empresaCompleta.nombre_plan,
+        precio_mensual: empresaCompleta.precio_mensual,
+        estado_suscripcion: empresaCompleta.estado_suscripcion,
+        limites: empresaCompleta.limites,
+      });
 
       const now = new Date();
       let diasRestantes = 0;
       let fechaExpiracion = null;
 
-      if (empresa.estado_suscripcion === 'en_prueba' && empresa.fecha_fin_prueba) {
-        fechaExpiracion = new Date(empresa.fecha_fin_prueba);
+      if (empresaCompleta.estado_suscripcion === 'en_prueba' && empresaCompleta.fecha_fin_prueba) {
+        fechaExpiracion = new Date(empresaCompleta.fecha_fin_prueba);
         diasRestantes = Math.max(0, Math.ceil((fechaExpiracion - now) / (1000 * 60 * 60 * 24)));
-      } else if (empresa.estado_suscripcion === 'activa' && empresa.fecha_fin_periodo_actual) {
-        fechaExpiracion = new Date(empresa.fecha_fin_periodo_actual);
+      } else if (
+        empresaCompleta.estado_suscripcion === 'activa' &&
+        empresaCompleta.fecha_fin_periodo_actual
+      ) {
+        fechaExpiracion = new Date(empresaCompleta.fecha_fin_periodo_actual);
         diasRestantes = Math.max(0, Math.ceil((fechaExpiracion - now) / (1000 * 60 * 60 * 24)));
       }
 
-      return {
+      const subscriptionData = {
         plan: {
-          nombre: plan.nombre_plan,
-          precio: plan.precio_mensual,
-          limites: plan.limites,
+          nombre: empresaCompleta.nombre_plan,
+          precio: empresaCompleta.precio_mensual,
+          limites: empresaCompleta.limites,
         },
         suscripcion: {
-          estado: empresa.estado_suscripcion,
+          estado: empresaCompleta.estado_suscripcion,
           fechaExpiracion,
           diasRestantes,
-          enPeriodoPrueba: empresa.estado_suscripcion === 'en_prueba',
-          activa: ['en_prueba', 'activa'].includes(empresa.estado_suscripcion),
+          enPeriodoPrueba: empresaCompleta.estado_suscripcion === 'en_prueba',
+          activa: ['en_prueba', 'activa'].includes(empresaCompleta.estado_suscripcion),
         },
         fechas: {
-          creacion: empresa.fecha_creacion,
-          finPrueba: empresa.fecha_fin_prueba,
-          finPeriodoActual: empresa.fecha_fin_periodo_actual,
+          creacion: empresaCompleta.fecha_creacion,
+          finPrueba: empresaCompleta.fecha_fin_prueba,
+          finPeriodoActual: empresaCompleta.fecha_fin_periodo_actual,
+        },
+        empresa: {
+          id: empresaCompleta.empresa_id,
+          nombre: empresaCompleta.empresa_nombre,
+          tipo_empresa_id: empresaCompleta.tipo_empresa_id,
+          tipo_empresa_nombre: empresaCompleta.tipo_empresa,
+          plan_id: empresaCompleta.plan_id,
+          tamano_empresa: empresaCompleta.tamano_empresa,
+          email: empresaCompleta.email,
+          logo_url: empresaCompleta.logo_url,
         },
       };
+
+      console.log('📤 Datos finales de suscripción:', JSON.stringify(subscriptionData, null, 2));
+
+      return subscriptionData;
     } catch (error) {
-      console.error('Error en getSubscriptionInfo:', error);
+      console.error('❌ Error en getSubscriptionInfo:', error);
       throw error;
     }
   }

@@ -104,6 +104,7 @@ async function registerUser(req, res) {
     if (empresa_data) {
       const { nombre, tipo_empresa_id, plan_id } = empresa_data;
 
+      // Crear empresa
       const nuevaEmpresa = await Company.create({
         nombre,
         tipo_empresa_id,
@@ -112,14 +113,48 @@ async function registerUser(req, res) {
       });
       empresa_id = nuevaEmpresa.empresa_id;
 
-      const nuevoRol = await Role.create({
-        empresa_id,
-        nombre_rol: 'Administrador',
-        permisos: { full_access: true },
-        es_predeterminado: true,
-        estado: 'activo',
-      });
-      rol_id = nuevoRol.rol_id;
+      // ===== ACTIVAR SUSCRIPCIÓN Y PERÍODO DE PRUEBA (SI APLICA) =====
+      const SubscriptionService = require('../services/subscriptionService');
+      await SubscriptionService.setupInitialSubscription(empresa_id, plan_id);
+
+      // ===== CREAR ROLES PREDETERMINADOS SEGÚN TIPO DE EMPRESA Y PLAN =====
+      const { obtenerRolesPorTipoEmpresa } = require('../utils/constants');
+      const TypeCompany = require('../models/typeCompany.model');
+      const Plan = require('../models/plan.model');
+
+      // Obtener datos del tipo de empresa y plan
+      const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+      const plan = await Plan.findById(plan_id);
+
+      if (!tipoEmpresa || !plan) {
+        throw new Error('Tipo de empresa o plan no encontrado');
+      }
+
+      // Obtener límite de roles según el plan
+      const limiteRoles = plan.limites?.roles || null; // null = ilimitado (Premium)
+
+      // Obtener roles predeterminados para este tipo de empresa
+      const rolesConfig = obtenerRolesPorTipoEmpresa(tipoEmpresa.tipo_empresa, limiteRoles);
+
+      let rolAdministrador;
+
+      // Crear todos los roles predeterminados
+      for (const rolConfig of rolesConfig) {
+        const rolCreado = await Role.create({
+          empresa_id,
+          nombre_rol: rolConfig.nombre,
+          permisos: rolConfig.permisos,
+          es_predeterminado: true,
+          estado: 'activo',
+        });
+
+        // Guardar referencia al rol Administrador
+        if (rolConfig.nombre === 'Administrador') {
+          rolAdministrador = rolCreado;
+        }
+      }
+
+      rol_id = rolAdministrador?.rol_id || null;
     } else {
       empresa_id = null;
       rol_id = null;
@@ -161,10 +196,21 @@ async function loginUser(req, res) {
         .json({ error: 'Token de Firebase inválido.', details: decodedFirebaseToken.error });
     }
 
-    const usuario = await User.findOne({ uid: decodedFirebaseToken.uid });
-    if (!usuario) {
+    // Obtener usuario con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
+              u.estado, u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [decodedFirebaseToken.uid]
+    );
+
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado en la base de datos local.' });
     }
+
+    const usuario = result.rows[0];
 
     const localToken = jwt.sign(
       {
@@ -176,8 +222,23 @@ async function loginUser(req, res) {
       JWT_SECRET,
       { expiresIn: '8h' }
     );
-    res.json({ token: localToken, usuario });
+
+    res.json({
+      token: localToken,
+      usuario: {
+        uid: usuario.uid,
+        email: usuario.email,
+        nombre_completo: usuario.nombre_completo,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol', // Nombre del rol
+        estado: usuario.estado,
+        preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
+      },
+    });
   } catch (err) {
+    console.error('Error en loginUser:', err);
     res.status(500).json({ error: 'Error al iniciar sesión.' });
   }
 }
@@ -202,8 +263,21 @@ async function verifyTokenEndpoint(req, res) {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const usuario = await User.findOne({ uid: decoded.uid });
-    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    // Obtener usuario con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, u.estado, 
+              u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [decoded.uid]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    const usuario = result.rows[0];
 
     res.json({
       usuario: {
@@ -212,12 +286,14 @@ async function verifyTokenEndpoint(req, res) {
         nombre_completo: usuario.nombre_completo,
         empresa_id: usuario.empresa_id,
         rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol', // Nombre del rol
         estado: usuario.estado,
         preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,
       },
     });
   } catch (err) {
+    console.error('Error en verifyTokenEndpoint:', err);
     res.status(401).json({ error: 'Token inválido.' });
   }
 }
@@ -259,22 +335,40 @@ async function googleAuth(req, res) {
       });
     }
 
-    // Buscar usuario existente en PostgreSQL
-    let usuario = await User.findOne({ uid });
+    // Buscar usuario existente en PostgreSQL con nombre del rol
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
+              u.estado, u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [uid]
+    );
 
-    if (!usuario) {
+    let usuario;
+
+    if (result.rows.length === 0) {
       // Usuario no existe en PostgreSQL, crearlo sin empresa
-      usuario = await User.create({
-        uid,
-        empresa_id: null,
-        rol_id: null,
-        nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
-        email,
-        estado: 'activo',
-        preferencias: {},
-      });
+      const insertResult = await pool.query(
+        `INSERT INTO usuarios (uid, empresa_id, rol_id, nombre_completo, email, estado, preferencias)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [
+          uid,
+          null,
+          null,
+          firebaseUserInfo.displayName || 'Usuario Google',
+          email,
+          'activo',
+          JSON.stringify({}),
+        ]
+      );
 
+      usuario = insertResult.rows[0];
+      usuario.nombre_rol = null;
       console.log(`✅ Nuevo usuario Google creado en PostgreSQL: ${uid}`);
+    } else {
+      usuario = result.rows[0];
     }
 
     // Generar token JWT local
@@ -301,6 +395,7 @@ async function googleAuth(req, res) {
         nombre_completo: usuario.nombre_completo,
         empresa_id: usuario.empresa_id,
         rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol', // Nombre del rol
         estado: usuario.estado,
         preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,

@@ -80,25 +80,29 @@ const PLANES_ARRAY = Object.values(PLANES);
  * ================================================================
  * ROLES PREDETERMINADOS POR TIPO DE EMPRESA
  * ================================================================
- * Roles que se crean automáticamente según el tipo de negocio
- * El rol "Administrador" siempre se crea para el dueño de la empresa
+ * Cada tipo de empresa tiene 5 roles predeterminados específicos.
+ * La cantidad de roles visibles depende del plan:
+ * - Plan Básico: 2 roles predeterminados + 2 personalizables
+ * - Plan Estándar: 5 roles predeterminados + 5 personalizables
+ * - Plan Premium: 5 roles predeterminados + ilimitados personalizables
+ *
+ * Los roles predeterminados NO consumen el límite del plan.
+ * No se pueden eliminar, solo editar permisos.
  */
 const ROLES_PREDETERMINADOS = {
-  // ROL UNIVERSAL (todas las empresas)
-  ADMINISTRADOR: {
-    nombre: 'Administrador',
-    descripcion: 'Acceso total al sistema',
-    permisos: {
-      ventas: { crear: true, leer: true, actualizar: true, eliminar: true },
-      compras: { crear: true, leer: true, actualizar: true, eliminar: true },
-      inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
-      usuarios: { crear: true, leer: true, actualizar: true, eliminar: true },
-      reportes: { crear: true, leer: true, actualizar: true, eliminar: true },
+  // 🏪 MINIMARKET - 5 roles predeterminados
+  Minimarket: [
+    {
+      nombre: 'Administrador',
+      descripcion: 'Acceso total al sistema',
+      permisos: {
+        ventas: { crear: true, leer: true, actualizar: true, eliminar: true },
+        compras: { crear: true, leer: true, actualizar: true, eliminar: true },
+        inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        usuarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        reportes: { crear: true, leer: true, actualizar: true, eliminar: true },
+      },
     },
-  },
-
-  // ROLES PARA MINIMARKET
-  MINIMARKET: [
     {
       nombre: 'Cajero',
       descripcion: 'Realiza ventas y cobros',
@@ -111,8 +115,8 @@ const ROLES_PREDETERMINADOS = {
       },
     },
     {
-      nombre: 'Encargado de Almacén',
-      descripcion: 'Gestiona inventario y compras',
+      nombre: 'Encargado de Inventario',
+      descripcion: 'Controla existencias y realiza pedidos a proveedores',
       permisos: {
         ventas: { crear: false, leer: true, actualizar: false, eliminar: false },
         compras: { crear: true, leer: true, actualizar: true, eliminar: false },
@@ -121,39 +125,46 @@ const ROLES_PREDETERMINADOS = {
         reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
       },
     },
-  ],
-
-  // ROLES PARA FERRETERIA
-  FERRETERIA: [
     {
-      nombre: 'Vendedor',
-      descripcion: 'Atiende clientes y registra ventas',
+      nombre: 'Contador',
+      descripcion: 'Registra movimientos financieros y controla el cierre diario',
+      permisos: {
+        ventas: { crear: false, leer: true, actualizar: false, eliminar: false },
+        compras: { crear: false, leer: true, actualizar: false, eliminar: false },
+        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: true, leer: true, actualizar: true, eliminar: false },
+      },
+    },
+    {
+      nombre: 'Vendedor / Reponedor',
+      descripcion: 'Atiende clientes, acomoda góndolas y actualiza precios',
       permisos: {
         ventas: { crear: true, leer: true, actualizar: true, eliminar: false },
         compras: { crear: false, leer: false, actualizar: false, eliminar: false },
-        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
-        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
-        reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
-      },
-    },
-    {
-      nombre: 'Encargado de Bodega',
-      descripcion: 'Administra inventario y pedidos',
-      permisos: {
-        ventas: { crear: false, leer: true, actualizar: false, eliminar: false },
-        compras: { crear: true, leer: true, actualizar: true, eliminar: false },
-        inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        inventarios: { crear: false, leer: true, actualizar: true, eliminar: false },
         usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
         reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
       },
     },
   ],
 
-  // ROLES PARA LICORERIA
-  LICORERIA: [
+  // 🍷 LICORERIA - 5 roles predeterminados
+  Licoreria: [
     {
-      nombre: 'Cajero',
-      descripcion: 'Realiza ventas y gestiona caja',
+      nombre: 'Administrador',
+      descripcion: 'Acceso total al sistema',
+      permisos: {
+        ventas: { crear: true, leer: true, actualizar: true, eliminar: true },
+        compras: { crear: true, leer: true, actualizar: true, eliminar: true },
+        inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        usuarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        reportes: { crear: true, leer: true, actualizar: true, eliminar: true },
+      },
+    },
+    {
+      nombre: 'Cajero / Dependiente',
+      descripcion: 'Realiza ventas y atiende clientes',
       permisos: {
         ventas: { crear: true, leer: true, actualizar: false, eliminar: false },
         compras: { crear: false, leer: false, actualizar: false, eliminar: false },
@@ -163,31 +174,145 @@ const ROLES_PREDETERMINADOS = {
       },
     },
     {
-      nombre: 'Encargado de Inventario',
-      descripcion: 'Controla stock y compras',
+      nombre: 'Encargado de Almacén',
+      descripcion: 'Supervisa el stock, fechas de vencimiento y control de lote',
       permisos: {
         ventas: { crear: false, leer: true, actualizar: false, eliminar: false },
         compras: { crear: true, leer: true, actualizar: true, eliminar: false },
+        inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
+      },
+    },
+    {
+      nombre: 'Asistente Administrativo',
+      descripcion: 'Apoya en gestión de compras y registros',
+      permisos: {
+        ventas: { crear: false, leer: true, actualizar: false, eliminar: false },
+        compras: { crear: true, leer: true, actualizar: true, eliminar: false },
+        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: true, leer: true, actualizar: false, eliminar: false },
+      },
+    },
+    {
+      nombre: 'Encargado Comercial',
+      descripcion: 'Diseña promociones y coordina ventas',
+      permisos: {
+        ventas: { crear: true, leer: true, actualizar: true, eliminar: false },
+        compras: { crear: false, leer: true, actualizar: false, eliminar: false },
+        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: true, leer: true, actualizar: false, eliminar: false },
+      },
+    },
+  ],
+
+  // 🔧 FERRETERIA - 5 roles predeterminados
+  Ferreteria: [
+    {
+      nombre: 'Administrador',
+      descripcion: 'Acceso total al sistema',
+      permisos: {
+        ventas: { crear: true, leer: true, actualizar: true, eliminar: true },
+        compras: { crear: true, leer: true, actualizar: true, eliminar: true },
+        inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        usuarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+        reportes: { crear: true, leer: true, actualizar: true, eliminar: true },
+      },
+    },
+    {
+      nombre: 'Cajero',
+      descripcion: 'Realiza cobros y cierre de caja',
+      permisos: {
+        ventas: { crear: true, leer: true, actualizar: false, eliminar: false },
+        compras: { crear: false, leer: false, actualizar: false, eliminar: false },
+        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
+      },
+    },
+    {
+      nombre: 'Vendedor Técnico',
+      descripcion: 'Asesora clientes sobre herramientas y materiales',
+      permisos: {
+        ventas: { crear: true, leer: true, actualizar: true, eliminar: false },
+        compras: { crear: false, leer: false, actualizar: false, eliminar: false },
+        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
+      },
+    },
+    {
+      nombre: 'Encargado de Proveeduría',
+      descripcion: 'Gestiona compras y control de stock',
+      permisos: {
+        ventas: { crear: false, leer: true, actualizar: false, eliminar: false },
+        compras: { crear: true, leer: true, actualizar: true, eliminar: true },
         inventarios: { crear: true, leer: true, actualizar: true, eliminar: false },
         usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
         reportes: { crear: false, leer: true, actualizar: false, eliminar: false },
+      },
+    },
+    {
+      nombre: 'Asistente Administrativo',
+      descripcion: 'Maneja facturación y documentos de venta',
+      permisos: {
+        ventas: { crear: false, leer: true, actualizar: true, eliminar: false },
+        compras: { crear: false, leer: true, actualizar: false, eliminar: false },
+        inventarios: { crear: false, leer: true, actualizar: false, eliminar: false },
+        usuarios: { crear: false, leer: false, actualizar: false, eliminar: false },
+        reportes: { crear: true, leer: true, actualizar: false, eliminar: false },
       },
     },
   ],
 };
 
 /**
- * Helper para obtener roles por tipo de empresa
+ * ================================================================
+ * HELPERS PARA ROLES PREDETERMINADOS
+ * ================================================================
  */
-const obtenerRolesPorTipoEmpresa = (tipoEmpresa) => {
-  const tipo = tipoEmpresa.toUpperCase();
-  const roles = [ROLES_PREDETERMINADOS.ADMINISTRADOR];
 
-  if (ROLES_PREDETERMINADOS[tipo]) {
-    roles.push(...ROLES_PREDETERMINADOS[tipo]);
+/**
+ * Obtiene los roles predeterminados según tipo de empresa y límite del plan
+ * @param {string} tipoEmpresa - Minimarket, Ferreteria o Licoreria
+ * @param {number} limiteRoles - Número máximo de roles según el plan (2, 5, null=ilimitado)
+ * @returns {Array} Array de configuraciones de roles
+ */
+const obtenerRolesPorTipoEmpresa = (tipoEmpresa, limiteRoles = null) => {
+  // Normalizar nombre del tipo de empresa
+  const tipoNormalizado = tipoEmpresa.charAt(0).toUpperCase() + tipoEmpresa.slice(1).toLowerCase();
+
+  const rolesDisponibles = ROLES_PREDETERMINADOS[tipoNormalizado] || [];
+
+  // Si el plan es ilimitado (Premium), devolver todos los roles
+  if (limiteRoles === null || limiteRoles === undefined) {
+    return rolesDisponibles;
   }
 
-  return roles;
+  // Devolver solo la cantidad de roles según el límite del plan
+  // Plan Básico: 2 roles, Plan Estándar: 5 roles
+  return rolesDisponibles.slice(0, limiteRoles);
+};
+
+/**
+ * Obtiene el rol de Administrador
+ * @returns {Object} Configuración del rol Administrador
+ */
+const obtenerRolAdministrador = () => {
+  // El administrador es el primer rol de cualquier tipo de empresa
+  return {
+    nombre: 'Administrador',
+    descripcion: 'Acceso total al sistema',
+    permisos: {
+      ventas: { crear: true, leer: true, actualizar: true, eliminar: true },
+      compras: { crear: true, leer: true, actualizar: true, eliminar: true },
+      inventarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+      usuarios: { crear: true, leer: true, actualizar: true, eliminar: true },
+      reportes: { crear: true, leer: true, actualizar: true, eliminar: true },
+    },
+  };
 };
 
 /**
@@ -361,6 +486,7 @@ module.exports = {
   // Roles predeterminados
   ROLES_PREDETERMINADOS,
   obtenerRolesPorTipoEmpresa,
+  obtenerRolAdministrador,
 
   // Archivos
   MIME_TYPES_IMAGENES,

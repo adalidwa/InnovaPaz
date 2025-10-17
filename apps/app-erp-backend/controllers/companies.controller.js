@@ -146,20 +146,46 @@ async function createCompany(req, res) {
       plan_id
     );
 
-    // Crear rol administrador
-    const nuevoRol = await Role.create({
-      empresa_id: empresaGuardada.empresa_id,
-      nombre_rol: 'Administrador',
-      permisos: { full_access: true },
-      es_predeterminado: true,
-      estado: 'activo',
-    });
+    // ===== CREAR ROLES PREDETERMINADOS SEGÚN TIPO DE EMPRESA Y PLAN =====
+    const { obtenerRolesPorTipoEmpresa } = require('../utils/constants');
 
-    // Crear usuario
+    // Obtener límite de roles según el plan
+    const limiteRoles = plan.limites?.roles || null; // null = ilimitado (Premium)
+
+    // Obtener roles predeterminados para este tipo de empresa
+    const rolesConfig = obtenerRolesPorTipoEmpresa(tipoEmpresa.tipo_empresa, limiteRoles);
+
+    let rolAdministrador;
+    const rolesCreados = [];
+
+    // Crear todos los roles predeterminados
+    for (const rolConfig of rolesConfig) {
+      const rolCreado = await Role.create({
+        empresa_id: empresaGuardada.empresa_id,
+        nombre_rol: rolConfig.nombre,
+        permisos: rolConfig.permisos,
+        es_predeterminado: true,
+        estado: 'activo',
+      });
+
+      rolesCreados.push(rolCreado);
+
+      // Guardar referencia al rol Administrador
+      if (rolConfig.nombre === 'Administrador') {
+        rolAdministrador = rolCreado;
+      }
+    }
+
+    // Asignar el rol de Administrador al usuario que registra la empresa
+    if (!rolAdministrador) {
+      throw new Error('No se pudo crear el rol de Administrador');
+    }
+
+    // Crear usuario con rol de Administrador
     const nuevoUsuario = await User.create({
       uid: firebaseUser.uid,
       empresa_id: empresaGuardada.empresa_id,
-      rol_id: nuevoRol.rol_id,
+      rol_id: rolAdministrador.rol_id,
       nombre_completo,
       email,
       estado: 'activo',
@@ -169,6 +195,8 @@ async function createCompany(req, res) {
       empresa: empresaGuardada,
       usuario: nuevoUsuario,
       subscription: subscriptionResult,
+      roles_creados: rolesCreados.length,
+      mensaje: `Empresa creada con ${rolesCreados.length} roles predeterminados.`,
     });
   } catch (err) {
     console.error('Error al crear empresa:', err);

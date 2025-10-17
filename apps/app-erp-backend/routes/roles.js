@@ -21,6 +21,16 @@ router.delete('/:rol_id', verifyFirebaseToken, rolesController.deleteRole);
 // Definir rol predeterminado para empresa
 router.post('/set-default', verifyFirebaseToken, rolesController.setDefaultRole);
 
+// 🆕 Obtener rol de Administrador de una empresa
+router.get(
+  '/company/:empresa_id/administrador',
+  verifyFirebaseToken,
+  rolesController.getAdministradorRole
+);
+
+// 🆕 Obtener estadísticas de roles de una empresa
+router.get('/company/:empresa_id/stats', verifyFirebaseToken, rolesController.getRoleStats);
+
 // Obtener roles filtrados por empresa
 router.get('/', async (req, res) => {
   const { empresa_id } = req.query;
