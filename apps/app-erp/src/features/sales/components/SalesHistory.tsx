@@ -3,6 +3,7 @@ import Table, { type TableColumn, type TableAction } from '../../../components/c
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
+import Modal from '../../../components/common/Modal';
 import TitleDescription from '../../../components/common/TitleDescription';
 import { useSales } from '../hooks/hooks';
 import './SalesHistory.css';
@@ -18,6 +19,12 @@ export interface SaleTransaction {
   total: number;
   paymentMethod: 'Efectivo' | 'Tarjeta' | 'Transferencia' | 'Débito';
   vendor: string;
+  products: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+    subtotal: number;
+  }>;
 }
 
 interface SalesHistoryProps {
@@ -32,6 +39,8 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Todos');
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<SaleTransaction | null>(null);
 
   // Mapeamos el formato del paymentMethod del backend al formato del componente
   const mapPaymentMethod = (method: string): SaleTransaction['paymentMethod'] => {
@@ -57,6 +66,12 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
       total: sale.total,
       paymentMethod: mapPaymentMethod(sale.paymentMethod),
       vendor: 'Sistema', // TODO: Obtener del backend cuando esté disponible
+      products: sale.products.map((p) => ({
+        name: p.name,
+        quantity: p.quantity,
+        price: p.price,
+        subtotal: p.price * p.quantity,
+      })),
     }));
   }, [sales]);
 
@@ -111,8 +126,8 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
 
   const handleViewTransaction = (transaction: SaleTransaction) => {
     console.log('Viendo transacción:', transaction);
-    // TODO: Abrir modal con detalle de la transacción
-    alert(`Ver detalles de ${transaction.saleNumber}`);
+    setSelectedTransaction(transaction);
+    setShowDetailsModal(true);
   };
 
   const formatCurrency = (amount: number) => {
@@ -231,156 +246,271 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
   }
 
   return (
-    <div className='sales-history'>
-      <div className='sales-history__container'>
-        {/* Header Section */}
-        <div className='sales-history__header'>
-          <div className='sales-history__title-section'>
-            <div className='sales-history__icon'>
-              <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor'>
-                <path d='M13.5 8H12V13L16.28 15.54L17 14.33L13.5 12.25V8M13 3C8.03 3 4 7.03 4 12H1L4.96 16.03L9 12H6C6 8.13 9.13 5 13 5S20 8.13 20 12 16.87 19 13 19C11.07 19 9.32 18.21 8.06 16.94L6.64 18.36C8.27 20 10.5 21 13 21C17.97 21 22 16.97 22 12S17.97 3 13 3' />
-              </svg>
+    <>
+      <div className='sales-history'>
+        <div className='sales-history__container'>
+          {/* Header Section */}
+          <div className='sales-history__header'>
+            <div className='sales-history__title-section'>
+              <div className='sales-history__icon'>
+                <svg width='24' height='24' viewBox='0 0 24 24' fill='currentColor'>
+                  <path d='M13.5 8H12V13L16.28 15.54L17 14.33L13.5 12.25V8M13 3C8.03 3 4 7.03 4 12H1L4.96 16.03L9 12H6C6 8.13 9.13 5 13 5S20 8.13 20 12 16.87 19 13 19C11.07 19 9.32 18.21 8.06 16.94L6.64 18.36C8.27 20 10.5 21 13 21C17.97 21 22 16.97 22 12S17.97 3 13 3' />
+                </svg>
+              </div>
+              <TitleDescription
+                title='Filtros de Búsqueda'
+                description='Filtra y exporta el historial de transacciones'
+                titleSize={24}
+                descriptionSize={14}
+                titleWeight='semibold'
+                descriptionWeight='normal'
+                titleColor='var(--pri-900)'
+                descriptionColor='var(--pri-600)'
+                className='sales-history__title-desc'
+              />
             </div>
-            <TitleDescription
-              title='Filtros de Búsqueda'
-              description='Filtra y exporta el historial de transacciones'
-              titleSize={24}
-              descriptionSize={14}
-              titleWeight='semibold'
-              descriptionWeight='normal'
-              titleColor='var(--pri-900)'
-              descriptionColor='var(--pri-600)'
-              className='sales-history__title-desc'
-            />
           </div>
-        </div>
 
-        {/* Filters Section */}
-        <div className='sales-history__filters'>
-          <div className='sales-history__search-filters'>
-            <div className='sales-history__search-input'>
-              <Input
-                type='text'
-                placeholder='N° venta, cliente...'
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className='sales-history__search'
-                leftIcon={
+          {/* Filters Section */}
+          <div className='sales-history__filters'>
+            <div className='sales-history__search-filters'>
+              <div className='sales-history__search-input'>
+                <Input
+                  type='text'
+                  placeholder='N° venta, cliente...'
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  className='sales-history__search'
+                  leftIcon={
+                    <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
+                      <path d='M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z' />
+                    </svg>
+                  }
+                />
+              </div>
+
+              <div className='sales-history__date-filters'>
+                <div className='sales-history__date-input'>
+                  <Input
+                    type='date'
+                    placeholder='Seleccionar fecha'
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    label='Desde'
+                    className='sales-history__date'
+                  />
+                </div>
+
+                <div className='sales-history__date-input'>
+                  <Input
+                    type='date'
+                    placeholder='Seleccionar fecha'
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    label='Hasta'
+                    className='sales-history__date'
+                  />
+                </div>
+              </div>
+
+              <div className='sales-history__method-filter'>
+                <Select
+                  options={paymentMethodOptions}
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  label='Método de Pago'
+                  className='sales-history__payment-select'
+                />
+              </div>
+            </div>
+
+            <div className='sales-history__export-buttons'>
+              <Button
+                variant='outline'
+                size='medium'
+                onClick={handleExportExcel}
+                icon={
                   <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
-                    <path d='M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z' />
+                    <path d='M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z' />
                   </svg>
                 }
-              />
-            </div>
+                iconPosition='left'
+                className='sales-history__export-btn'
+              >
+                Exportar a Excel
+              </Button>
 
-            <div className='sales-history__date-filters'>
-              <div className='sales-history__date-input'>
-                <Input
-                  type='date'
-                  placeholder='Seleccionar fecha'
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  label='Desde'
-                  className='sales-history__date'
-                />
-              </div>
-
-              <div className='sales-history__date-input'>
-                <Input
-                  type='date'
-                  placeholder='Seleccionar fecha'
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  label='Hasta'
-                  className='sales-history__date'
-                />
-              </div>
-            </div>
-
-            <div className='sales-history__method-filter'>
-              <Select
-                options={paymentMethodOptions}
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                label='Método de Pago'
-                className='sales-history__payment-select'
-              />
+              <Button
+                variant='secondary'
+                size='medium'
+                onClick={handleExportPDF}
+                icon={
+                  <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
+                    <path d='M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z' />
+                  </svg>
+                }
+                iconPosition='left'
+                className='sales-history__export-btn'
+              >
+                Exportar a PDF
+              </Button>
             </div>
           </div>
 
-          <div className='sales-history__export-buttons'>
-            <Button
-              variant='outline'
-              size='medium'
-              onClick={handleExportExcel}
-              icon={
-                <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
-                  <path d='M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z' />
-                </svg>
-              }
-              iconPosition='left'
-              className='sales-history__export-btn'
-            >
-              Exportar a Excel
-            </Button>
+          {/* Table Section */}
+          <div className='sales-history__content'>
+            <div className='sales-history__table-header'>
+              <h3 className='sales-history__table-title'>
+                Historial de Transacciones ({filteredTransactions.length})
+              </h3>
+            </div>
 
-            <Button
-              variant='secondary'
-              size='medium'
-              onClick={handleExportPDF}
-              icon={
-                <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
-                  <path d='M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z' />
-                </svg>
-              }
-              iconPosition='left'
-              className='sales-history__export-btn'
-            >
-              Exportar a PDF
-            </Button>
-          </div>
-        </div>
+            <Table
+              data={filteredTransactions}
+              columns={columns}
+              actions={actions}
+              className='sales-history__table'
+              emptyMessage='No hay transacciones registradas'
+            />
 
-        {/* Table Section */}
-        <div className='sales-history__content'>
-          <div className='sales-history__table-header'>
-            <h3 className='sales-history__table-title'>
-              Historial de Transacciones ({filteredTransactions.length})
-            </h3>
-          </div>
-
-          <Table
-            data={filteredTransactions}
-            columns={columns}
-            actions={actions}
-            className='sales-history__table'
-            emptyMessage='No hay transacciones registradas'
-          />
-
-          {/* Totals Row */}
-          {filteredTransactions.length > 0 && (
-            <div className='sales-history__totals'>
-              <div className='sales-history__totals-content'>
-                <div className='sales-history__total-item'>
-                  <span className='sales-history__total-label'>Subtotal</span>
-                  <span className='sales-history__total-value'>
-                    {formatCurrency(totals.subtotal)}
-                  </span>
-                </div>
-                <div className='sales-history__total-item'>
-                  <span className='sales-history__total-label'>Impuestos</span>
-                  <span className='sales-history__total-value'>{formatCurrency(totals.tax)}</span>
-                </div>
-                <div className='sales-history__total-item sales-history__total-item--grand'>
-                  <span className='sales-history__total-label'>Total General</span>
-                  <span className='sales-history__total-value'>{formatCurrency(totals.total)}</span>
+            {/* Totals Row */}
+            {filteredTransactions.length > 0 && (
+              <div className='sales-history__totals'>
+                <div className='sales-history__totals-content'>
+                  <div className='sales-history__total-item'>
+                    <span className='sales-history__total-label'>Subtotal</span>
+                    <span className='sales-history__total-value'>
+                      {formatCurrency(totals.subtotal)}
+                    </span>
+                  </div>
+                  <div className='sales-history__total-item'>
+                    <span className='sales-history__total-label'>Impuestos</span>
+                    <span className='sales-history__total-value'>{formatCurrency(totals.tax)}</span>
+                  </div>
+                  <div className='sales-history__total-item sales-history__total-item--grand'>
+                    <span className='sales-history__total-label'>Total General</span>
+                    <span className='sales-history__total-value'>
+                      {formatCurrency(totals.total)}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Modal de Detalles de Venta */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title='Detalle de Venta'
+        message=''
+        modalType='info'
+        confirmButtonText='Cerrar'
+        size='large'
+      >
+        {selectedTransaction && (
+          <div style={{ padding: '1rem' }}>
+            {/* Información General */}
+            <div
+              style={{
+                marginBottom: '1.5rem',
+                background: '#f8f9fa',
+                padding: '1rem',
+                borderRadius: '8px',
+              }}
+            >
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <p style={{ marginBottom: '0.5rem' }}>
+                    <strong>N° Venta:</strong> {selectedTransaction.saleNumber}
+                  </p>
+                  <p style={{ marginBottom: '0.5rem' }}>
+                    <strong>Fecha:</strong> {selectedTransaction.date}
+                  </p>
+                  <p style={{ marginBottom: '0.5rem' }}>
+                    <strong>Cliente:</strong> {selectedTransaction.client}
+                  </p>
+                </div>
+                <div>
+                  <p style={{ marginBottom: '0.5rem' }}>
+                    <strong>Método de Pago:</strong> {selectedTransaction.paymentMethod}
+                  </p>
+                  <p style={{ marginBottom: '0.5rem' }}>
+                    <strong>Vendedor:</strong> {selectedTransaction.vendor}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Lista de Productos */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600' }}>
+                Productos
+              </h4>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: '#e9ecef', borderBottom: '2px solid #dee2e6' }}>
+                    <th style={{ padding: '0.75rem', textAlign: 'left' }}>Producto</th>
+                    <th style={{ padding: '0.75rem', textAlign: 'center' }}>Cantidad</th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Precio Unit.</th>
+                    <th style={{ padding: '0.75rem', textAlign: 'right' }}>Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedTransaction.products.map((product, index) => (
+                    <tr key={index} style={{ borderBottom: '1px solid #dee2e6' }}>
+                      <td style={{ padding: '0.75rem' }}>{product.name}</td>
+                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                        {product.quantity}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {formatCurrency(product.price)}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {formatCurrency(product.subtotal)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Totales */}
+            <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}
+              >
+                <span>Subtotal:</span>
+                <span style={{ fontWeight: '600' }}>
+                  {formatCurrency(selectedTransaction.subtotal)}
+                </span>
+              </div>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}
+              >
+                <span>Impuesto:</span>
+                <span style={{ fontWeight: '600' }}>{formatCurrency(selectedTransaction.tax)}</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  paddingTop: '0.5rem',
+                  borderTop: '2px solid #dee2e6',
+                }}
+              >
+                <span style={{ fontSize: '1.1rem', fontWeight: '700' }}>Total:</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: '700', color: '#28a745' }}>
+                  {formatCurrency(selectedTransaction.total)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </>
   );
 }
 
