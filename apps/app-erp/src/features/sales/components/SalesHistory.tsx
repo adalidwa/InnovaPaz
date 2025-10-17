@@ -6,6 +6,9 @@ import Select from '../../../components/common/Select';
 import Modal from '../../../components/common/Modal';
 import TitleDescription from '../../../components/common/TitleDescription';
 import { useSales } from '../hooks/hooks';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './SalesHistory.css';
 
 export interface SaleTransaction {
@@ -40,6 +43,9 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
   const [dateTo, setDateTo] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Todos');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState<SaleTransaction | null>(null);
 
   // Mapeamos el formato del paymentMethod del backend al formato del componente
@@ -62,10 +68,10 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
       client: sale.clientName,
       items: sale.products.map((p) => `${p.name} (${p.quantity})`).join(', '),
       subtotal: sale.subtotal,
-      tax: sale.total - sale.subtotal, // Calculamos el impuesto como la diferencia
+      tax: sale.total - sale.subtotal,
       total: sale.total,
       paymentMethod: mapPaymentMethod(sale.paymentMethod),
-      vendor: 'Sistema', // TODO: Obtener del backend cuando esté disponible
+      vendor: 'Sistema',
       products: sale.products.map((p) => ({
         name: p.name,
         quantity: p.quantity,
@@ -78,7 +84,6 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
   // Filtramos las transacciones según los criterios
   const filteredTransactions = useMemo(() => {
     return transactions.filter((transaction) => {
-      // Filtro por búsqueda
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch =
         transaction.saleNumber.toLowerCase().includes(searchLower) ||
@@ -87,17 +92,14 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
 
       if (!matchesSearch) return false;
 
-      // Filtro por fecha desde
       if (dateFrom && transaction.date < dateFrom) {
         return false;
       }
 
-      // Filtro por fecha hasta
       if (dateTo && transaction.date > dateTo) {
         return false;
       }
 
-      // Filtro por método de pago
       if (paymentMethod !== 'Todos' && transaction.paymentMethod !== paymentMethod) {
         return false;
       }
@@ -109,18 +111,138 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
   const handleExportExcel = () => {
     if (onExportExcel) {
       onExportExcel();
-    } else {
-      console.log('Exportando a Excel...', filteredTransactions);
-      alert('Funcionalidad de exportación a Excel en desarrollo');
+      return;
+    }
+
+    if (filteredTransactions.length === 0) {
+      setModalMessage('No hay transacciones para exportar');
+      setShowInfoModal(true);
+      return;
+    }
+
+    try {
+      // Preparar datos para Excel
+      const excelData = filteredTransactions.map((transaction) => ({
+        'N° Venta': transaction.saleNumber,
+        Fecha: transaction.date,
+        Cliente: transaction.client,
+        Items: transaction.items,
+        Subtotal: transaction.subtotal,
+        Impuesto: transaction.tax,
+        Total: transaction.total,
+        'Método de Pago': transaction.paymentMethod,
+        Vendedor: transaction.vendor,
+      }));
+
+      // Crear hoja de cálculo
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Historial de Ventas');
+
+      // Ajustar ancho de columnas
+      const colWidths = [
+        { wch: 15 }, // N° Venta
+        { wch: 20 }, // Fecha
+        { wch: 25 }, // Cliente
+        { wch: 40 }, // Items
+        { wch: 12 }, // Subtotal
+        { wch: 12 }, // Impuesto
+        { wch: 12 }, // Total
+        { wch: 18 }, // Método de Pago
+        { wch: 15 }, // Vendedor
+      ];
+      worksheet['!cols'] = colWidths;
+
+      // Generar archivo
+      const fileName = `historial_ventas_${new Date().toISOString().split('T')[0]}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+
+      setModalMessage(`Archivo Excel exportado exitosamente: ${fileName}`);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Error al exportar Excel:', error);
+      setModalMessage('Error al exportar el archivo Excel');
+      setShowInfoModal(true);
     }
   };
 
   const handleExportPDF = () => {
     if (onExportPDF) {
       onExportPDF();
-    } else {
-      console.log('Exportando a PDF...', filteredTransactions);
-      alert('Funcionalidad de exportación a PDF en desarrollo');
+      return;
+    }
+
+    if (filteredTransactions.length === 0) {
+      setModalMessage('No hay transacciones para exportar');
+      setShowInfoModal(true);
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
+
+      // Título
+      doc.setFontSize(18);
+      doc.text('Historial de Ventas', 14, 20);
+
+      // Fecha de generación
+      doc.setFontSize(10);
+      doc.text(`Generado: ${new Date().toLocaleString('es-ES')}`, 14, 28);
+
+      // Preparar datos para la tabla
+      const tableData = filteredTransactions.map((transaction) => [
+        transaction.saleNumber,
+        transaction.date,
+        transaction.client,
+        `Bs. ${transaction.subtotal.toFixed(2)}`,
+        `Bs. ${transaction.tax.toFixed(2)}`,
+        `Bs. ${transaction.total.toFixed(2)}`,
+        transaction.paymentMethod,
+      ]);
+
+      // Calcular totales
+      const totals = filteredTransactions.reduce(
+        (acc, t) => ({
+          subtotal: acc.subtotal + t.subtotal,
+          tax: acc.tax + t.tax,
+          total: acc.total + t.total,
+        }),
+        { subtotal: 0, tax: 0, total: 0 }
+      );
+
+      // Crear tabla
+      autoTable(doc, {
+        head: [['N° Venta', 'Fecha', 'Cliente', 'Subtotal', 'Impuesto', 'Total', 'Pago']],
+        body: tableData,
+        foot: [
+          [
+            '',
+            '',
+            'TOTALES:',
+            `Bs. ${totals.subtotal.toFixed(2)}`,
+            `Bs. ${totals.tax.toFixed(2)}`,
+            `Bs. ${totals.total.toFixed(2)}`,
+            '',
+          ],
+        ],
+        startY: 35,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
+        footStyles: { fillColor: [240, 240, 240], textColor: 0, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        margin: { top: 35 },
+      });
+
+      // Guardar PDF
+      const fileName = `historial_ventas_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+
+      setModalMessage(`Archivo PDF exportado exitosamente: ${fileName}`);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Error al exportar PDF:', error);
+      setModalMessage('Error al exportar el archivo PDF');
+      setShowInfoModal(true);
     }
   };
 
@@ -510,6 +632,26 @@ function SalesHistory({ onExportExcel, onExportPDF }: SalesHistoryProps) {
           </div>
         )}
       </Modal>
+
+      {/* Modal de Información */}
+      <Modal
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        title='Información'
+        message={modalMessage}
+        modalType='info'
+        confirmButtonText='Entendido'
+      />
+
+      {/* Modal de Éxito */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title='Exportación Exitosa'
+        message={modalMessage}
+        modalType='success'
+        confirmButtonText='Aceptar'
+      />
     </>
   );
 }
