@@ -8,9 +8,21 @@ const fs = require('fs');
 
 async function getUsersByCompany(req, res) {
   try {
-    const usuarios = await User.find({ empresa_id: req.params.companyId });
+    const empresaId = req.params.empresa_id; // Nombre correcto del parámetro de la ruta
+    console.log('🔍 [getUsersByCompany] Buscando usuarios para empresa_id:', empresaId);
+    const usuarios = await User.find({ empresa_id: empresaId });
+    console.log(
+      `✅ [getUsersByCompany] Encontrados ${usuarios.length} usuarios para empresa_id: ${empresaId}`
+    );
+    console.log(
+      '📋 [getUsersByCompany] Primeros 3 usuarios:',
+      usuarios
+        .slice(0, 3)
+        .map((u) => ({ uid: u.uid, nombre: u.nombre_completo, empresa_id: u.empresa_id }))
+    );
     res.json(usuarios);
   } catch (err) {
+    console.error('❌ [getUsersByCompany] Error:', err);
     res.status(500).json({ error: 'Error al obtener los usuarios de la empresa.' });
   }
 }

@@ -8,6 +8,10 @@ class User {
       ]);
       return result.rows;
     }
+    if (query.email) {
+      const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [query.email]);
+      return result.rows;
+    }
     const result = await pool.query('SELECT * FROM usuarios');
     return result.rows;
   }
