@@ -31,7 +31,7 @@ export const sidebarConfigs: Record<string, SidebarConfig> = {
         icon: FaThLarge,
       },
       {
-        label: 'Productos',
+        label: 'Inventarios',
         href: '/app-erp/productos',
         icon: FaBox,
       },
