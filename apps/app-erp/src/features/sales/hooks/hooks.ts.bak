@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import SalesService from '../services/salesService';
-import { useUser } from '../../users/hooks/useContextBase';
 import type {
   Client,
   Product,
@@ -441,7 +440,6 @@ export const useOrders = () => {
 
 // Hook para cotizaciones
 export const useQuotes = () => {
-  const { user } = useUser();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -451,7 +449,7 @@ export const useQuotes = () => {
     const loadQuotes = async () => {
       try {
         setLoading(true);
-        const data = await SalesService.getAllQuotes(user?.empresa_id || '');
+        const data = await SalesService.getAllQuotes(localStorage.getItem('empresaId') || '');
         setQuotes(data);
       } catch (error) {
         console.error('Error al cargar cotizaciones:', error);

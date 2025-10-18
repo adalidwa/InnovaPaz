@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useUser } from '../../users/hooks/useContextBase';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import OrderCard from './OrderCard';
@@ -20,8 +19,9 @@ function OrdersManagement() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
-  const { user } = useUser();
-  const empresaId = user?.empresa_id || '';
+
+  const empresaId = localStorage.getItem('empresaId') || '5dc644b0-3ce9-4c41-a83d-c7da2962214d';
+
   useEffect(() => {
     loadOrders();
     loadStats();

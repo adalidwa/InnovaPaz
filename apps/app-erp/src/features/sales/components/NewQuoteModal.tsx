@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '../../users/hooks/useContextBase';
 import Modal from '../../../components/common/Modal';
 import Button from '../../../components/common/Button';
 import Input from '../../../components/common/Input';
@@ -40,7 +41,8 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
 
-  const empresaId = localStorage.getItem('empresaId') || '5dc644b0-3ce9-4c41-a83d-c7da2962214d';
+  const { user } = useUser();
+  const empresaId = user?.empresa_id || '';
 
   useEffect(() => {
     if (isOpen) {

@@ -124,9 +124,18 @@ const createQuote = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al crear cotización:', error);
+
+    // Mensajes de error más específicos
+    let errorMessage = 'Error al crear cotización';
+    if (error.message.includes('no pertenecen a esta empresa')) {
+      errorMessage = 'Algunos productos seleccionados no existen o no pertenecen a esta empresa';
+    } else if (error.message.includes('cliente no pertenece')) {
+      errorMessage = 'El cliente seleccionado no pertenece a esta empresa';
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Error al crear cotización',
+      message: errorMessage,
       error: error.message,
     });
   }

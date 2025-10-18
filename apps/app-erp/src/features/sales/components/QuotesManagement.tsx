@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '../../users/hooks/useContextBase';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
 import QuoteCard from './QuoteCard';
@@ -54,8 +55,8 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  // Obtener empresaId del localStorage
-  const empresaId = localStorage.getItem('empresaId') || '5dc644b0-3ce9-4c41-a83d-c7da2962214d';
+  const { user } = useUser();
+  const empresaId = user?.empresa_id || '';
 
   useEffect(() => {
     loadQuotes();
