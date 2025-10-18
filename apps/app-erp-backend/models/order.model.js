@@ -130,11 +130,10 @@ class OrderModel {
         observaciones,
       } = pedidoData;
 
-      // Generar número de pedido
+      // Generar número de pedido único globalmente
       const numeroPedidoResult = await client.query(
-        `SELECT COALESCE(MAX(CAST(SUBSTRING(numero_pedido FROM '[0-9]+') AS INTEGER)), 0) + 1 as next_num
-         FROM pedidos WHERE empresa_id = $1`,
-        [empresa_id]
+        `SELECT COALESCE(MAX(CAST(SUBSTRING(numero_pedido FROM 'PED-([0-9]+)') AS INTEGER)), 0) + 1 as next_num
+         FROM pedidos`
       );
       const numeroPedido = `PED-${String(numeroPedidoResult.rows[0].next_num).padStart(6, '0')}`;
 
