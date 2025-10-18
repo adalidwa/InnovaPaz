@@ -147,27 +147,6 @@ class SaleModel {
         }
       }
 
-      // Validar disponibilidad de stock para cada producto
-      for (const detalle of detalles) {
-        const stockCheck = await client.query(
-          `SELECT stock, nombre_producto FROM producto WHERE producto_id = $1 AND empresa_id = $2`,
-          [detalle.producto_id, empresa_id]
-        );
-
-        if (stockCheck.rows.length === 0) {
-          throw new Error(`Producto con ID ${detalle.producto_id} no encontrado`);
-        }
-
-        const producto = stockCheck.rows[0];
-        const stockActual = producto.stock || 0;
-
-        if (stockActual < detalle.cantidad) {
-          throw new Error(
-            `Stock insuficiente para ${producto.nombre_producto}. Stock disponible: ${stockActual}, cantidad solicitada: ${detalle.cantidad}`
-          );
-        }
-      }
-
       // Generar número de venta
       const numeroVentaResult = await client.query(
         `SELECT COALESCE(MAX(CAST(SUBSTRING(numero_venta FROM '[0-9]+') AS INTEGER)), 0) + 1 as next_num
@@ -202,9 +181,8 @@ class SaleModel {
 
       const venta = ventaResult.rows[0];
 
-      // Insertar detalles de venta y descontar stock
+      // Insertar detalles de venta
       for (const detalle of detalles) {
-        // Insertar detalle de venta
         await client.query(
           `INSERT INTO detalle_venta (
             venta_id, producto_id, cantidad, precio_unitario, subtotal, descuento
@@ -218,28 +196,14 @@ class SaleModel {
             detalle.descuento || 0,
           ]
         );
-
-        // Descontar stock del producto
-        await client.query(
-          `UPDATE producto 
-           SET stock = stock - $1 
-           WHERE producto_id = $2 AND empresa_id = $3`,
-          [detalle.cantidad, detalle.producto_id, empresa_id]
-        );
-
-        console.log(
-          `✅ Stock actualizado: Producto ID ${detalle.producto_id}, cantidad descontada: ${detalle.cantidad}`
-        );
       }
 
       await client.query('COMMIT');
-      console.log(`✅ Venta ${numeroVenta} creada exitosamente con descuento de stock`);
 
       // Obtener venta con detalles
       return await this.findByIdWithDetails(venta.venta_id, empresa_id);
     } catch (error) {
       await client.query('ROLLBACK');
-      console.error('❌ Error al crear venta:', error.message);
       throw error;
     } finally {
       client.release();
