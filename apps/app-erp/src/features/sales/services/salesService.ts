@@ -62,6 +62,7 @@ export class SalesService {
       telefono: clientData.phone,
       nit_ci: clientData.nit,
       direccion: clientData.address,
+      categoria_cliente_id: clientData.categoryId,
       tipo_cliente: clientData.type,
       limite_credito: clientData.creditLimit,
       deuda_actual: clientData.currentDebt,
@@ -86,6 +87,8 @@ export class SalesService {
     if (clientData.type) backendData.tipo_cliente = clientData.type;
     if (clientData.creditLimit !== undefined) backendData.limite_credito = clientData.creditLimit;
     if (clientData.currentDebt !== undefined) backendData.deuda_actual = clientData.currentDebt;
+    if (clientData.categoryId !== undefined)
+      backendData.categoria_cliente_id = clientData.categoryId;
 
     const response = await ApiService.put<ApiResponse<any>>(
       `/clients/empresa/${empresaId}/${id}`,
@@ -449,6 +452,7 @@ export class SalesService {
       currentDebt: parseFloat(data.deuda_actual) || 0,
       lastPurchase: data.ultima_compra || '',
       categoryName: data.categoria_nombre || 'Sin categoría',
+      categoryId: data.categoria_cliente_id || undefined,
     };
   }
 

@@ -8,6 +8,7 @@ export type Client = {
   address: string;
   type: 'regular' | 'corporate' | 'wholesale';
   categoryName?: string;
+  categoryId?: number;
   creditLimit: number;
   currentDebt: number;
   lastPurchase: string;
