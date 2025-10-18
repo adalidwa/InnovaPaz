@@ -1,5 +1,15 @@
 const Role = require('../models/role.model');
 
+// Helper para leer el límite de roles desde distintos esquemas de plan.limites
+function readRoleLimit(plan) {
+  const limites = plan?.limites || {};
+  const candidates = ['roles', 'roles_personalizados', 'roles_limite', 'limite_roles'];
+  for (const key of candidates) {
+    if (Object.prototype.hasOwnProperty.call(limites, key)) return limites[key];
+  }
+  return undefined;
+}
+
 async function getRolesByCompany(req, res) {
   try {
     const roles = await Role.find({ empresa_id: req.params.empresa_id });
@@ -52,9 +62,21 @@ async function createRole(req, res) {
       });
     }
 
-    // Validar permisos (debe ser objeto)
-    if (permisos && typeof permisos !== 'object') {
-      return res.status(400).json({ error: 'Los permisos deben ser un objeto JSON.' });
+    // Normalizar permisos: permitir array de strings (legacy) o objeto
+    let permisosNormalizados = permisos;
+    if (Array.isArray(permisos)) {
+      // Convertir ['users.read','sales.write'] -> { users: { read: true }, sales: { write: true } }
+      permisosNormalizados = permisos.reduce((acc, code) => {
+        const [mod, act] = String(code).split('.');
+        if (!mod || !act) return acc;
+        acc[mod] = acc[mod] || {};
+        acc[mod][act] = true;
+        return acc;
+      }, {});
+    } else if (permisos && typeof permisos !== 'object') {
+      return res
+        .status(400)
+        .json({ error: 'Los permisos deben ser un objeto o un array de strings.' });
     }
 
     // ⚠️ VALIDACIÓN IMPORTANTE: Los roles personalizados (no predeterminados)
@@ -71,10 +93,21 @@ async function createRole(req, res) {
       // Obtener límite del plan
       const Plan = require('../models/plan.model');
       const plan = await Plan.findById(empresa.plan_id);
-      const limiteRoles = plan?.limites?.roles || 2;
+      console.debug(
+        '[roles.controller] createRole - empresa:',
+        empresa_id,
+        'plan_id:',
+        empresa.plan_id,
+        'plan.limites:',
+        plan?.limites
+      );
+      // Leer límite usando helper; conservar -1 o null como ilimitado
+      const limiteRolesRaw = readRoleLimit(plan);
+      const limiteRoles =
+        limiteRolesRaw === -1 || limiteRolesRaw == null ? null : Number(limiteRolesRaw);
 
-      // Si no es ilimitado, validar
-      if (limiteRoles !== null && limiteRoles !== -1) {
+      // Si no es ilimitado (limiteRoles != null), validar
+      if (limiteRoles != null) {
         if (rolesPersonalizados >= limiteRoles) {
           return res.status(403).json({
             error: `Has alcanzado el límite de roles personalizados (${limiteRoles}) para tu plan.`,
@@ -89,7 +122,7 @@ async function createRole(req, res) {
     const nuevoRol = await Role.create({
       empresa_id,
       nombre_rol,
-      permisos: permisos || {},
+      permisos: permisosNormalizados || {},
       es_predeterminado: es_predeterminado || false,
       estado: estado || 'activo',
     });
@@ -278,17 +311,31 @@ async function getRoleStats(req, res) {
     const Plan = require('../models/plan.model');
     const empresa = await Company.findById(empresa_id);
     const plan = await Plan.findById(empresa.plan_id);
+    console.debug(
+      '[roles.controller] getRoleStats - empresa:',
+      empresa_id,
+      'plan_id:',
+      empresa.plan_id,
+      'plan.limites:',
+      plan?.limites
+    );
 
-    const limiteRoles = plan?.limites?.roles || 2;
+    const limiteRolesRaw = readRoleLimit(plan);
+    const limiteRoles =
+      limiteRolesRaw === -1 || limiteRolesRaw == null ? null : Number(limiteRolesRaw);
+    const esIlimitado = limiteRoles == null;
+    const disponibles = esIlimitado ? 'Ilimitado' : Math.max(0, limiteRoles - rolesPersonalizados);
+    const puede_crear_mas = esIlimitado ? true : rolesPersonalizados < limiteRoles;
 
     res.json({
       roles_predeterminados: rolesPredeterminados,
       roles_personalizados: rolesPersonalizados,
       total_roles: totalRoles,
-      limite_personalizados: limiteRoles === null ? 'Ilimitado' : limiteRoles,
-      disponibles:
-        limiteRoles === null ? 'Ilimitado' : Math.max(0, limiteRoles - rolesPersonalizados),
-      porcentaje_uso: limiteRoles === null ? 0 : (rolesPersonalizados / limiteRoles) * 100,
+      limite_personalizados: esIlimitado ? 'Ilimitado' : limiteRoles,
+      limite_roles: esIlimitado ? 'Ilimitado' : limiteRoles, // compat
+      disponibles,
+      porcentaje_uso: esIlimitado ? 0 : (rolesPersonalizados / limiteRoles) * 100,
+      puede_crear_mas,
     });
   } catch (err) {
     console.error('Error al obtener estadísticas de roles:', err);

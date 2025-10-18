@@ -301,6 +301,7 @@ export const getStatsFromSubscription = (subscriptionData: any): CompanyUsageSta
   const usage = subscriptionData.usage || {};
   const plan = subscriptionData.plan || {};
   const limites = plan.limites || {};
+  const empresa = subscriptionData.empresa || {};
 
   // Datos de usuarios del middleware
   const usuarios = usage.usuarios || { current: 1, limit: 2, percentage: 50 };
@@ -313,13 +314,21 @@ export const getStatsFromSubscription = (subscriptionData: any): CompanyUsageSta
     percentage: 0,
   };
 
-  // Roles (se puede mejorar cuando se implemente en el backend)
+  // Roles - usar datos reales del backend si están disponibles
   const rolesLimit = limites.roles || 2;
+  const rolesUsage = usage.roles || {};
+
   const roles = {
-    used: 0, // Por implementar en backend
+    used: rolesUsage.current || 0,
     total: rolesLimit,
-    percentage: 0,
+    percentage: rolesUsage.percentage || 0,
   };
+
+  // Si no hay datos de uso de roles, intentar obtenerlos asíncronamente
+  if (!rolesUsage.current && empresa.empresa_id) {
+    // Esta llamada asíncrona actualizará el estado cuando se complete
+    updateRolesUsageAsync(empresa.empresa_id, limites.roles);
+  }
 
   return {
     miembros: {
@@ -338,6 +347,40 @@ export const getStatsFromSubscription = (subscriptionData: any): CompanyUsageSta
       percentage: roles.percentage,
     },
   };
+};
+
+/**
+ * Actualización asíncrona de uso de roles (no bloquea la UI)
+ */
+const updateRolesUsageAsync = async (empresaId: string, limite: number) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${API_BASE_URL}/roles/company/${empresaId}/stats`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Emitir evento para actualizar la UI con datos reales
+      window.dispatchEvent(
+        new CustomEvent('rolesStatsUpdated', {
+          detail: {
+            used: data.roles_personalizados || 0,
+            total: limite === -1 ? 999 : limite,
+            percentage: data.porcentaje_uso || 0,
+          },
+        })
+      );
+    }
+  } catch (error) {
+    console.warn('No se pudieron obtener estadísticas de roles en tiempo real:', error);
+  }
 };
 
 /**

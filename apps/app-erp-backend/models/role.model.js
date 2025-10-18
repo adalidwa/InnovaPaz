@@ -1,14 +1,24 @@
 const pool = require('../db');
 
 class Role {
-  static async find(query) {
+  static async find(query = {}) {
+    const filters = [];
+    const values = [];
     if (query.empresa_id) {
-      const result = await pool.query('SELECT * FROM roles WHERE empresa_id = $1', [
-        query.empresa_id,
-      ]);
-      return result.rows;
+      values.push(query.empresa_id);
+      filters.push(`empresa_id = $${values.length}`);
     }
-    const result = await pool.query('SELECT * FROM roles');
+    if (typeof query.es_predeterminado === 'boolean') {
+      values.push(query.es_predeterminado);
+      filters.push(`es_predeterminado = $${values.length}`);
+    }
+    let sql = 'SELECT * FROM roles';
+    if (filters.length) {
+      sql += ' WHERE ' + filters.join(' AND ');
+    }
+    // Mostrar primero los roles más recientes
+    sql += ' ORDER BY fecha_creacion DESC';
+    const result = await pool.query(sql, values);
     return result.rows;
   }
 
@@ -23,6 +33,25 @@ class Role {
       empresa_id,
     ]);
     return result.rows[0];
+  }
+
+  static async count(query = {}) {
+    const filters = [];
+    const values = [];
+    if (query.empresa_id) {
+      values.push(query.empresa_id);
+      filters.push(`empresa_id = $${values.length}`);
+    }
+    if (typeof query.es_predeterminado === 'boolean') {
+      values.push(query.es_predeterminado);
+      filters.push(`es_predeterminado = $${values.length}`);
+    }
+    let sql = 'SELECT COUNT(*)::int AS count FROM roles';
+    if (filters.length) {
+      sql += ' WHERE ' + filters.join(' AND ');
+    }
+    const result = await pool.query(sql, values);
+    return result.rows[0]?.count || 0;
   }
 
   static async create(data) {

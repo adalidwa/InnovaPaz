@@ -285,12 +285,40 @@ async function getUsageInfo(empresaId) {
 
     const limits = plan.limites || {};
 
+    // Obtener información de roles
+    let rolesUsage = { current: 0, limit: 2, percentage: 0 };
+    try {
+      const Role = require('../models/role.model');
+      const totalRoles = await Role.count({ empresa_id: empresaId });
+      const rolesPersonalizados = await Role.count({
+        empresa_id: empresaId,
+        es_predeterminado: false,
+      });
+
+      // Usar el límite del plan para roles personalizados
+      const rolesLimit = limits.roles || 2;
+      const isUnlimited = rolesLimit === -1 || rolesLimit === null;
+
+      rolesUsage = {
+        current: rolesPersonalizados,
+        limit: isUnlimited ? -1 : rolesLimit,
+        percentage: isUnlimited ? 0 : (rolesPersonalizados / rolesLimit) * 100,
+        total_roles: totalRoles,
+        roles_predeterminados: totalRoles - rolesPersonalizados,
+      };
+
+      console.log('🎭 Roles encontrados:', rolesUsage);
+    } catch (roleError) {
+      console.warn('⚠️ No se pudo obtener información de roles:', roleError.message);
+    }
+
     const usageData = {
       usuarios: {
         current: usuarios.length,
         limit: limits.miembros || 2,
         percentage: limits.miembros === -1 ? 0 : (usuarios.length / (limits.miembros || 2)) * 100,
       },
+      roles: rolesUsage,
       plan: {
         nombre: plan.nombre_plan,
         precio: plan.precio_mensual,
@@ -309,6 +337,7 @@ async function getUsageInfo(empresaId) {
     // Retornar datos por defecto en caso de error
     return {
       usuarios: { current: 1, limit: 2, percentage: 50 },
+      roles: { current: 0, limit: 2, percentage: 0 },
       plan: {
         nombre: 'Plan Básico',
         precio: 10,

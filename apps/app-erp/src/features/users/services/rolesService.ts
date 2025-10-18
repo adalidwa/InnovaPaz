@@ -8,13 +8,16 @@
  * - GET /api/roles/company/:empresa_id/stats - Estadísticas de uso
  */
 
+import { buildApiUrl, getAuthHeaders } from '../../../config/api';
+
 export interface Rol {
   rol_id: string;
   nombre_rol: string;
-  permisos: string[];
+  permisos: string[] | Record<string, any>;
   es_predeterminado: boolean;
   empresa_id: string;
   descripcion?: string;
+  plantilla_id_origen?: number;
 }
 
 export interface RolStats {
@@ -29,11 +32,9 @@ export interface RolStats {
  * Obtener todos los roles de una empresa
  */
 export const getRolesByEmpresa = async (empresaId: string, token: string): Promise<Rol[]> => {
-  const res = await fetch(`/api/roles/company/${empresaId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+  const url = buildApiUrl(`roles/company/${empresaId}`);
+  const res = await fetch(url, {
+    headers: getAuthHeaders(token),
   });
 
   if (!res.ok) {
@@ -42,7 +43,10 @@ export const getRolesByEmpresa = async (empresaId: string, token: string): Promi
   }
 
   const data = await res.json();
-  return data.roles || [];
+  // Backend puede devolver directamente un array o un objeto { roles: [] }
+  if (Array.isArray(data)) return data as Rol[];
+  if (data && Array.isArray(data.roles)) return data.roles as Rol[];
+  return [];
 };
 
 /**
@@ -55,12 +59,10 @@ export const createRol = async (
   token: string,
   descripcion?: string
 ): Promise<Rol> => {
-  const res = await fetch('/api/roles', {
+  const url = buildApiUrl('roles');
+  const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(token),
     body: JSON.stringify({
       empresa_id: empresaId,
       nombre_rol: nombreRol,
@@ -88,12 +90,10 @@ export const updateRol = async (
   token: string,
   descripcion?: string
 ): Promise<Rol> => {
-  const res = await fetch(`/api/roles/${rolId}`, {
+  const url = buildApiUrl(`roles/${rolId}`);
+  const res = await fetch(url, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(token),
     body: JSON.stringify({
       nombre_rol: nombreRol,
       permisos,
@@ -114,12 +114,10 @@ export const updateRol = async (
  * Eliminar un rol (solo roles personalizados)
  */
 export const deleteRol = async (rolId: string, token: string): Promise<void> => {
-  const res = await fetch(`/api/roles/${rolId}`, {
+  const url = buildApiUrl(`roles/${rolId}`);
+  const res = await fetch(url, {
     method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(token),
   });
 
   if (!res.ok) {
@@ -132,11 +130,9 @@ export const deleteRol = async (rolId: string, token: string): Promise<void> => 
  * Obtener el ID del rol Administrador de la empresa
  */
 export const getAdministradorRolId = async (empresaId: string, token: string): Promise<string> => {
-  const res = await fetch(`/api/roles/company/${empresaId}/administrador`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+  const url = buildApiUrl(`roles/company/${empresaId}/administrador`);
+  const res = await fetch(url, {
+    headers: getAuthHeaders(token),
   });
 
   if (!res.ok) {
@@ -152,11 +148,9 @@ export const getAdministradorRolId = async (empresaId: string, token: string): P
  * Obtener estadísticas de uso de roles
  */
 export const getRolesStats = async (empresaId: string, token: string): Promise<RolStats> => {
-  const res = await fetch(`/api/roles/company/${empresaId}/stats`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
+  const url = buildApiUrl(`roles/company/${empresaId}/stats`);
+  const res = await fetch(url, {
+    headers: getAuthHeaders(token),
   });
 
   if (!res.ok) {

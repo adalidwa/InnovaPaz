@@ -11,7 +11,8 @@
  * - Cambiar plan
  */
 
-const API_URL = '/api/subscriptions';
+// API base para subscriptions - apunta al backend en puerto 4000
+const API_BASE = 'http://localhost:4000/api/subscriptions';
 
 export interface SubscriptionInfo {
   plan: {
@@ -114,7 +115,7 @@ export const getSubscriptionInfo = async (): Promise<SubscriptionInfo> => {
 
   try {
     // Intentar usar el endpoint normal primero
-    const response = await fetch(`${API_URL}/info`, {
+    const response = await fetch(`${API_BASE}/info`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -125,7 +126,7 @@ export const getSubscriptionInfo = async (): Promise<SubscriptionInfo> => {
     if (!response.ok) {
       // Si falla (por auth), usar endpoint de testing
       console.log('🧪 Usando endpoint de testing...');
-      const testResponse = await fetch(`${API_URL}/test`, {
+      const testResponse = await fetch(`${API_BASE}/test`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -167,7 +168,7 @@ export const getSubscriptionAlerts = async (): Promise<SubscriptionAlert[]> => {
     throw new Error('No hay token de autenticación');
   }
 
-  const response = await fetch(`${API_URL}/alerts`, {
+  const response = await fetch(`${API_BASE}/alerts`, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -192,7 +193,7 @@ export const processPayment = async (paymentData: PaymentData): Promise<PaymentR
     throw new Error('No hay token de autenticación');
   }
 
-  const response = await fetch(`${API_URL}/payment`, {
+  const response = await fetch(`${API_BASE}/payment`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -218,7 +219,7 @@ export const renewSubscription = async (): Promise<PaymentResponse> => {
     throw new Error('No hay token de autenticación');
   }
 
-  const response = await fetch(`${API_URL}/renew`, {
+  const response = await fetch(`${API_BASE}/renew`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -243,7 +244,7 @@ export const cancelSubscription = async (): Promise<{ status: string; mensaje: s
     throw new Error('No hay token de autenticación');
   }
 
-  const response = await fetch(`${API_URL}/cancel`, {
+  const response = await fetch(`${API_BASE}/cancel`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -268,7 +269,7 @@ export const changePlan = async (data: ChangePlanData): Promise<ChangePlanRespon
     throw new Error('No hay token de autenticación');
   }
 
-  const response = await fetch(`${API_URL}/change-plan`, {
+  const response = await fetch(`${API_BASE}/change-plan`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,

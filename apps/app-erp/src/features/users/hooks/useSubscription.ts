@@ -198,6 +198,27 @@ export const useSubscription = (): UseSubscriptionReturn => {
     fetchSubscription();
   }, [fetchSubscription]);
 
+  /**
+   * Escuchar eventos de actualización de roles para refrescar suscripción
+   */
+  useEffect(() => {
+    const handleRoleUpdate = () => {
+      console.log('🔄 Evento de actualización de roles detectado, refrescando suscripción...');
+      fetchSubscription();
+    };
+
+    // Escuchar eventos personalizados de actualización de roles
+    window.addEventListener('roleUpdated', handleRoleUpdate);
+    window.addEventListener('roleCreated', handleRoleUpdate);
+    window.addEventListener('roleDeleted', handleRoleUpdate);
+
+    return () => {
+      window.removeEventListener('roleUpdated', handleRoleUpdate);
+      window.removeEventListener('roleCreated', handleRoleUpdate);
+      window.removeEventListener('roleDeleted', handleRoleUpdate);
+    };
+  }, [fetchSubscription]);
+
   return {
     subscription,
     loading,

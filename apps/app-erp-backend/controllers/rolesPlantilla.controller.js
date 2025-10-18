@@ -3,6 +3,16 @@ const RolePlantilla = require('../models/rolePlantilla.model');
 const Company = require('../models/company.model');
 const Plan = require('../models/plan.model');
 
+// Helper local para leer límite de roles desde varios esquemas
+function readRoleLimit(plan) {
+  const limites = plan?.limites || {};
+  const candidates = ['roles', 'roles_personalizados', 'roles_limite', 'limite_roles'];
+  for (const key of candidates) {
+    if (Object.prototype.hasOwnProperty.call(limites, key)) return limites[key];
+  }
+  return undefined;
+}
+
 /**
  * Obtener roles disponibles para una empresa (plantillas + personalizados)
  */
@@ -18,7 +28,21 @@ async function getRolesDisponiblesEmpresa(req, res) {
 
     // Obtener límite del plan
     const plan = await Plan.findById(empresa.plan_id);
-    const limiteRolesPlantilla = plan?.limites?.roles || 2;
+    console.debug(
+      '[rolesPlantilla.controller] getRolesDisponiblesEmpresa - empresa:',
+      empresa_id,
+      'plan_id:',
+      empresa.plan_id,
+      'plan.limites:',
+      plan?.limites
+    );
+    const limiteValue = readRoleLimit(plan);
+    const limiteRolesPlantilla =
+      limiteValue === -1 || limiteValue == null
+        ? null
+        : limiteValue === undefined
+          ? 2
+          : limiteValue;
 
     // Usar la función de base de datos para obtener roles disponibles
     const rolesDisponibles = await RolePlantilla.getRolesDisponiblesEmpresa(
@@ -80,7 +104,8 @@ async function getPlantillasPorTipoEmpresa(req, res) {
     }
 
     const plan = await Plan.findById(empresa.plan_id);
-    const limitePlantillas = plan?.limites?.roles || 2;
+    const limiteValue = plan?.limites?.roles;
+    const limitePlantillas = limiteValue === undefined || limiteValue === null ? 2 : limiteValue;
 
     // Obtener plantillas del tipo de empresa
     const plantillas = await RolePlantilla.findByTipoEmpresa(
@@ -129,18 +154,33 @@ async function crearRolDesdePlantilla(req, res) {
     }
 
     // Verificar límite de roles personalizados
-    const rolesPersonalizados = await Role.find({
+    const rolesPersonalizadosCount = await Role.count({
       empresa_id,
       es_predeterminado: false,
     });
 
     const plan = await Plan.findById(empresa.plan_id);
-    const limitePersonalizados = plan?.limites?.roles_personalizados || 2;
+    console.debug(
+      '[rolesPlantilla.controller] crearRolDesdePlantilla - empresa:',
+      empresa_id,
+      'plan_id:',
+      empresa.plan_id,
+      'plan.limites:',
+      plan?.limites
+    );
+    const limiteRaw = readRoleLimit(plan);
+    const limitePersonalizados =
+      limiteRaw === -1 || limiteRaw == null
+        ? null
+        : limiteRaw === undefined
+          ? 2
+          : Number(limiteRaw);
+    const esIlimitado = limitePersonalizados == null;
 
-    if (limitePersonalizados !== null && rolesPersonalizados.length >= limitePersonalizados) {
+    if (!esIlimitado && rolesPersonalizadosCount >= limitePersonalizados) {
       return res.status(403).json({
         error: `Has alcanzado el límite de roles personalizados (${limitePersonalizados})`,
-        actual: rolesPersonalizados.length,
+        actual: rolesPersonalizadosCount,
         limite: limitePersonalizados,
       });
     }
@@ -242,15 +282,27 @@ async function getEstadisticasRoles(req, res) {
     // Obtener plantillas disponibles
     const plantillasDisponibles = await RolePlantilla.findByTipoEmpresa(empresa.tipo_empresa_id);
 
-    // Obtener roles personalizados
-    const rolesPersonalizados = await Role.find({
+    // Obtener roles personalizados cuenta
+    const rolesPersonalizadosCount = await Role.count({
       empresa_id,
       es_predeterminado: false,
     });
 
-    // Calcular estadísticas
-    const limitePersonalizados = plan?.limites?.roles_personalizados || 2;
-    const limitePlantillas = plan?.limites?.roles || 2;
+    // Calcular límites usando helper
+    const limitePersonalizadosRaw = readRoleLimit(plan);
+    const limitePersonalizadosFinal =
+      limitePersonalizadosRaw === -1 || limitePersonalizadosRaw == null
+        ? null
+        : limitePersonalizadosRaw === undefined
+          ? 2
+          : Number(limitePersonalizadosRaw);
+    const limitePlantillasRaw = readRoleLimit(plan);
+    const limitePlantillasFinal =
+      limitePlantillasRaw === -1 || limitePlantillasRaw == null
+        ? null
+        : limitePlantillasRaw === undefined
+          ? 2
+          : Number(limitePlantillasRaw);
 
     res.json({
       empresa: {
@@ -261,25 +313,25 @@ async function getEstadisticasRoles(req, res) {
       },
       plantillas: {
         total_disponibles: plantillasDisponibles.length,
-        permitidas_por_plan: limitePlantillas === null ? 'Ilimitado' : limitePlantillas,
+        permitidas_por_plan: limitePlantillasFinal === null ? 'Ilimitado' : limitePlantillasFinal,
         utilizables: Math.min(
           plantillasDisponibles.length,
-          limitePlantillas || plantillasDisponibles.length
+          limitePlantillasFinal || plantillasDisponibles.length
         ),
       },
       roles_personalizados: {
-        total: rolesPersonalizados.length,
-        limite: limitePersonalizados === null ? 'Ilimitado' : limitePersonalizados,
+        total: rolesPersonalizadosCount,
+        limite: limitePersonalizadosFinal === null ? 'Ilimitado' : limitePersonalizadosFinal,
         disponibles:
-          limitePersonalizados === null
+          limitePersonalizadosFinal === null
             ? 'Ilimitado'
-            : Math.max(0, limitePersonalizados - rolesPersonalizados.length),
+            : Math.max(0, limitePersonalizadosFinal - rolesPersonalizadosCount),
         porcentaje_uso:
-          limitePersonalizados === null
+          limitePersonalizadosFinal === null
             ? 0
-            : (rolesPersonalizados.length / limitePersonalizados) * 100,
+            : (rolesPersonalizadosCount / limitePersonalizadosFinal) * 100,
       },
-      total_roles_activos: plantillasDisponibles.length + rolesPersonalizados.length,
+      total_roles_activos: plantillasDisponibles.length + rolesPersonalizadosCount,
     });
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);

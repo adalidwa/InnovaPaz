@@ -234,7 +234,6 @@ class SubscriptionService {
           e.fecha_fin_periodo_actual,
           e.fecha_creacion,
           e.tamano_empresa,
-          e.email,
           e.logo_url,
           p.nombre_plan,
           p.precio_mensual,
