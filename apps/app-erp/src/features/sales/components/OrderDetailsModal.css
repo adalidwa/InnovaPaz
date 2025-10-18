@@ -1,5 +1,7 @@
 .order-details {
   padding: 1rem;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .order-details__section {
@@ -113,10 +115,20 @@
   display: flex;
   justify-content: flex-end;
   padding-top: 1rem;
+  position: sticky;
+  bottom: 0;
+  background: var(--background);
+  margin: 0 -1rem -1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  .order-details {
+    max-height: 60vh;
+  }
+
   .order-details__grid {
     grid-template-columns: 1fr;
   }
