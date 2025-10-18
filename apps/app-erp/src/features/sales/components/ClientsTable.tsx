@@ -11,11 +11,10 @@ import { useState } from 'react';
 import type { Client } from '../types';
 
 interface ClientsTableProps {
-  onAddClient?: () => void;
   onManageCategories?: () => void;
 }
 
-function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
+function ClientsTable({ onManageCategories }: ClientsTableProps) {
   const { currentClients, loading, deleteClient } = useClients();
 
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, Input, Table, Pagination, StatusTag } from '../../../components/common';
-import { useClients, formatCurrency, formatDate } from '../hooks/hooks';
+import { formatCurrency, formatDate } from '../utils';
+import { useClients } from '../hooks/hooks';
 import SalesService from '../services/salesService';
 import type { Sale } from '../types';
 
@@ -159,12 +160,12 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
   const columns = [
     {
       key: 'date',
-      label: 'Fecha',
+      header: 'Fecha',
       render: (item: HistoryItem) => formatDate(item.date),
     },
     {
       key: 'type',
-      label: 'Tipo',
+      header: 'Tipo',
       render: (item: HistoryItem) => (
         <div className='flex items-center space-x-2'>
           <span>{getTypeIcon(item.type)}</span>
@@ -174,16 +175,16 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
     },
     {
       key: 'description',
-      label: 'Descripción',
+      header: 'Descripción',
     },
     {
       key: 'amount',
-      label: 'Monto',
+      header: 'Monto',
       render: (item: HistoryItem) => formatCurrency(item.amount),
     },
     {
       key: 'status',
-      label: 'Estado',
+      header: 'Estado',
       render: (item: HistoryItem) => {
         const colors = getStatusColor(item.status);
         return (
@@ -284,6 +285,8 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
                       <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}
+                        totalItems={historyItems.length}
+                        itemsPerPage={ITEMS_PER_PAGE}
                         onPageChange={handlePageChange}
                       />
                     </div>

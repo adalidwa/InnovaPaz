@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import ProductCard, { type Product } from './ProductCard';
+import ProductCard from './ProductCard';
+import { type Product } from '../types';
 import SalesService from '../services/salesService';
 import './ProductList.css';
 

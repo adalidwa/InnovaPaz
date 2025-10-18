@@ -1,19 +1,11 @@
 import { useState } from 'react';
+import { type Product } from '../types';
 import { BsPlus } from 'react-icons/bs';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import StatusTag from '../../../components/common/StatusTag';
 import './ProductCard.css';
-
-export interface Product {
-  id: string;
-  code: string;
-  name: string;
-  price: number;
-  stock: number;
-  currency?: string;
-}
 
 interface ProductCardProps {
   product: Product;
@@ -127,7 +119,7 @@ function ProductCard({ product, onAddToCart, className = '' }: ProductCardProps)
         <div className='product-card-sales__content'>
           <h3 className='product-card-sales__title'>{product.name}</h3>
           <div className='product-card-sales__price'>
-            {product.currency || 'Bs.'} {product.price.toFixed(2)}
+            {'Bs.'} {product.price.toFixed(2)}
           </div>
         </div>
 

@@ -48,17 +48,17 @@ function PointOfSale() {
 
   const handleAddToCart = (product: Product, quantity: number) => {
     setCartItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
+      const existingItem = currentItems.find((item) => item.id === String(product.id));
 
       if (existingItem) {
         return currentItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item.id === String(product.id) ? { ...item, quantity: item.quantity + quantity } : item
         );
       } else {
         return [
           ...currentItems,
           {
-            id: product.id,
+            id: String(product.id),
             name: product.name,
             price: product.price,
             quantity: quantity,

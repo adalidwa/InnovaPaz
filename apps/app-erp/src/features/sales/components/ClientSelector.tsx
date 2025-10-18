@@ -83,7 +83,7 @@ function ClientSelector({ onSelectClient, selectedClient }: ClientSelectorProps)
     const filtered = allClients.filter(
       (client) =>
         client.name.toLowerCase().includes(searchLower) ||
-        client.nit.toLowerCase().includes(searchLower) ||
+        client.nit?.toLowerCase().includes(searchLower) ||
         (client.email && client.email.toLowerCase().includes(searchLower))
     );
     setClients(filtered.slice(0, 10)); // Limitar a 10 resultados

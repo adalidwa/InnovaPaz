@@ -743,5 +743,3 @@ export const useProductForm = () => {
     loadProduct,
   };
 };
-
-export { formatCurrency, formatDate };

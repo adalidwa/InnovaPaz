@@ -19,28 +19,8 @@ function ProductStatus({ status = 'normal', className = '' }: ProductStatusProps
     }
   };
 
-  const getStatusVariant = () => {
-    switch (status) {
-      case 'normal':
-        return 'normal'; // Color turquesa
-      case 'discontinued':
-        return 'danger';
-      case 'limited':
-        return 'warning';
-      default:
-        return 'normal';
-    }
-  };
-
   return (
-    <StatusTag
-      text={getStatusText()}
-      variant={getStatusVariant()}
-      width='auto'
-      height={24}
-      radius={12}
-      className={className}
-    />
+    <StatusTag text={getStatusText()} width='auto' height={24} radius={12} className={className} />
   );
 }
 
