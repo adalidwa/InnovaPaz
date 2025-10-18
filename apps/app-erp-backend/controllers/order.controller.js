@@ -201,6 +201,13 @@ class OrderController {
             );
             const numeroVenta = `VENTA-${new Date().getFullYear()}-${String(parseInt(countResult.rows[0].total) + 1).padStart(3, '0')}`;
 
+            // Obtener datos de la cotización para cliente directo
+            const cotizacionResult = await client.query(
+              'SELECT nombre_cliente_directo, email_cliente_directo, telefono_cliente_directo FROM cotizaciones WHERE cotizacion_id = $1',
+              [pedidoActual.cotizacion_id]
+            );
+            const cotizacion = cotizacionResult.rows[0] || {};
+
             // Crear venta
             const ventaResult = await client.query(
               `
@@ -208,8 +215,9 @@ class OrderController {
                 numero_venta, cliente_id, vendedor_id, empresa_id, 
                 cotizacion_id, pedido_id, fecha_venta, hora_venta,
                 subtotal, impuesto, descuento, total,
-                metodo_pago_id, estado_venta_id, observaciones
-              ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()::time, $7, $8, $9, $10, $11, $12, $13)
+                metodo_pago_id, estado_venta_id, observaciones,
+                nombre_cliente_directo, email_cliente_directo, telefono_cliente_directo
+              ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()::time, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
               RETURNING venta_id`,
               [
                 numeroVenta,
@@ -225,6 +233,9 @@ class OrderController {
                 1, // Método de pago por defecto (ajustar según necesidad)
                 1, // Estado de venta "Pagada" o similar (ajustar según necesidad)
                 pedidoActual.observaciones,
+                cotizacion.nombre_cliente_directo,
+                cotizacion.email_cliente_directo,
+                cotizacion.telefono_cliente_directo,
               ]
             );
 

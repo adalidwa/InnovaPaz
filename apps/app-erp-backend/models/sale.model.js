@@ -5,7 +5,7 @@ class SaleModel {
   static async findByEmpresa(empresaId, filters = {}) {
     let query = `
       SELECT v.*, 
-        c.nombre as cliente_nombre,
+        COALESCE(c.nombre, v.nombre_cliente_directo) as cliente_nombre,
         c.nit_ci as cliente_nit,
         ev.nombre as estado_nombre,
         mp.nombre as metodo_pago_nombre
@@ -65,9 +65,9 @@ class SaleModel {
   static async findByIdWithDetails(ventaId, empresaId) {
     const ventaResult = await pool.query(
       `SELECT v.*, 
-        c.nombre as cliente_nombre,
-        c.email as cliente_email,
-        c.telefono as cliente_telefono,
+        COALESCE(c.nombre, v.nombre_cliente_directo) as cliente_nombre,
+        COALESCE(c.email, v.email_cliente_directo) as cliente_email,
+        COALESCE(c.telefono, v.telefono_cliente_directo) as cliente_telefono,
         c.nit_ci as cliente_nit,
         c.direccion as cliente_direccion,
         ev.nombre as estado_nombre,
