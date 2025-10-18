@@ -16,20 +16,48 @@ interface ProductsCardCrudProps {
 function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudProps) {
   const navigate = useNavigate();
 
-  const getStatusConfig = (status: ProductLegacy['status']) => {
-    switch (status) {
-      case 'critico':
-        return { text: 'Crítico', color: 'var(--error-600)', textColor: 'var(--white)' };
-      case 'bajo':
-        return { text: 'Bajo', color: 'var(--warning-600)', textColor: 'var(--white)' };
-      case 'agotado':
-        return { text: 'Agotado', color: 'var(--error-800)', textColor: 'var(--white)' };
-      default:
-        return { text: 'Normal', color: 'var(--sec-600)', textColor: 'var(--white)' };
+  const getStatusConfig = () => {
+    const stockActual = product.stock || 0;
+
+    // Lógica simplificada basada en stock actual con colores hex
+    if (stockActual === 0) {
+      return {
+        text: 'Agotado',
+        color: '#dc2626', // rojo oscuro
+        textColor: '#ffffff',
+      };
+    } else if (stockActual <= 5) {
+      // Crítico: 5 unidades o menos
+      return {
+        text: 'Crítico',
+        color: '#ef4444', // rojo
+        textColor: '#ffffff',
+      };
+    } else if (stockActual <= 15) {
+      // Bajo: entre 6 y 15 unidades
+      return {
+        text: 'Bajo',
+        color: '#f59e0b', // amarillo/naranja
+        textColor: '#ffffff',
+      };
+    } else if (stockActual <= 30) {
+      // Normal: entre 16 y 30 unidades
+      return {
+        text: 'Normal',
+        color: '#3b82f6', // azul
+        textColor: '#ffffff',
+      };
+    } else {
+      // Óptimo: más de 30 unidades
+      return {
+        text: 'Óptimo',
+        color: '#10b981', // verde
+        textColor: '#ffffff',
+      };
     }
   };
 
-  const statusConfig = getStatusConfig(product.status);
+  const statusConfig = getStatusConfig();
 
   const handleView = () => {
     navigate(`ver/${product.id}`);
@@ -62,13 +90,15 @@ function ProductsCardCrud({ product, onEdit, onDeactivate }: ProductsCardCrudPro
         <div className='product-icon'>
           <img src={Invetarios} alt='Inventarios' />
         </div>
+
         <StatusTag
           text={statusConfig.text}
           backgroundColor={statusConfig.color}
           textColor={statusConfig.textColor}
-          width={60}
-          height={24}
-          radius={12}
+          width={80}
+          height={28}
+          radius={14}
+          className='product-status-tag'
         />
       </div>
 

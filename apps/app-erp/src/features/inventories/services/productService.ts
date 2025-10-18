@@ -140,6 +140,9 @@ class ProductService {
    * Convierte un producto de la BD a formato legacy para compatibilidad
    */
   convertToLegacyFormat(product: Product): any {
+    // Calcular un stock mínimo sugerido basado en el stock actual
+    const stockMinimo = this.calculateSuggestedMinStock(product.stock);
+
     return {
       id: product.producto_id.toString(),
       name: product.nombre_producto,
@@ -150,7 +153,7 @@ class ProductService {
       price: parseFloat(product.precio_venta),
       cost: parseFloat(product.precio_costo),
       stock: product.stock,
-      minStock: 10, // Por defecto, esto debería venir de otra tabla
+      minStock: stockMinimo,
       expirationDate: undefined, // Por ahora no tenemos esta info
       lot: undefined, // Por ahora no tenemos esta info
       status: this.getStockStatus(product.stock),
@@ -165,12 +168,26 @@ class ProductService {
   }
 
   /**
-   * Determina el status del stock basado en la cantidad
+   * Calcula un stock mínimo sugerido basado en el stock actual
+   */
+  private calculateSuggestedMinStock(currentStock: number): number {
+    // Si el stock es alto, el mínimo podría ser 20% del stock actual
+    if (currentStock > 50) return Math.floor(currentStock * 0.2);
+    // Si el stock es medio, el mínimo podría ser 30% del stock actual
+    if (currentStock > 20) return Math.floor(currentStock * 0.3);
+    // Si el stock es bajo, usar un mínimo fijo de 5
+    if (currentStock > 10) return 5;
+    // Si el stock es muy bajo, usar 2 como mínimo
+    return 2;
+  }
+
+  /**
+   * Determina el status del stock basado en la cantidad actual
    */
   private getStockStatus(stock: number): 'normal' | 'bajo' | 'critico' | 'agotado' {
     if (stock === 0) return 'agotado';
-    if (stock < 5) return 'critico';
-    if (stock < 20) return 'bajo';
+    if (stock <= 5) return 'critico';
+    if (stock <= 15) return 'bajo';
     return 'normal';
   }
 }
