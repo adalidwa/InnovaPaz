@@ -116,11 +116,28 @@ async function seedTiposMovimiento() {
   }
 }
 
+async function seedEstadosProducto() {
+  const estados = [
+    { nombre: 'Activo', descripcion: 'Producto disponible para venta' },
+    { nombre: 'Inactivo', descripcion: 'Producto no disponible temporalmente' },
+    { nombre: 'Descontinuado', descripcion: 'Producto que ya no se venderá' },
+  ];
+
+  for (const estado of estados) {
+    await pool.query(
+      'INSERT INTO estado_producto (nombre, descripcion) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [estado.nombre, estado.descripcion]
+    );
+    console.log(`Estado de producto "${estado.nombre}" insertado.`);
+  }
+}
+
 async function main() {
   try {
     await seedPlanes();
     await seedTiposEmpresa();
     await seedTiposMovimiento();
+    await seedEstadosProducto();
     console.log('Datos iniciales insertados correctamente.');
   } catch (err) {
     console.error('Error al insertar datos iniciales:', err.message);

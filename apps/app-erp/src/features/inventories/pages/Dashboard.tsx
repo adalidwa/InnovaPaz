@@ -119,21 +119,51 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const displayedMovements = showAllMovements ? allMovements : allMovements.slice(0, 7);
 
   // Convertir productos críticos de BD al formato esperado por StatusListCard
-  const criticalProducts = criticalProductsData.map((product) => {
-    const stockPercentage = product.stock_minimo > 0 ? product.stock / product.stock_minimo : 0;
-    const isCritical = stockPercentage <= 0.3;
+  const criticalProducts = criticalProductsData
+    .sort((a, b) => {
+      // Ordenar por criticidad: stock agotado primero, luego por porcentaje de stock
+      const stockPercentageA = a.stock_minimo > 0 ? a.stock / a.stock_minimo : a.stock / 10;
+      const stockPercentageB = b.stock_minimo > 0 ? b.stock / b.stock_minimo : b.stock / 10;
+      return stockPercentageA - stockPercentageB;
+    })
+    .map((product) => {
+      const stockMinimo = product.stock_minimo || 0;
+      const stockActual = product.stock || 0;
+      const stockPercentage = stockMinimo > 0 ? stockActual / stockMinimo : 0;
 
-    return {
-      id: product.producto_id,
-      title: product.nombre_producto,
-      subtitle: `Stock: ${product.stock} | Mínimo: ${product.stock_minimo || 'No definido'}`,
-      tag: {
-        label: isCritical ? 'Crítico' : 'Bajo',
-        type: isCritical ? ('critico' as const) : ('bajo' as const),
-      },
-      hasIcon: true,
-    };
-  });
+      // Determinar nivel de criticidad
+      const isCritical = stockPercentage <= 0.1 || stockActual === 0; // Crítico si está al 10% o menos del mínimo
+      const isLow = stockPercentage > 0.1 && stockPercentage <= 0.5; // Bajo si está entre 10% y 50%
+
+      // Calcular días estimados de stock (asumiendo consumo diario promedio)
+      const diasEstimados =
+        stockActual > 0 ? Math.floor(stockActual / Math.max(1, stockMinimo * 0.1)) : 0;
+
+      // Formatear información del stock
+      const stockInfo =
+        stockMinimo > 0
+          ? `${stockActual}/${stockMinimo} unidades`
+          : `${stockActual} unidades (sin mínimo definido)`;
+
+      const tiempoEstimado =
+        diasEstimados > 0 ? `~${diasEstimados} días de stock` : 'Stock agotado';
+
+      // Mostrar categoría si está disponible
+      const categoriaInfo =
+        product.categoria && product.categoria !== 'Sin categoría' ? ` • ${product.categoria}` : '';
+
+      return {
+        id: product.producto_id,
+        title: product.nombre_producto,
+        subtitle: `${stockInfo} • ${tiempoEstimado}${categoriaInfo}`,
+        tag: {
+          label: isCritical ? 'Crítico' : isLow ? 'Bajo' : 'Normal',
+          type: isCritical ? ('critico' as const) : ('bajo' as const),
+        },
+        value: stockActual,
+        hasIcon: true,
+      };
+    });
 
   if (loading) {
     return (
@@ -193,12 +223,31 @@ const Dashboard: React.FC<DashboardProps> = () => {
           }
         />
         <StatusListCard
-          title='Productos Críticos'
-          items={criticalProducts}
-          buttonLabel='Gestionar stock critico'
+          title={`Productos Críticos${criticalProducts.length > 0 ? ` (${criticalProducts.length})` : ''}`}
+          items={
+            criticalProducts.length > 0
+              ? criticalProducts.slice(0, 5) // Mostrar máximo 5 productos críticos
+              : [
+                  {
+                    id: 'empty-critical',
+                    title: 'No hay productos críticos',
+                    subtitle: 'Todos los productos tienen stock suficiente',
+                    tag: { label: 'Stock OK', type: 'bajo' as const },
+                  },
+                ]
+          }
+          buttonLabel={
+            criticalProducts.length > 0
+              ? criticalProducts.length > 5
+                ? `Ver todos (${criticalProducts.length})`
+                : 'Gestionar stock crítico'
+              : undefined
+          }
           buttonVariant='warning'
           buttonClassName='status-list-card__button--text-primary'
-          onButtonClick={() => setShowCriticalStockModal(true)}
+          onButtonClick={
+            criticalProducts.length > 0 ? () => setShowCriticalStockModal(true) : undefined
+          }
         />
       </div>
 
