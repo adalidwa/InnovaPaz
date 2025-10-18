@@ -10,7 +10,15 @@ export interface GoogleAuthResult {
   error?: string;
 }
 
-export async function signInWithGoogleBackend(): Promise<GoogleAuthResult> {
+export interface EmpresaData {
+  nombre: string;
+  tipo_empresa_id: number;
+  plan_id: number;
+}
+
+export async function signInWithGoogleBackend(
+  empresa_data?: EmpresaData
+): Promise<GoogleAuthResult> {
   try {
     // 1. Autenticar con Firebase/Google
     const provider = new GoogleAuthProvider();
@@ -21,12 +29,19 @@ export async function signInWithGoogleBackend(): Promise<GoogleAuthResult> {
     const idToken = await user.getIdToken();
 
     // 3. Enviar token al backend para crear/login usuario
+    // Incluir empresa_data si se proporciona
+    const requestBody: any = { idToken };
+
+    if (empresa_data) {
+      requestBody.empresa_data = empresa_data;
+    }
+
     const response = await fetch(buildApiUrl('/api/auth/google-auth'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ idToken }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

@@ -148,11 +148,12 @@ class User {
   }
 
   static async findByIdAndUpdate(uid, data) {
-    if (data.preferencias) {
+    if (data.preferencias && typeof data.preferencias === 'object') {
       data.preferencias = JSON.stringify(data.preferencias);
     }
+
     const fields = Object.keys(data);
-    const values = Object.values(data);
+    const values = fields.map((field) => data[field]); // Preservar valores null
     const setClause = fields.map((field, index) => `${field} = $${index + 1}`).join(', ');
 
     const query = `UPDATE usuarios SET ${setClause} WHERE uid = $${fields.length + 1} RETURNING *`;

@@ -294,10 +294,12 @@ async function completeCompanySetup(req, res) {
       await RolePlantilla.findByTipoEmpresa(tipo_empresa_id)
     );
 
-    // Actualizar usuario
+    // Actualizar usuario - reemplazar plantilla_rol_id con rol_id
+    // El constraint requiere: rol_id O plantilla_rol_id, no ambos
     const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
       empresa_id: nuevaEmpresa.empresa_id,
       rol_id,
+      plantilla_rol_id: null, // Limpiar plantilla cuando asignamos rol real
       estado: 'activo',
     });
 
