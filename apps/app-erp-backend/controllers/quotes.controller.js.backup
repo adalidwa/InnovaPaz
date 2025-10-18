@@ -77,10 +77,6 @@ const createQuote = async (req, res) => {
     const quoteData = req.body;
     const { empresaId } = req.query;
 
-    // Log para debugging
-    console.log('📝 Crear cotización - empresaId:', empresaId);
-    console.log('📝 Datos recibidos:', JSON.stringify(quoteData, null, 2));
-
     if (!empresaId) {
       return res.status(400).json({
         success: false,
@@ -119,9 +115,7 @@ const createQuote = async (req, res) => {
       quoteData.numero_cotizacion = await QuoteModel.generateQuoteNumber(empresaId);
     }
 
-    console.log('✅ Validaciones pasadas, creando cotización...');
     const newQuote = await QuoteModel.create(quoteData, empresaId);
-    console.log('✅ Cotización creada:', newQuote.cotizacion_id);
 
     res.status(201).json({
       success: true,
@@ -129,8 +123,7 @@ const createQuote = async (req, res) => {
       data: newQuote,
     });
   } catch (error) {
-    console.error('❌ Error al crear cotización:', error);
-    console.error('Stack trace:', error.stack);
+    console.error('Error al crear cotización:', error);
 
     // Mensajes de error más específicos
     let errorMessage = 'Error al crear cotización';
@@ -144,7 +137,6 @@ const createQuote = async (req, res) => {
       success: false,
       message: errorMessage,
       error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 };
@@ -238,8 +230,6 @@ const convertToOrder = async (req, res) => {
     const { quoteId } = req.params;
     const { empresaId } = req.query;
 
-    console.log('🔄 Convertir cotización a pedido - quoteId:', quoteId, 'empresaId:', empresaId);
-
     if (!empresaId) {
       return res.status(400).json({
         success: false,
@@ -249,16 +239,13 @@ const convertToOrder = async (req, res) => {
 
     const order = await QuoteModel.markAsConverted(quoteId, empresaId);
 
-    console.log('✅ Cotización convertida exitosamente a pedido:', order.pedido_id);
-
     res.status(200).json({
       success: true,
       message: 'Cotización convertida a pedido exitosamente',
       data: order,
     });
   } catch (error) {
-    console.error('❌ Error al convertir cotización:', error);
-    console.error('Stack trace:', error.stack);
+    console.error('Error al convertir cotización:', error);
     res.status(500).json({
       success: false,
       message: 'Error al convertir cotización',
