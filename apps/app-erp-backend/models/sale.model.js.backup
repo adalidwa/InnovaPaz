@@ -10,7 +10,7 @@ class SaleModel {
         ev.nombre as estado_nombre,
         mp.nombre as metodo_pago_nombre
       FROM ventas v
-      LEFT JOIN clientes c ON v.cliente_id = c.cliente_id AND c.empresa_id = $1
+      LEFT JOIN clientes c ON v.cliente_id = c.cliente_id
       LEFT JOIN estado_venta ev ON v.estado_venta_id = ev.estado_venta_id
       LEFT JOIN metodo_pago mp ON v.metodo_pago_id = mp.metodo_pago_id
       WHERE v.empresa_id = $1
@@ -52,8 +52,8 @@ class SaleModel {
           p.imagen as producto_imagen
         FROM detalle_venta dv
         LEFT JOIN producto p ON dv.producto_id = p.producto_id
-        WHERE dv.venta_id = $1 AND p.empresa_id = $2`,
-        [venta.venta_id, empresaId]
+        WHERE dv.venta_id = $1`,
+        [venta.venta_id]
       );
       venta.detalles = detallesResult.rows;
     }
@@ -73,7 +73,7 @@ class SaleModel {
         ev.nombre as estado_nombre,
         mp.nombre as metodo_pago_nombre
       FROM ventas v
-      LEFT JOIN clientes c ON v.cliente_id = c.cliente_id AND c.empresa_id = $2
+      LEFT JOIN clientes c ON v.cliente_id = c.cliente_id
       LEFT JOIN estado_venta ev ON v.estado_venta_id = ev.estado_venta_id
       LEFT JOIN metodo_pago mp ON v.metodo_pago_id = mp.metodo_pago_id
       WHERE v.venta_id = $1 AND v.empresa_id = $2`,
@@ -92,8 +92,8 @@ class SaleModel {
         p.imagen as producto_imagen
       FROM detalle_venta dv
       LEFT JOIN producto p ON dv.producto_id = p.producto_id
-      WHERE dv.venta_id = $1 AND p.empresa_id = $2`,
-      [ventaId, empresaId]
+      WHERE dv.venta_id = $1`,
+      [ventaId]
     );
 
     venta.detalles = detallesResult.rows;
@@ -106,31 +106,6 @@ class SaleModel {
 
     try {
       await client.query('BEGIN');
-
-      // Validar que todos los productos pertenezcan a la empresa
-      if (detalles && detalles.length > 0) {
-        const productIds = detalles.map((d) => d.producto_id);
-        const validationResult = await client.query(
-          `SELECT producto_id FROM producto WHERE producto_id = ANY($1) AND empresa_id = $2`,
-          [productIds, empresa_id]
-        );
-
-        if (validationResult.rows.length !== productIds.length) {
-          throw new Error('Algunos productos no pertenecen a esta empresa');
-        }
-      }
-
-      // Validar que el cliente pertenezca a la empresa
-      if (cliente_id) {
-        const clientValidation = await client.query(
-          `SELECT cliente_id FROM clientes WHERE cliente_id = $1 AND empresa_id = $2`,
-          [cliente_id, empresa_id]
-        );
-
-        if (clientValidation.rows.length === 0) {
-          throw new Error('El cliente no pertenece a esta empresa');
-        }
-      }
 
       const {
         cliente_id,
