@@ -11,7 +11,7 @@ function ProductDetails({ product }: ProductDetailsProps) {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
-    navigate('/productos');
+    navigate('../');
   };
 
   const getStatusColor = (status: string) => {
@@ -75,12 +75,6 @@ function ProductDetails({ product }: ProductDetailsProps) {
           )}
         </div>
       </div>
-
-      {product.image && (
-        <div className='product-image-section'>
-          <img src={product.image} alt={product.name} className='product-image' />
-        </div>
-      )}
     </div>
   );
 }

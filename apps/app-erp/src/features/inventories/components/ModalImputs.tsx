@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
+import ImageUpload from './ImageUpload';
 import type { ProductFormData } from '../hooks/useProductsReal';
 import { categoryBrandService } from '../services/categoryBrandService';
 import type { Category, Subcategory, Brand, Attribute } from '../services/categoryBrandService';
@@ -303,11 +304,23 @@ function ModalImputs({ onSave, onCancel, loading = false }: ModalImputsProps) {
         onChange={handleInputChange('description')}
       />
 
-      <Input
-        label='Imagen (URL)'
-        placeholder='https://...'
-        value={formData.image || ''}
-        onChange={handleInputChange('image' as keyof ProductFormData)}
+      <ImageUpload
+        label='Imagen del Producto'
+        currentImage={formData.image || ''}
+        onImageUpload={(imageUrl) => {
+          setFormData((prev) => ({
+            ...prev,
+            image: imageUrl,
+          }));
+          // Limpiar error de imagen si existe
+          if (errors.image) {
+            setErrors((prev) => ({
+              ...prev,
+              image: undefined,
+            }));
+          }
+        }}
+        disabled={loading}
       />
       {errors.image && <span className='error-message'>{errors.image}</span>}
 

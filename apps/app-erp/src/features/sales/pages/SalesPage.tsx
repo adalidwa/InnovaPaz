@@ -5,8 +5,7 @@ import { useSalesModules } from '../hooks/hooks';
 import './SalesPage.css';
 
 export const SalesPage: React.FC = () => {
-  const { modules, searchTerm, getModuleQuantity, getModuleStatus, handleSearchChange } =
-    useSalesModules();
+  const { modules, searchTerm, handleSearchChange } = useSalesModules();
 
   const handleModuleClick = (moduleRoute: string) => {
     if (moduleRoute) {
@@ -47,8 +46,8 @@ export const SalesPage: React.FC = () => {
               <SalesCard
                 key={module.id}
                 module={module}
-                quantity={getModuleQuantity(module.id)}
-                status={getModuleStatus(module)}
+                quantity={0}
+                status='Normal'
                 onClick={() => handleModuleClick(module.route)}
               />
             ))}
@@ -69,9 +68,7 @@ export const SalesPage: React.FC = () => {
             <span className='stat-label'>Alta Prioridad</span>
           </div>
           <div className='stat-item'>
-            <span className='stat-number'>
-              {modules.reduce((sum, m) => sum + getModuleQuantity(m.id), 0)}
-            </span>
+            <span className='stat-number'> </span>
             <span className='stat-label'>Total Registros</span>
           </div>
         </div>

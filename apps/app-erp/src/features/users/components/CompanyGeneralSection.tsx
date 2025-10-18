@@ -3,6 +3,7 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
+import Modal from '../../../components/common/Modal';
 import { FiDroplet, FiBell, FiMenu, FiType, FiCircle } from 'react-icons/fi';
 import {
   useCompanyConfig,
@@ -78,6 +79,16 @@ function CompanyGeneralSection() {
 
   const [saving, setSaving] = useState(false);
   const [originalConfig, setOriginalConfig] = useState<CompanyConfig | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    type: 'success' | 'warning' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   useEffect(() => {
     if (config && !originalConfig) {
@@ -190,7 +201,12 @@ function CompanyGeneralSection() {
           logoPublicId = data.logo_public_id;
           updateVisualIdentity({ logo_url: logoUrl, logoPreview: logoUrl });
         } else {
-          alert('No se pudo subir el logo');
+          setModalConfig({
+            type: 'error',
+            title: 'Error al subir logo',
+            message: 'No se pudo subir el logo. Por favor intenta nuevamente.',
+          });
+          setShowModal(true);
           setSaving(false);
           return;
         }
@@ -217,12 +233,27 @@ function CompanyGeneralSection() {
         body: JSON.stringify({ ajustes: configToSave }),
       });
       if (res.ok) {
-        alert('¡Datos guardados exitosamente!');
+        setModalConfig({
+          type: 'success',
+          title: '¡Éxito!',
+          message: '¡Datos guardados exitosamente!',
+        });
+        setShowModal(true);
       } else {
-        alert('No se pudo guardar la configuración');
+        setModalConfig({
+          type: 'error',
+          title: 'Error al guardar',
+          message: 'No se pudo guardar la configuración. Por favor intenta nuevamente.',
+        });
+        setShowModal(true);
       }
     } catch (error) {
-      alert('Error de red al guardar configuración');
+      setModalConfig({
+        type: 'error',
+        title: 'Error de red',
+        message: 'Error de red al guardar configuración. Verifica tu conexión.',
+      });
+      setShowModal(true);
     }
     setSaving(false);
   };
@@ -230,19 +261,33 @@ function CompanyGeneralSection() {
   const undoChanges = useCallback(() => {
     if (originalConfig) {
       updateConfig(originalConfig);
-      alert('Cambios no guardados revertidos');
+      setModalConfig({
+        type: 'info',
+        title: 'Cambios revertidos',
+        message: 'Los cambios no guardados han sido revertidos.',
+      });
+      setShowModal(true);
     }
   }, [originalConfig, updateConfig]);
 
   const handleResetDefaults = useCallback(() => {
-    if (
-      window.confirm(
-        '¿Seguro que deseas restablecer los valores por defecto? Se perderán tus personalizaciones.'
-      )
-    ) {
-      setDefaultColors();
-      alert('Valores por defecto restablecidos');
-    }
+    setModalConfig({
+      type: 'warning',
+      title: '¿Restablecer valores?',
+      message:
+        '¿Seguro que deseas restablecer los valores por defecto? Se perderán tus personalizaciones.',
+    });
+    setShowModal(true);
+  }, []);
+
+  const confirmResetDefaults = useCallback(() => {
+    setDefaultColors();
+    setModalConfig({
+      type: 'success',
+      title: 'Valores restablecidos',
+      message: 'Los valores por defecto han sido restablecidos correctamente.',
+    });
+    setShowModal(true);
   }, [setDefaultColors]);
 
   return (
@@ -412,6 +457,26 @@ function CompanyGeneralSection() {
           Restablecer valores
         </Button>
       </div>
+
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        modalType={modalConfig.type}
+        confirmButtonText='Aceptar'
+        showCancelButton={
+          modalConfig.type === 'warning' && modalConfig.title.includes('Restablecer')
+        }
+        cancelButtonText='Cancelar'
+        onConfirm={() => {
+          if (modalConfig.type === 'warning' && modalConfig.title.includes('Restablecer')) {
+            confirmResetDefaults();
+          }
+          setShowModal(false);
+        }}
+        onCancel={() => setShowModal(false)}
+      />
     </form>
   );
 }

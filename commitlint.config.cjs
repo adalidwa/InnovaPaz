@@ -14,7 +14,7 @@
         'hotfix', // Corrección urgente en producción
         'merge', // Integración de ramas y resolución de conflictos
         'perf', // Mejoras de rendimiento
-        ' ', // Refactoring sin cambio funcional
+        'refactor', // Refactoring sin cambio funcional
         'release', // Preparación de release
         'revert', // Revertir commits
         'security', // Correcciones de seguridad

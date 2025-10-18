@@ -1,4 +1,4 @@
-import { Product, SaleProduct, Client, Sale, Order, Quote } from '../hooks/hooks';
+import type { Product, SaleProduct, Client, Sale } from '../hooks/hooks';
 
 // Utilidades de formateo
 export const formatCurrency = (amount: number): string => {

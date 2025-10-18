@@ -1,73 +1,68 @@
-import { useState } from 'react';
+import { useClients } from '../hooks/hooks';
+import { ClientModal } from './ClientModal';
+import { ManageClientsModal } from './ManageClientsModal';
+import { ManageCategoriesModal } from './ManageCategoriesModal';
 import Table, { type TableColumn, type TableAction } from '../../../components/common/Table';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
 import Modal from '../../../components/common/Modal';
 import './ClientsTable.css';
-
-export interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  nit_ci: string;
-  category: 'Mayorista' | 'Cliente VIP' | 'Minorista';
-}
+import { useState } from 'react';
+import type { Client } from '../types';
 
 interface ClientsTableProps {
-  onAddClient?: () => void;
   onManageCategories?: () => void;
 }
 
-// Datos de ejemplo basados en la imagen
-const mockClients: Client[] = [
-  {
-    id: '1',
-    name: 'Juan Pérez',
-    email: 'juan@email.com',
-    phone: '70123456',
-    nit_ci: '123456789',
-    category: 'Mayorista',
-  },
-  {
-    id: '2',
-    name: 'María García',
-    email: 'maria@email.com',
-    phone: '71234567',
-    nit_ci: '987654321',
-    category: 'Cliente VIP',
-  },
-  {
-    id: '3',
-    name: 'Pedro López',
-    email: 'pedro@email.com',
-    phone: '72345678',
-    nit_ci: '456789123',
-    category: 'Minorista',
-  },
-];
+function ClientsTable({ onManageCategories }: ClientsTableProps) {
+  const { currentClients, loading, deleteClient } = useClients();
 
-function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
-  const [clients, setClients] = useState<Client[]>(mockClients);
-  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isCategoriesModalOpen, setIsCategoriesModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [isManageClientsModalOpen, setIsManageClientsModalOpen] = useState(false);
 
   const handleEditClient = (client: Client) => {
-    console.log('Editando cliente:', client);
+    setSelectedClient(client);
+    setIsClientModalOpen(true);
   };
 
-  const handleDeleteClient = (client: Client) => {
-    if (window.confirm(`¿Está seguro de eliminar al cliente ${client.name}?`)) {
-      setClients(clients.filter((c) => c.id !== client.id));
+  const handleDeleteClick = (client: Client) => {
+    setClientToDelete(client);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (clientToDelete) {
+      try {
+        await deleteClient(clientToDelete.id);
+        setIsDeleteModalOpen(false);
+        setClientToDelete(null);
+      } catch (error) {
+        console.error('Error al desactivar cliente:', error);
+        alert('Error al desactivar cliente');
+      }
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setClientToDelete(null);
   };
 
   const handleAddNewClient = () => {
-    if (onAddClient) {
-      onAddClient();
-    } else {
-      setIsAddClientModalOpen(true);
-    }
+    setSelectedClient(null);
+    setIsClientModalOpen(true);
+  };
+
+  const handleOpenManageClients = () => {
+    setIsManageClientsModalOpen(true);
+  };
+
+  const handleCloseManageClients = () => {
+    setIsManageClientsModalOpen(false);
   };
 
   const handleManageCategories = () => {
@@ -78,29 +73,31 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
     }
   };
 
-  const handleCloseAddClientModal = () => {
-    setIsAddClientModalOpen(false);
+  const handleCloseClientModal = () => {
+    setIsClientModalOpen(false);
+    setSelectedClient(null);
   };
 
   const handleCloseCategoriesModal = () => {
     setIsCategoriesModalOpen(false);
   };
 
-  const renderCategoryTag = (category: Client['category']) => {
-    const getCategoryClass = (cat: string) => {
-      switch (cat) {
-        case 'Cliente VIP':
-          return 'clients-table__category clients-table__category--vip';
-        case 'Mayorista':
-          return 'clients-table__category clients-table__category--wholesale';
-        case 'Minorista':
-          return 'clients-table__category clients-table__category--retail';
-        default:
-          return 'clients-table__category';
-      }
-    };
+  const handleClientSuccess = () => {
+    handleCloseClientModal();
+  };
 
-    return <span className={getCategoryClass(category)}>{category}</span>;
+  const renderCategoryTag = (categoryName: string) => {
+    let categoryClass = 'clients-table__category';
+
+    if (categoryName?.toLowerCase().includes('vip')) {
+      categoryClass += ' clients-table__category--vip';
+    } else if (categoryName?.toLowerCase().includes('mayorista')) {
+      categoryClass += ' clients-table__category--wholesale';
+    } else {
+      categoryClass += ' clients-table__category--retail';
+    }
+
+    return <span className={categoryClass}>{categoryName || 'Sin categoría'}</span>;
   };
 
   const columns: TableColumn<Client>[] = [
@@ -120,14 +117,14 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
       className: 'clients-table__phone-cell',
     },
     {
-      key: 'nit_ci',
+      key: 'nit',
       header: 'NIT/CI',
       className: 'clients-table__nit-cell',
     },
     {
-      key: 'category',
+      key: 'categoryName',
       header: 'Categoría',
-      render: (value) => renderCategoryTag(value),
+      render: (value) => renderCategoryTag(value as string),
       className: 'clients-table__category-cell',
     },
   ];
@@ -138,7 +135,20 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
       onClick: handleEditClient,
       variant: 'primary',
     },
+    {
+      label: 'Desactivar',
+      onClick: handleDeleteClick,
+      variant: 'danger',
+    },
   ];
+
+  if (loading) {
+    return (
+      <div className='clients-table'>
+        <div className='clients-table__loading'>Cargando clientes...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -154,7 +164,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
               </div>
               <TitleDescription
                 title='Clientes Registrados'
-                description='Gestión completa de ventas, clientes, cotizaciones y pedidos'
+                description='Gestión completa de clientes y categorías'
                 titleSize={24}
                 descriptionSize={14}
                 titleWeight='semibold'
@@ -171,7 +181,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
                 <Button
                   variant='primary'
                   size='medium'
-                  onClick={handleAddNewClient}
+                  onClick={handleOpenManageClients}
                   icon={
                     <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
                       <path d='M16 4C18.21 4 20 5.79 20 8S18.21 12 16 12 12 10.21 12 8 13.79 4 16 4M16 14C20.42 14 24 15.79 24 18V20H8V18C8 15.79 11.58 14 16 14M6 6H2V4H6V6M6 10H2V8H6V10M6 14H2V12H6V14Z' />
@@ -222,7 +232,7 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
           {/* Table Section */}
           <div className='clients-table__content'>
             <Table
-              data={clients}
+              data={currentClients}
               columns={columns}
               actions={actions}
               className='clients-table__table'
@@ -232,28 +242,43 @@ function ClientsTable({ onAddClient, onManageCategories }: ClientsTableProps) {
         </div>
       </div>
 
-      {/* Add Client Modal */}
+      {/* Client Modal (Add/Edit) */}
+      <ClientModal
+        isOpen={isClientModalOpen}
+        onClose={handleCloseClientModal}
+        client={selectedClient}
+        onSuccess={handleClientSuccess}
+      />
+
+      {/* Delete Confirmation Modal */}
       <Modal
-        isOpen={isAddClientModalOpen}
-        onClose={handleCloseAddClientModal}
-        title='Agregar Nuevo Cliente'
-        message='Funcionalidad de agregar cliente en desarrollo...'
-        modalType='info'
-        confirmButtonText='Entendido'
-        size='large'
-        showCancelButton={false}
+        isOpen={isDeleteModalOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title='Desactivar Cliente'
+        message={`¿Está seguro de desactivar al cliente "${clientToDelete?.name}"? El cliente no se eliminará, solo se marcará como inactivo.`}
+        modalType='warning'
+        confirmButtonText='Sí, Desactivar'
+        cancelButtonText='Cancelar'
+        size='medium'
+      />
+
+      {/* Manage Clients Modal */}
+      <ManageClientsModal
+        isOpen={isManageClientsModalOpen}
+        onClose={handleCloseManageClients}
+        onClientStatusChanged={() => {
+          /* Recargar lista de clientes activos */
+        }}
       />
 
       {/* Categories Management Modal */}
-      <Modal
+      <ManageCategoriesModal
         isOpen={isCategoriesModalOpen}
         onClose={handleCloseCategoriesModal}
-        title='Gestión de Categorías'
-        message='Funcionalidad de gestión de categorías en desarrollo...'
-        modalType='info'
-        confirmButtonText='Entendido'
-        size='medium'
-        showCancelButton={false}
+        onCategoryChanged={() => {
+          /* Recargar si es necesario */
+        }}
       />
     </>
   );

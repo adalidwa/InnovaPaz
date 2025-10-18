@@ -206,13 +206,13 @@ const ReportsDashboardPage: React.FC = () => {
     },
     {
       icon: <HiStar />,
-      label: 'Predeterminados',
+      label: 'Predestinar',
       value: dashboardMetrics?.roles.roles_predeterminados || 0,
       iconColor: 'warning',
     },
     {
       icon: <HiSparkles />,
-      label: 'Personalizados',
+      label: 'Singularizar',
       value: dashboardMetrics?.roles.roles_personalizados || 0,
       iconColor: 'info',
     },

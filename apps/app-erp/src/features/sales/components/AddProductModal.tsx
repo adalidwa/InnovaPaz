@@ -82,7 +82,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Agregar Nuevo Producto'>
+    <Modal message='' isOpen={isOpen} onClose={handleClose} title='Agregar Nuevo Producto'>
       <form onSubmit={handleSubmit} className='space-y-4'>
         {error && (
           <div className='p-3 bg-red-100 border border-red-300 rounded-md text-red-700 text-sm'>

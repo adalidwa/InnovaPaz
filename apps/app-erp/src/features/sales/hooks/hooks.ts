@@ -1,102 +1,19 @@
-import { useState, useMemo } from 'react';
-import dbData from '../data/db.json';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import SalesService from '../services/salesService';
+import { useUser } from '../../users/hooks/useContextBase';
+import type {
+  Client,
+  Product,
+  SaleProduct,
+  Sale,
+  Order,
+  Quote,
+  HistoryItem,
+  SalesModule,
+} from '../types';
 
-// Tipos para Sales
-export interface Client {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  nit: string;
-  address: string;
-  type: 'regular' | 'corporate' | 'wholesale';
-  creditLimit: number;
-  currentDebt: number;
-  lastPurchase: string;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  code: string;
-  category: string;
-  price: number;
-  cost: number;
-  stock: number;
-  minStock: number;
-  maxStock: number;
-  status: 'Disponible' | 'Bajo Stock' | 'Crítico';
-}
-
-export interface SaleProduct {
-  id: number;
-  name: string;
-  code: string;
-  price: number;
-  quantity: number;
-  subtotal: number;
-}
-
-export interface Sale {
-  id: number;
-  clientId: number;
-  clientName: string;
-  date: string;
-  time: string;
-  products: SaleProduct[];
-  subtotal: number;
-  discount: number;
-  total: number;
-  paymentMethod: 'cash' | 'credit' | 'debit' | 'transfer';
-  status: 'completed' | 'pending' | 'cancelled';
-}
-
-export interface Order {
-  id: number;
-  clientId: number;
-  clientName: string;
-  date: string;
-  deliveryDate: string;
-  products: SaleProduct[];
-  subtotal: number;
-  discount: number;
-  total: number;
-  status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
-}
-
-export interface Quote {
-  id: number;
-  clientName: string;
-  clientEmail: string;
-  clientPhone: string;
-  date: string;
-  validUntil: string;
-  products: SaleProduct[];
-  subtotal: number;
-  discount: number;
-  total: number;
-  status: 'pending' | 'accepted' | 'rejected';
-}
-
-export interface HistoryItem {
-  id: number;
-  date: string;
-  type: 'sale' | 'payment' | 'credit' | 'refund';
-  description: string;
-  amount: number;
-  status: 'completed' | 'pending' | 'cancelled';
-}
-
-export interface SalesModule {
-  id: number;
-  title: string;
-  description: string;
-  type: string;
-  icon: string;
-  route: string;
-  isActive: boolean;
-  priority: 'high' | 'medium' | 'low';
-}
+// Re-exportar tipos para compatibilidad
+export type { Client, Product, SaleProduct, Sale, Order, Quote, HistoryItem, SalesModule };
 
 // Constantes
 const ITEMS_PER_PAGE = 10;
@@ -128,17 +45,30 @@ const sanitizeEmailInput = (value: string): string => {
   return value.toLowerCase().trim();
 };
 
-const generateId = (items: any[]): number => {
-  return Math.max(...items.map((item) => item.id), 0) + 1;
-};
-
 // Hook para gestión de clientes
 export const useClients = () => {
-  const [clients, setClients] = useState<Client[]>(dbData.clients);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    const loadClients = async () => {
+      try {
+        setLoading(true);
+        const data = await SalesService.getAllClients();
+        setClients(data);
+      } catch (error) {
+        console.error('Error al cargar clientes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadClients();
+  }, []);
+
   const filteredClients = useMemo(() => {
+    if (!searchTerm) return clients;
     return clients.filter(
       (client) =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,22 +82,34 @@ export const useClients = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentClients = filteredClients.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const addClient = (newClient: Omit<Client, 'id'>): void => {
-    const client: Client = {
-      ...newClient,
-      id: generateId(clients),
-    };
-    setClients((prev) => [...prev, client]);
+  const addClient = async (newClient: Omit<Client, 'id'>): Promise<void> => {
+    try {
+      const client = await SalesService.createClient(newClient);
+      setClients((prev) => [client, ...prev]);
+    } catch (error) {
+      console.error('Error al crear cliente:', error);
+      throw error;
+    }
   };
 
-  const updateClient = (clientId: number, updates: Partial<Client>): void => {
-    setClients((prev) =>
-      prev.map((client) => (client.id === clientId ? { ...client, ...updates } : client))
-    );
+  const updateClient = async (clientId: number, updates: Partial<Client>): Promise<void> => {
+    try {
+      const updatedClient = await SalesService.updateClient(clientId, updates);
+      setClients((prev) => prev.map((client) => (client.id === clientId ? updatedClient : client)));
+    } catch (error) {
+      console.error('Error al actualizar cliente:', error);
+      throw error;
+    }
   };
 
-  const deleteClient = (clientId: number): void => {
-    setClients((prev) => prev.filter((client) => client.id !== clientId));
+  const deleteClient = async (clientId: number): Promise<void> => {
+    try {
+      await SalesService.deleteClient(clientId);
+      setClients((prev) => prev.filter((client) => client.id !== clientId));
+    } catch (error) {
+      console.error('Error al eliminar cliente:', error);
+      throw error;
+    }
   };
 
   const validateClient = (client: Omit<Client, 'id'>): string | null => {
@@ -196,6 +138,7 @@ export const useClients = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     addClient,
     updateClient,
     deleteClient,
@@ -208,10 +151,26 @@ export const useClients = () => {
 
 // Hook para gestión de productos
 export const useProducts = () => {
-  const [products, setProducts] = useState<Product[]>(dbData.products);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState('all');
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await SalesService.getAllProducts();
+        setProducts(data);
+      } catch (error) {
+        console.error('Error al cargar productos:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, []);
 
   const categories = useMemo(() => {
     const uniqueCategories = [...new Set(products.map((p) => p.category))];
@@ -234,58 +193,6 @@ export const useProducts = () => {
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const addProduct = (newProduct: Omit<Product, 'id' | 'status'>): void => {
-    const product: Product = {
-      ...newProduct,
-      id: generateId(products),
-      status:
-        newProduct.stock < newProduct.minStock
-          ? 'Crítico'
-          : newProduct.stock < newProduct.minStock * 1.5
-            ? 'Bajo Stock'
-            : 'Disponible',
-    };
-    setProducts((prev) => [...prev, product]);
-  };
-
-  const updateProduct = (productId: number, updates: Partial<Product>): void => {
-    setProducts((prev) =>
-      prev.map((product) => {
-        if (product.id === productId) {
-          const updated = { ...product, ...updates };
-          updated.status =
-            updated.stock < updated.minStock
-              ? 'Crítico'
-              : updated.stock < updated.minStock * 1.5
-                ? 'Bajo Stock'
-                : 'Disponible';
-          return updated;
-        }
-        return product;
-      })
-    );
-  };
-
-  const deleteProduct = (productId: number): void => {
-    setProducts((prev) => prev.filter((product) => product.id !== productId));
-  };
-
-  const updateStock = (productId: number, newStock: number): void => {
-    updateProduct(productId, { stock: Math.max(0, newStock) });
-  };
-
-  const validateProduct = (product: Omit<Product, 'id' | 'status'>): string | null => {
-    if (!product.name.trim()) return 'El nombre del producto es obligatorio';
-    if (!product.code.trim()) return 'El código del producto es obligatorio';
-    if (!product.category.trim()) return 'La categoría es obligatoria';
-    if (product.price <= 0) return 'El precio debe ser mayor a 0';
-    if (product.cost < 0) return 'El costo no puede ser negativo';
-    if (product.minStock < 0) return 'El stock mínimo no puede ser negativo';
-    if (product.maxStock < product.minStock) return 'El stock máximo debe ser mayor al mínimo';
-    if (product.stock < 0) return 'El stock actual no puede ser negativo';
-    return null;
-  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
@@ -310,11 +217,7 @@ export const useProducts = () => {
     selectedCategory,
     currentPage,
     totalPages,
-    addProduct,
-    updateProduct,
-    deleteProduct,
-    updateStock,
-    validateProduct,
+    loading,
     handleSearchChange,
     handleCategoryChange,
     handlePageChange,
@@ -401,11 +304,28 @@ export const useCart = () => {
 
 // Hook para gestión de ventas
 export const useSales = () => {
-  const [sales, setSales] = useState<Sale[]>(dbData.sales);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    const loadSales = async () => {
+      try {
+        setLoading(true);
+        const data = await SalesService.getAllSales();
+        setSales(data);
+      } catch (error) {
+        console.error('Error al cargar ventas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSales();
+  }, []);
+
   const filteredSales = useMemo(() => {
+    if (!searchTerm) return sales;
     return sales.filter(
       (sale) =>
         sale.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -418,19 +338,22 @@ export const useSales = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentSales = filteredSales.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const addSale = (newSale: Omit<Sale, 'id' | 'date' | 'time'>): void => {
-    const now = new Date();
-    const sale: Sale = {
-      ...newSale,
-      id: generateId(sales),
-      date: now.toISOString().split('T')[0],
-      time: now.toTimeString().slice(0, 5),
-    };
-    setSales((prev) => [sale, ...prev]);
-  };
-
-  const updateSaleStatus = (saleId: number, status: Sale['status']): void => {
-    setSales((prev) => prev.map((sale) => (sale.id === saleId ? { ...sale, status } : sale)));
+  const addSale = async (saleData: {
+    clientId: number;
+    clientName: string;
+    products: SaleProduct[];
+    subtotal: number;
+    discount: number;
+    total: number;
+    paymentMethod: 'cash' | 'credit' | 'debit' | 'transfer';
+  }): Promise<void> => {
+    try {
+      const newSale = await SalesService.createSale(saleData);
+      setSales((prev) => [newSale, ...prev]);
+    } catch (error) {
+      console.error('Error al crear venta:', error);
+      throw error;
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -449,8 +372,8 @@ export const useSales = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     addSale,
-    updateSaleStatus,
     handleSearchChange,
     handlePageChange,
     ITEMS_PER_PAGE,
@@ -459,11 +382,28 @@ export const useSales = () => {
 
 // Hook para órdenes de venta
 export const useOrders = () => {
-  const [orders, setOrders] = useState<Order[]>(dbData.orders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const data = await SalesService.getAllOrders();
+        setOrders(data);
+      } catch (error) {
+        console.error('Error al cargar órdenes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOrders();
+  }, []);
+
   const filteredOrders = useMemo(() => {
+    if (!searchTerm) return orders;
     return orders.filter(
       (order) =>
         order.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -475,19 +415,6 @@ export const useOrders = () => {
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentOrders = filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const addOrder = (newOrder: Omit<Order, 'id' | 'date'>): void => {
-    const order: Order = {
-      ...newOrder,
-      id: generateId(orders),
-      date: new Date().toISOString().split('T')[0],
-    };
-    setOrders((prev) => [order, ...prev]);
-  };
-
-  const updateOrderStatus = (orderId: number, status: Order['status']): void => {
-    setOrders((prev) => prev.map((order) => (order.id === orderId ? { ...order, status } : order)));
-  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
@@ -505,8 +432,7 @@ export const useOrders = () => {
     searchTerm,
     currentPage,
     totalPages,
-    addOrder,
-    updateOrderStatus,
+    loading,
     handleSearchChange,
     handlePageChange,
     ITEMS_PER_PAGE,
@@ -515,11 +441,29 @@ export const useOrders = () => {
 
 // Hook para cotizaciones
 export const useQuotes = () => {
-  const [quotes, setQuotes] = useState<Quote[]>(dbData.quotes);
+  const { user } = useUser();
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  useEffect(() => {
+    const loadQuotes = async () => {
+      try {
+        setLoading(true);
+        const data = await SalesService.getAllQuotes(user?.empresa_id || '');
+        setQuotes(data);
+      } catch (error) {
+        console.error('Error al cargar cotizaciones:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadQuotes();
+  }, []);
+
   const filteredQuotes = useMemo(() => {
+    if (!searchTerm) return quotes;
     return quotes.filter(
       (quote) =>
         quote.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -532,19 +476,6 @@ export const useQuotes = () => {
   const totalPages = Math.ceil(filteredQuotes.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentQuotes = filteredQuotes.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  const addQuote = (newQuote: Omit<Quote, 'id' | 'date'>): void => {
-    const quote: Quote = {
-      ...newQuote,
-      id: generateId(quotes),
-      date: new Date().toISOString().split('T')[0],
-    };
-    setQuotes((prev) => [quote, ...prev]);
-  };
-
-  const updateQuoteStatus = (quoteId: number, status: Quote['status']): void => {
-    setQuotes((prev) => prev.map((quote) => (quote.id === quoteId ? { ...quote, status } : quote)));
-  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
@@ -562,8 +493,7 @@ export const useQuotes = () => {
     searchTerm,
     currentPage,
     totalPages,
-    addQuote,
-    updateQuoteStatus,
+    loading,
     handleSearchChange,
     handlePageChange,
     ITEMS_PER_PAGE,
@@ -572,43 +502,50 @@ export const useQuotes = () => {
 
 // Hook para módulos de sales
 export const useSalesModules = () => {
-  const [modules] = useState<SalesModule[]>(dbData.salesModules);
   const [searchTerm, setSearchTerm] = useState('');
 
+  const modules: SalesModule[] = [
+    {
+      id: 1,
+      title: 'Punto de Venta',
+      description: 'Sistema de ventas rápido',
+      type: 'sales',
+      icon: '💰',
+      route: '/app-erp/ventas/pos',
+      isActive: true,
+      priority: 'high',
+    },
+    {
+      id: 2,
+      title: 'Clientes',
+      description: 'Gestión de clientes',
+      type: 'clients',
+      icon: '👥',
+      route: '/app-erp/ventas/clientes',
+      isActive: true,
+      priority: 'high',
+    },
+    {
+      id: 3,
+      title: 'Historial',
+      description: 'Historial de ventas',
+      type: 'history',
+      icon: '📋',
+      route: '/app-erp/ventas/historial',
+      isActive: true,
+      priority: 'medium',
+    },
+  ];
+
   const filteredModules = useMemo(() => {
+    if (!searchTerm) return modules;
     return modules.filter(
       (module) =>
         module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.type.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [modules, searchTerm]);
-
-  const getModuleQuantity = (moduleId: number): number => {
-    switch (moduleId) {
-      case 1: // Punto de Venta
-        return dbData.sales.length;
-      case 2: // Clientes
-        return dbData.clients.length;
-      case 3: // Órdenes de Venta
-        return dbData.orders.length;
-      case 4: // Cotizaciones
-        return dbData.quotes.length;
-      case 5: // Productos
-        return dbData.products.length;
-      case 6: // Historial de Ventas
-        return dbData.sales.length;
-      case 7: // Reportes
-        return 15; // Placeholder
-      default:
-        return 0;
-    }
-  };
-
-  const getModuleStatus = (module: SalesModule): 'Normal' | 'Revisar' => {
-    if (!module.isActive && module.priority === 'medium') return 'Revisar';
-    return 'Normal';
-  };
+  }, [searchTerm]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
@@ -617,8 +554,6 @@ export const useSalesModules = () => {
   return {
     modules: filteredModules,
     searchTerm,
-    getModuleQuantity,
-    getModuleStatus,
     handleSearchChange,
   };
 };
@@ -628,63 +563,6 @@ export const useHistory = () => {
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-
-  const getClientHistory = (clientId: number): HistoryItem[] => {
-    const historyKey = clientId.toString();
-    return (dbData.historyData as Record<string, HistoryItem[]>)[historyKey] || [];
-  };
-
-  const historyData = selectedClientId ? getClientHistory(selectedClientId) : [];
-
-  const filteredHistory = useMemo(() => {
-    return historyData.filter(
-      (item) =>
-        item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.status.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [historyData, searchTerm]);
-
-  const totalPages = Math.ceil(filteredHistory.length / HISTORY_ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * HISTORY_ITEMS_PER_PAGE;
-  const currentHistoryItems = filteredHistory.slice(
-    startIndex,
-    startIndex + HISTORY_ITEMS_PER_PAGE
-  );
-
-  const getTotalAmount = (): number => {
-    return filteredHistory
-      .filter((item) => item.status === 'completed')
-      .reduce((total, item) => total + item.amount, 0);
-  };
-
-  const getStatusColor = (status: HistoryItem['status']) => {
-    const statusColors = {
-      completed: { bg: 'var(--sec-100)', text: 'var(--sec-800)' },
-      pending: { bg: 'var(--warning-100)', text: 'var(--warning-800)' },
-      cancelled: { bg: 'var(--acc-100)', text: 'var(--acc-800)' },
-    };
-    return statusColors[status] || { bg: 'var(--pri-100)', text: 'var(--pri-800)' };
-  };
-
-  const getTypeIcon = (type: HistoryItem['type']): string => {
-    const typeIcons = {
-      sale: '🛒',
-      payment: '💰',
-      credit: '💳',
-      refund: '↩️',
-    };
-    return typeIcons[type] || '📄';
-  };
-
-  const getStatusText = (status: HistoryItem['status']): string => {
-    const statusTexts = {
-      completed: 'Completado',
-      pending: 'Pendiente',
-      cancelled: 'Cancelado',
-    };
-    return statusTexts[status] || status;
-  };
 
   const selectClient = (clientId: number): void => {
     setSelectedClientId(clientId);
@@ -709,15 +587,8 @@ export const useHistory = () => {
 
   return {
     selectedClientId,
-    historyData: filteredHistory,
-    currentHistoryItems,
     searchTerm,
     currentPage,
-    totalPages,
-    getTotalAmount,
-    getStatusColor,
-    getTypeIcon,
-    getStatusText,
     selectClient,
     clearSelection,
     handleSearchChange,
@@ -768,6 +639,7 @@ export const useClientForm = () => {
     nit: '',
     address: '',
     type: 'regular',
+    categoryId: undefined,
     creditLimit: 0,
     currentDebt: 0,
     lastPurchase: '',
@@ -775,15 +647,29 @@ export const useClientForm = () => {
 
   const [form, setForm] = useState(initialForm);
 
-  const updateField = (field: keyof typeof form, value: string | number): void => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const updateField = useCallback(
+    (field: keyof Omit<Client, 'id'>, value: string | number): void => {
+      setForm((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
-  const resetForm = (): void => {
-    setForm(initialForm);
-  };
+  const resetForm = useCallback((): void => {
+    setForm({
+      name: '',
+      email: '',
+      phone: '',
+      nit: '',
+      address: '',
+      type: 'regular',
+      categoryId: undefined,
+      creditLimit: 0,
+      currentDebt: 0,
+      lastPurchase: '',
+    });
+  }, []);
 
-  const loadClient = (client: Client): void => {
+  const loadClient = useCallback((client: Client): void => {
     setForm({
       name: client.name,
       email: client.email,
@@ -794,11 +680,12 @@ export const useClientForm = () => {
       creditLimit: client.creditLimit,
       currentDebt: client.currentDebt,
       lastPurchase: client.lastPurchase,
+      categoryId: client.categoryId,
     });
-  };
+  }, []);
 
-  const handleFormInputChange =
-    (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFormInputChange = useCallback(
+    (field: keyof Omit<Client, 'id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
       let value: string | number = e.target.value;
 
       switch (field) {
@@ -816,11 +703,13 @@ export const useClientForm = () => {
           value = Math.max(0, parseFloat(value as string) || 0);
           break;
         default:
-          value = (value as string).trim();
+          value = value as string;
       }
 
       updateField(field, value);
-    };
+    },
+    [updateField]
+  );
 
   return {
     form,
@@ -846,13 +735,13 @@ export const useProductForm = () => {
 
   const [form, setForm] = useState(initialForm);
 
-  const updateField = (field: keyof typeof form, value: string | number): void => {
+  const updateField = useCallback((field: keyof typeof form, value: string | number): void => {
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const resetForm = (): void => {
+  const resetForm = useCallback((): void => {
     setForm(initialForm);
-  };
+  }, []);
 
   const loadProduct = (product: Product): void => {
     setForm({
@@ -874,8 +763,3 @@ export const useProductForm = () => {
     loadProduct,
   };
 };
-
-export { formatCurrency, formatDate };
-
-// Exportación explícita de todos los tipos
-export type { Client, Product, SaleProduct, Sale, Order, Quote, HistoryItem, SalesModule };

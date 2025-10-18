@@ -8,7 +8,7 @@ interface ProductPriceProps {
 
 function ProductPrice({ price, currency = 'Bs.', className = '' }: ProductPriceProps) {
   return (
-    <div className={`product-card__price ${className}`}>
+    <div className={`product-card-sales__price ${className}`}>
       {currency} {price.toFixed(2)}
     </div>
   );

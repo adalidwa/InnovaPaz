@@ -91,9 +91,11 @@
 }
 
 .reports-dashboard__kpis {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 100px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin: 0px 20px;
 }
 
 /* Alerta de stock */

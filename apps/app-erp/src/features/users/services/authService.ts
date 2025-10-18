@@ -102,6 +102,30 @@ export const checkMarketingSession = async (): Promise<any> => {
   }
 };
 
+export const validateTokenAndLogin = async (): Promise<{ success: boolean; user: any }> => {
+  try {
+    // Primero verificar si hay sesión activa
+    const activeUser = await checkActiveSession();
+    if (activeUser) {
+      return { success: true, user: activeUser };
+    }
+
+    // Si no hay sesión activa, verificar sesión del marketing
+    const marketingUser = await checkMarketingSession();
+    if (marketingUser) {
+      return { success: true, user: marketingUser };
+    }
+
+    // Si no hay sesión válida, redirigir al marketing
+    redirectToMarketing('/login');
+    return { success: false, user: null };
+  } catch (error) {
+    console.error('Error validando token:', error);
+    redirectToMarketing('/login');
+    return { success: false, user: null };
+  }
+};
+
 export const changeUserPassword = async (
   currentPassword: string,
   newPassword: string
