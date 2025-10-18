@@ -10,6 +10,8 @@ const clientsRoutes = require('./routes/clients.routes');
 const categoriesRoutes = require('./routes/categories.routes');
 const quotesRoutes = require('./routes/quotes.routes');
 const salesRoutes = require('./routes/sales.routes');
+const inventoryMovementsRoutes = require('./routes/inventory-movements.routes');
+const uploadRoutes = require('./routes/upload.routes');
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use('/api/sales', salesRoutes);
 app.use('/api/quotes', quotesRoutes);
 const orderRoutes = require('./routes/order.routes');
 app.use('/api', orderRoutes);
+app.use('/api/inventory', inventoryMovementsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use((err, req, res, next) => {
   return res.json({
