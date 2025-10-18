@@ -241,32 +241,11 @@ class QuoteModel {
       );
 
       // 4. Generar número de pedido
-      // 4. Generar número de pedido basado en el último número
-      const lastOrderResult = await client.query(
-        `SELECT numero_pedido FROM pedidos ORDER BY pedido_id DESC LIMIT 1`
+      const countResult = await client.query(
+        `SELECT COUNT(*) as total FROM pedidos WHERE empresa_id = $1`,
+        [empresaId]
       );
-
-      let numeroPedido;
-      if (lastOrderResult.rows.length === 0) {
-        numeroPedido = `PED-${new Date().getFullYear()}-001`;
-      } else {
-        const lastNumber = lastOrderResult.rows[0].numero_pedido;
-        const match = lastNumber.match(/PED-(\d{4})-(\d{3})/);
-
-        if (match) {
-          const year = new Date().getFullYear();
-          const lastYear = parseInt(match[1]);
-          const lastSeq = parseInt(match[2]);
-
-          if (year === lastYear) {
-            numeroPedido = `PED-${year}-${String(lastSeq + 1).padStart(3, '0')}`;
-          } else {
-            numeroPedido = `PED-${year}-001`;
-          }
-        } else {
-          numeroPedido = `PED-${new Date().getFullYear()}-001`;
-        }
-      }
+      const numeroPedido = `PED-${new Date().getFullYear()}-${String(parseInt(countResult.rows[0].total) + 1).padStart(3, '0')}`;
 
       // 5. Obtener el estado "Pendiente" (id = 1)
       const estadoPendienteId = 1;
@@ -364,7 +343,7 @@ class QuoteModel {
     }
 
     const lastNumber = result.rows[0].numero_cotizacion;
-    const match = lastNumber.match(/COT-(\d{4})-(\d{3})/);
+    const match = lastNumber.match(/COT-(\\d{4})-(\\d{3})/);
 
     if (match) {
       const year = new Date().getFullYear();

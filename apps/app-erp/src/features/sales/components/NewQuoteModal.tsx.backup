@@ -140,7 +140,7 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
     try {
       const quoteNumber = await SalesService.generateQuoteNumber(empresaId);
 
-      const quoteData: any = {
+      const quoteData = {
         numero_cotizacion: quoteNumber,
         fecha_validez: validUntil,
         subtotal: calculateSubtotal(),
@@ -148,19 +148,11 @@ function NewQuoteModal({ isOpen, onClose, onSuccess }: NewQuoteModalProps) {
         descuento: globalDiscount,
         total: calculateTotal(),
         observaciones: observations,
+        nombre_cliente_directo: clientName,
+        email_cliente_directo: clientEmail,
+        telefono_cliente_directo: clientPhone,
         productos: selectedProducts,
       };
-
-      // Si hay un cliente seleccionado (no es cliente directo), incluir el cliente_id
-      // El cliente general tiene id=20, pero no debe enviarse como cliente_id
-      if (selectedClient && selectedClient.id !== 20) {
-        quoteData.cliente_id = selectedClient.id;
-      }
-
-      // Siempre enviar los datos del cliente directo para que se muestren en la cotización
-      quoteData.nombre_cliente_directo = clientName;
-      quoteData.email_cliente_directo = clientEmail;
-      quoteData.telefono_cliente_directo = clientPhone;
 
       await SalesService.createQuote(quoteData, empresaId);
 
