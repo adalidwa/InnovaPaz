@@ -38,6 +38,18 @@ function CompanyMembersSection() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [confirmAction, setConfirmAction] = useState<{
+    show: boolean;
+    type: 'resend' | 'cancel' | null;
+    invitacionId: number | null;
+  }>({
+    show: false,
+    type: null,
+    invitacionId: null,
+  });
 
   const updateInvite = (k: string, v: string) => setInviteForm((p) => ({ ...p, [k]: v }));
 
@@ -179,34 +191,58 @@ function CompanyMembersSection() {
   };
 
   const handleResendInvitation = async (invitacionId: number) => {
-    if (!window.confirm('¿Estás seguro de reenviar esta invitación?')) return;
+    setConfirmAction({
+      show: true,
+      type: 'resend',
+      invitacionId: invitacionId,
+    });
+  };
+
+  const executeResendInvitation = async () => {
+    if (!confirmAction.invitacionId) return;
 
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      await resendInvitation(invitacionId, token);
-      alert('Invitación reenviada exitosamente');
+      await resendInvitation(confirmAction.invitacionId, token);
+      setModalMessage('Invitación reenviada exitosamente');
+      setShowSuccessModal(true);
+      setConfirmAction({ show: false, type: null, invitacionId: null });
       await fetchData();
     } catch (error) {
       console.error('Error al reenviar invitación:', error);
-      alert(error instanceof Error ? error.message : 'Error al reenviar la invitación');
+      setModalMessage(error instanceof Error ? error.message : 'Error al reenviar la invitación');
+      setShowErrorModal(true);
+      setConfirmAction({ show: false, type: null, invitacionId: null });
     }
   };
 
   const handleCancelInvitation = async (invitacionId: number) => {
-    if (!window.confirm('¿Estás seguro de cancelar esta invitación?')) return;
+    setConfirmAction({
+      show: true,
+      type: 'cancel',
+      invitacionId: invitacionId,
+    });
+  };
+
+  const executeCancelInvitation = async () => {
+    if (!confirmAction.invitacionId) return;
 
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      await cancelInvitation(invitacionId, token);
-      alert('Invitación cancelada exitosamente');
+      await cancelInvitation(confirmAction.invitacionId, token);
+      setModalMessage('Invitación cancelada exitosamente');
+      setShowSuccessModal(true);
+      setConfirmAction({ show: false, type: null, invitacionId: null });
       await fetchData();
     } catch (error) {
       console.error('Error al cancelar invitación:', error);
-      alert(error instanceof Error ? error.message : 'Error al cancelar la invitación');
+      setModalMessage(error instanceof Error ? error.message : 'Error al cancelar la invitación');
+      setShowErrorModal(true);
+      setConfirmAction({ show: false, type: null, invitacionId: null });
     }
   };
 
@@ -373,6 +409,50 @@ function CompanyMembersSection() {
           </div>
         </div>
       </Modal>
+
+      {/* Modal de confirmación para reenviar/cancelar invitación */}
+      <Modal
+        isOpen={confirmAction.show}
+        onClose={() => setConfirmAction({ show: false, type: null, invitacionId: null })}
+        title={confirmAction.type === 'resend' ? '¿Reenviar invitación?' : '¿Cancelar invitación?'}
+        message={
+          confirmAction.type === 'resend'
+            ? '¿Estás seguro de reenviar esta invitación?'
+            : '¿Estás seguro de cancelar esta invitación?'
+        }
+        modalType='warning'
+        confirmButtonText='Confirmar'
+        showCancelButton={true}
+        cancelButtonText='Cancelar'
+        onConfirm={() => {
+          if (confirmAction.type === 'resend') {
+            executeResendInvitation();
+          } else if (confirmAction.type === 'cancel') {
+            executeCancelInvitation();
+          }
+        }}
+        onCancel={() => setConfirmAction({ show: false, type: null, invitacionId: null })}
+      />
+
+      {/* Modal de éxito */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title='¡Éxito!'
+        message={modalMessage}
+        modalType='success'
+        confirmButtonText='Aceptar'
+      />
+
+      {/* Modal de error */}
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title='Error'
+        message={modalMessage}
+        modalType='error'
+        confirmButtonText='Aceptar'
+      />
     </div>
   );
 }
