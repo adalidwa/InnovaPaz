@@ -6,6 +6,7 @@ const { setupCronJobs } = require('./services/cronService');
 const taskRoutes = require('./routes/task.routes');
 const inventoryRoutes = require('./routes/inventories.routes');
 const catalogRoutes = require('./routes/catalog.routes');
+const reportsRoutes = require('./routes/reports.routes');
 
 const app = express();
 
@@ -20,6 +21,7 @@ app.use('/api/roles', require('./routes/roles'));
 app.use('/api/roles-plantilla', require('./routes/rolesPlantilla'));
 app.use('/api/subscriptions', require('./routes/subscription'));
 app.use('/api/invitations', require('./routes/invitations'));
+app.use('/api/reports', reportsRoutes);
 
 app.use(taskRoutes);
 app.use('/api', inventoryRoutes);

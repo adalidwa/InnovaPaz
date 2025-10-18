@@ -59,6 +59,9 @@ importers:
 
   apps/app-erp:
     dependencies:
+      axios:
+        specifier: ^1.12.2
+        version: 1.12.2
       firebase:
         specifier: 12.2.1
         version: 12.2.1
@@ -189,6 +192,15 @@ importers:
       mysql2:
         specifier: ^3.14.2
         version: 3.15.1
+      node-cron:
+        specifier: ^4.2.1
+        version: 4.2.1
+      node-fetch:
+        specifier: ^2.7.0
+        version: 2.7.0
+      nodemailer:
+        specifier: ^6.10.1
+        version: 6.10.1
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -2489,6 +2501,12 @@ packages:
       }
     engines: { node: '>= 6.0.0' }
 
+  axios@1.12.2:
+    resolution:
+      {
+        integrity: sha512-vMJzPewAlRyOgxV2dU0Cuz2O8zzzx9VYtbJOaBgXFeLc4IV/Eg50n4LowmehOOR61S8ZMpc2K5Sa7g6A4jfkUw==,
+      }
+
   balanced-match@1.0.2:
     resolution:
       {
@@ -3523,6 +3541,18 @@ packages:
       {
         integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==,
       }
+
+  follow-redirects@1.15.11:
+    resolution:
+      {
+        integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==,
+      }
+    engines: { node: '>=4.0' }
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
 
   form-data@2.5.5:
     resolution:
@@ -4632,6 +4662,13 @@ packages:
       }
     engines: { node: ^18 || ^20 || >= 21 }
 
+  node-cron@4.2.1:
+    resolution:
+      {
+        integrity: sha512-lgimEHPE/QDgFlywTd8yTR61ptugX3Qer29efeyWw2rv259HtGBNn1vZVmp8lB9uo9wC0t/AT4iGqXxia+CJFg==,
+      }
+    engines: { node: '>=6.0.0' }
+
   node-fetch@2.7.0:
     resolution:
       {
@@ -4663,6 +4700,13 @@ packages:
       {
         integrity: sha512-5b0pgg78U3hwXkCM8Z9b2FJdPZlr9Psr9V2gQPESdGHqbntyFJKFW4r5TeWGFzafGY3hzs1JC62VEQMbl1JFkw==,
       }
+
+  nodemailer@6.10.1:
+    resolution:
+      {
+        integrity: sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==,
+      }
+    engines: { node: '>=6.0.0' }
 
   nodemon@3.1.10:
     resolution:
@@ -5010,6 +5054,12 @@ packages:
         integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==,
       }
     engines: { node: '>= 0.10' }
+
+  proxy-from-env@1.1.0:
+    resolution:
+      {
+        integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==,
+      }
 
   psl@1.15.0:
     resolution:
@@ -7705,6 +7755,14 @@ snapshots:
 
   aws-ssl-profiles@1.1.2: {}
 
+  axios@1.12.2:
+    dependencies:
+      follow-redirects: 1.15.11
+      form-data: 4.0.4
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
   balanced-match@1.0.2: {}
 
   base64-js@1.5.1: {}
@@ -8405,6 +8463,8 @@ snapshots:
 
   flatted@3.3.3: {}
 
+  follow-redirects@1.15.11: {}
+
   form-data@2.5.5:
     dependencies:
       asynckit: 0.4.0
@@ -9045,6 +9105,8 @@ snapshots:
 
   node-addon-api@8.5.0: {}
 
+  node-cron@4.2.1: {}
+
   node-fetch@2.7.0:
     dependencies:
       whatwg-url: 5.0.0
@@ -9054,6 +9116,8 @@ snapshots:
   node-gyp-build@4.8.4: {}
 
   node-releases@2.0.21: {}
+
+  nodemailer@6.10.1: {}
 
   nodemon@3.1.10:
     dependencies:
@@ -9246,6 +9310,8 @@ snapshots:
     dependencies:
       forwarded: 0.2.0
       ipaddr.js: 1.9.1
+
+  proxy-from-env@1.1.0: {}
 
   psl@1.15.0:
     dependencies:
