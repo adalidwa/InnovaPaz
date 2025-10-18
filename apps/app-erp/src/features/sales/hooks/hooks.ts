@@ -639,6 +639,7 @@ export const useClientForm = () => {
     nit: '',
     address: '',
     type: 'regular',
+    categoryId: undefined,
     creditLimit: 0,
     currentDebt: 0,
     lastPurchase: '',
@@ -661,6 +662,7 @@ export const useClientForm = () => {
       nit: '',
       address: '',
       type: 'regular',
+      categoryId: undefined,
       creditLimit: 0,
       currentDebt: 0,
       lastPurchase: '',
@@ -678,6 +680,7 @@ export const useClientForm = () => {
       creditLimit: client.creditLimit,
       currentDebt: client.currentDebt,
       lastPurchase: client.lastPurchase,
+      categoryId: client.categoryId,
     });
   }, []);
 
