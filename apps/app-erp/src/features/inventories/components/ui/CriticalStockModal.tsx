@@ -223,7 +223,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
       ],
     };
 
-    return productsByType[businessType];
+    return productsByType[businessType] || [];
   };
 
   const criticalProducts = getCriticalProductsByBusinessType();
@@ -231,7 +231,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
   const categories = useMemo(() => {
     const uniqueCategories = Array.from(new Set(criticalProducts.map((p) => p.category)));
     return uniqueCategories.sort();
-  }, []);
+  }, [criticalProducts]);
 
   const filteredProducts = useMemo(() => {
     return criticalProducts.filter((product) => {
@@ -239,7 +239,7 @@ const CriticalStockModal: React.FC<CriticalStockModalProps> = ({
       const categoryMatch = categoryFilter === 'all' || product.category === categoryFilter;
       return statusMatch && categoryMatch;
     });
-  }, [statusFilter, categoryFilter]);
+  }, [criticalProducts, statusFilter, categoryFilter]);
 
   const getProgressPercentage = (current: number, max: number) => {
     return Math.min((current / max) * 100, 100);

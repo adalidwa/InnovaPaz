@@ -9,19 +9,43 @@ import {
   type ProductoCritico,
 } from '../services/inventoryMovementsService';
 import { useUser } from '../../users/hooks/useContextBase';
+import { useCompanyConfig } from '../../../contexts/CompanyConfigContext';
 import './Dashboard.css';
 
 interface DashboardProps {
   businessType?: 'ferreteria' | 'minimarket' | 'licoreria';
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) => {
+const Dashboard: React.FC<DashboardProps> = () => {
   const { user } = useUser();
-  const [showAllMovements, setShowAllMovements] = useState(false);
+  const { config } = useCompanyConfig();
   const [showCriticalStockModal, setShowCriticalStockModal] = useState(false);
+  const [showAllMovements, setShowAllMovements] = useState(false);
   const [recentMovements, setRecentMovements] = useState<MovimientoInventario[]>([]);
   const [criticalProductsData, setCriticalProductsData] = useState<ProductoCritico[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Función para obtener el nombre correcto del tipo de negocio
+  const getBusinessTypeName = (tipoNegocio: string): string => {
+    if (!tipoNegocio) return 'negocio';
+
+    // Los valores ya vienen normalizados del backend (ferreteria, licoreria, minimarket)
+    const businessTypes: Record<string, string> = {
+      minimarket: 'minimarket',
+      ferreteria: 'ferretería',
+      licoreria: 'licorería',
+    };
+
+    const normalizedType = tipoNegocio.toLowerCase().trim();
+    return businessTypes[normalizedType] || 'negocio';
+  };
+
+  // Generar subtítulo dinámico
+  const getDashboardSubtitle = (): string => {
+    const businessTypeName = getBusinessTypeName(config.tipoNegocio);
+    return `Resumen general de tu ${businessTypeName}`;
+  };
 
   // Cargar datos reales de la base de datos
   useEffect(() => {
@@ -30,6 +54,7 @@ const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) =>
 
       try {
         setLoading(true);
+        setError(null);
 
         // Cargar movimientos recientes y productos críticos en paralelo
         const [movementsResponse, criticalResponse] = await Promise.all([
@@ -37,10 +62,15 @@ const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) =>
           inventoryMovementsService.getCriticalProducts(user.empresa_id),
         ]);
 
-        setRecentMovements(movementsResponse);
-        setCriticalProductsData(criticalResponse);
+        // Asegurar que siempre tenemos arrays válidos
+        setRecentMovements(Array.isArray(movementsResponse) ? movementsResponse : []);
+        setCriticalProductsData(Array.isArray(criticalResponse) ? criticalResponse : []);
       } catch (error) {
         console.error('Error cargando datos del dashboard:', error);
+        setError('Error al cargar los datos del dashboard. Usando datos por defecto.');
+        // Asegurar que tenemos arrays vacíos en caso de error
+        setRecentMovements([]);
+        setCriticalProductsData([]);
       } finally {
         setLoading(false);
       }
@@ -104,10 +134,21 @@ const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) =>
 
   return (
     <div className='dashboard'>
-      <ProductsHeader
-        title='Dashboard de Inventario'
-        subtitle={`Resumen general de tu ${businessType === 'ferreteria' ? 'ferretería' : businessType === 'licoreria' ? 'licorería' : 'minimarket'}`}
-      />
+      <ProductsHeader title='Dashboard de Inventario' subtitle={getDashboardSubtitle()} />
+      {error && (
+        <div
+          style={{
+            padding: '1rem',
+            margin: '1rem 0',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffeaa7',
+            borderRadius: '4px',
+            color: '#856404',
+          }}
+        >
+          <strong>Aviso:</strong> {error}
+        </div>
+      )}
       <SummaryCardsRow />
       <div className='dashboard-row'>
         <StatusListCard
@@ -131,7 +172,9 @@ const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) =>
       <CriticalStockModal
         isOpen={showCriticalStockModal}
         onClose={() => setShowCriticalStockModal(false)}
-        businessType={businessType}
+        businessType={
+          getBusinessTypeName(config.tipoNegocio) as 'ferreteria' | 'minimarket' | 'licoreria'
+        }
       />
     </div>
   );

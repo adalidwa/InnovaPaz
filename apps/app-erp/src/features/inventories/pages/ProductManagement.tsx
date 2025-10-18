@@ -21,19 +21,17 @@ function ProductManagement() {
 
   // Función para obtener el nombre correcto del tipo de negocio
   const getBusinessTypeName = (tipoNegocio: string): string => {
+    if (!tipoNegocio) return 'negocio';
+
+    // Los valores ya vienen normalizados del backend (ferreteria, licoreria, minimarket)
     const businessTypes: Record<string, string> = {
       minimarket: 'minimarket',
       ferreteria: 'ferretería',
       licoreria: 'licorería',
-      Minimarket: 'minimarket',
-      Ferreteria: 'ferretería',
-      Licoreria: 'licorería',
-      MINIMARKET: 'minimarket',
-      FERRETERIA: 'ferretería',
-      LICORERIA: 'licorería',
     };
 
-    return businessTypes[tipoNegocio] || 'negocio';
+    const normalizedType = tipoNegocio.toLowerCase().trim();
+    return businessTypes[normalizedType] || 'negocio';
   };
 
   // Generar subtítulo dinámico

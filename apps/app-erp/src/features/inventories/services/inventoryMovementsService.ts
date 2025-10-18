@@ -35,12 +35,19 @@ export const inventoryMovementsService = {
   // Obtener movimientos recientes de inventario usando los endpoints correctos
   async getRecentMovements(empresaId: string, limit: number = 10): Promise<MovimientoInventario[]> {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(
-        `${API_BASE_URL}/api/inventories/dashboard/${empresaId}/recent-movements?limit=${limit}`
+        `${API_BASE_URL}/api/dashboard/${empresaId}/recent-movements?limit=${limit}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
       );
-      if (!res.ok) throw new Error('Error al obtener movimientos');
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
       const data = await res.json();
-      return data.movimientos || [];
+      return Array.isArray(data.movimientos) ? data.movimientos : [];
     } catch (err) {
       console.error('Error getRecentMovements:', err);
       return [];
@@ -50,12 +57,16 @@ export const inventoryMovementsService = {
   // Obtener productos con stock crítico usando los endpoints correctos
   async getCriticalProducts(empresaId: string): Promise<ProductoCritico[]> {
     try {
-      const res = await fetch(
-        `${API_BASE_URL}/api/inventories/dashboard/${empresaId}/critical-products`
-      );
-      if (!res.ok) throw new Error('Error al obtener productos críticos');
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/${empresaId}/critical-products`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
       const data = await res.json();
-      return data.productos_criticos || [];
+      return Array.isArray(data.productos_criticos) ? data.productos_criticos : [];
     } catch (err) {
       console.error('Error getCriticalProducts:', err);
       return [];
@@ -65,7 +76,7 @@ export const inventoryMovementsService = {
   // Obtener métricas del dashboard
   async getDashboardMetrics(empresaId: string): Promise<MetricasDashboard | null> {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/inventories/dashboard/${empresaId}/metrics`);
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/${empresaId}/metrics`);
       if (!res.ok) throw new Error('Error al obtener métricas');
       const data = await res.json();
       return data.metricas || null;
