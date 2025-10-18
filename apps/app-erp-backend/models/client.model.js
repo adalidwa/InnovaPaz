@@ -81,7 +81,10 @@ class ClientModel {
         deuda_actual || 0,
       ]
     );
-    return result.rows[0];
+
+    // Obtener el cliente con la categoría incluida
+    const newClient = await this.findById(result.rows[0].cliente_id, empresa_id);
+    return newClient;
   }
 
   // Actualizar cliente
@@ -125,7 +128,10 @@ class ClientModel {
         empresaId,
       ]
     );
-    return result.rows[0];
+
+    // Obtener el cliente actualizado con la categoría incluida
+    const updatedClient = await this.findById(clienteId, empresaId);
+    return updatedClient;
   }
 
   // Eliminar cliente (soft delete)
@@ -192,7 +198,10 @@ class ClientModel {
        RETURNING *`,
       [clienteId, empresaId]
     );
-    return result.rows[0];
+
+    // Obtener el cliente activado con la categoría incluida
+    const activatedClient = await this.findById(clienteId, empresaId);
+    return activatedClient;
   }
 }
 

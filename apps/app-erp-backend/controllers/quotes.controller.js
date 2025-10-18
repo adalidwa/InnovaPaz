@@ -92,6 +92,24 @@ const createQuote = async (req, res) => {
       });
     }
 
+    // Validar que haya productos
+    if (!quoteData.productos || quoteData.productos.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Debe agregar al menos un producto a la cotización',
+      });
+    }
+
+    // Validar que todos los productos tengan los campos necesarios
+    for (const producto of quoteData.productos) {
+      if (!producto.producto_id || !producto.cantidad || !producto.precio_unitario) {
+        return res.status(400).json({
+          success: false,
+          message: 'Todos los productos deben tener producto_id, cantidad y precio_unitario',
+        });
+      }
+    }
+
     // Generar número de cotización si no existe
     if (!quoteData.numero_cotizacion) {
       quoteData.numero_cotizacion = await QuoteModel.generateQuoteNumber(empresaId);
@@ -156,17 +174,24 @@ const updateQuote = async (req, res) => {
 const updateQuoteStatus = async (req, res) => {
   try {
     const { quoteId } = req.params;
-    const { estadoId } = req.body;
+    const { estado_cotizacion_id } = req.body;
     const { empresaId } = req.query;
 
-    if (!empresaId || !estadoId) {
+    if (!empresaId) {
       return res.status(400).json({
         success: false,
-        message: 'Se requiere empresaId y estadoId',
+        message: 'Se requiere empresaId',
       });
     }
 
-    const updatedQuote = await QuoteModel.updateStatus(quoteId, estadoId, empresaId);
+    if (!estado_cotizacion_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Se requiere estado_cotizacion_id',
+      });
+    }
+
+    const updatedQuote = await QuoteModel.updateStatus(quoteId, estado_cotizacion_id, empresaId);
 
     if (!updatedQuote) {
       return res.status(404).json({
@@ -177,14 +202,14 @@ const updateQuoteStatus = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Estado actualizado exitosamente',
+      message: 'Estado de cotización actualizado exitosamente',
       data: updatedQuote,
     });
   } catch (error) {
-    console.error('Error al actualizar estado:', error);
+    console.error('Error al actualizar estado de cotización:', error);
     res.status(500).json({
       success: false,
-      message: 'Error al actualizar estado',
+      message: 'Error al actualizar estado de cotización',
       error: error.message,
     });
   }
@@ -203,19 +228,12 @@ const convertToOrder = async (req, res) => {
       });
     }
 
-    const updatedQuote = await QuoteModel.markAsConverted(quoteId, empresaId);
-
-    if (!updatedQuote) {
-      return res.status(404).json({
-        success: false,
-        message: 'Cotización no encontrada',
-      });
-    }
+    const order = await QuoteModel.markAsConverted(quoteId, empresaId);
 
     res.status(200).json({
       success: true,
       message: 'Cotización convertida a pedido exitosamente',
-      data: updatedQuote,
+      data: order,
     });
   } catch (error) {
     console.error('Error al convertir cotización:', error);
@@ -264,7 +282,7 @@ const deleteQuote = async (req, res) => {
   }
 };
 
-// Generar nuevo número de cotización
+// Generar número de cotización
 const generateQuoteNumber = async (req, res) => {
   try {
     const { empresaId } = req.query;
