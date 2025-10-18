@@ -369,16 +369,15 @@ const getRecentMovements = async (req, res, next) => {
         mi.cantidad,
         mi.fecha_movimiento,
         mi.motivo,
-        mi.tipo_movimiento,
+        tm.nombre as tipo_movimiento,
+        tm.tipo as tipo_operacion,
         p.nombre_producto,
-        CASE 
-          WHEN mi.cliente_id IS NOT NULL THEN 'Cliente'
-          WHEN mi.proveedor_id IS NOT NULL THEN 'Proveedor'
-          ELSE 'Interno'
-        END as entidad_tipo
+        mi.entidad_tipo,
+        mi.entidad_id
       FROM movimientos_inventario mi
       INNER JOIN producto p ON mi.producto_id = p.producto_id
-      WHERE p.empresa_id = $1
+      LEFT JOIN tipo_movimiento tm ON mi.tipo_movimiento_id = tm.tipo_movimiento_id
+      WHERE mi.empresa_id = $1
       ORDER BY mi.fecha_movimiento DESC
       LIMIT $2`,
       [empresaId, limit]

@@ -68,10 +68,51 @@ async function seedTiposEmpresa() {
   const tipos = ['Minimarket', 'Ferreteria', 'Licoreria'];
   for (const tipo of tipos) {
     await pool.query(
-      'INSERT INTO tipos_empresa (tipo_empresa, fecha_creacion) VALUES ($1, NOW())',
+      'INSERT INTO tipos_empresa (tipo_empresa, fecha_creacion) VALUES ($1, NOW()) ON CONFLICT (tipo_empresa) DO NOTHING',
       [tipo]
     );
     console.log(`Tipo de empresa "${tipo}" insertado.`);
+  }
+}
+
+async function seedTiposMovimiento() {
+  const tiposMovimiento = [
+    {
+      nombre: 'Entrada por Compra',
+      tipo: 'entrada',
+      descripcion: 'Ingreso de productos por compra a proveedor',
+    },
+    {
+      nombre: 'Salida por Venta',
+      tipo: 'salida',
+      descripcion: 'Salida de productos por venta a cliente',
+    },
+    {
+      nombre: 'Entrada por Devolución',
+      tipo: 'entrada',
+      descripcion: 'Ingreso de productos devueltos por cliente',
+    },
+    {
+      nombre: 'Salida por Devolución',
+      tipo: 'salida',
+      descripcion: 'Salida de productos devueltos a proveedor',
+    },
+    {
+      nombre: 'Ajuste Positivo',
+      tipo: 'entrada',
+      descripcion: 'Ajuste de inventario - incremento',
+    },
+    { nombre: 'Ajuste Negativo', tipo: 'salida', descripcion: 'Ajuste de inventario - decremento' },
+    { nombre: 'Entrada Manual', tipo: 'entrada', descripcion: 'Ingreso manual de productos' },
+    { nombre: 'Salida Manual', tipo: 'salida', descripcion: 'Salida manual de productos' },
+  ];
+
+  for (const tipoMov of tiposMovimiento) {
+    await pool.query(
+      'INSERT INTO tipo_movimiento (nombre, tipo, descripcion) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+      [tipoMov.nombre, tipoMov.tipo, tipoMov.descripcion]
+    );
+    console.log(`Tipo de movimiento "${tipoMov.nombre}" insertado.`);
   }
 }
 
@@ -79,6 +120,7 @@ async function main() {
   try {
     await seedPlanes();
     await seedTiposEmpresa();
+    await seedTiposMovimiento();
     console.log('Datos iniciales insertados correctamente.');
   } catch (err) {
     console.error('Error al insertar datos iniciales:', err.message);

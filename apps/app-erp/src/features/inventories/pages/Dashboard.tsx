@@ -81,24 +81,38 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   // Convertir movimientos de BD al formato esperado por StatusListCard
   const allMovements = recentMovements.map((movement) => {
+    // Determinar si es entrada o salida basado en el tipo de operación
     const isEntrada =
-      movement.tipo_movimiento.toLowerCase().includes('entrada') ||
-      movement.tipo_movimiento.toLowerCase().includes('ingreso');
+      movement.tipo_operacion === 'entrada' ||
+      movement.tipo_movimiento?.toLowerCase().includes('entrada') ||
+      movement.tipo_movimiento?.toLowerCase().includes('ingreso');
+
     const fecha = new Date(movement.fecha_movimiento);
+    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+    });
+    const horaFormateada = fecha.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    // Formatear el título con más información
+    const tipoMovimiento = movement.tipo_movimiento || (isEntrada ? 'Entrada' : 'Salida');
+    const entidadInfo = movement.entidad_tipo ? ` - ${movement.entidad_tipo}` : '';
 
     return {
       id: movement.movimiento_id,
-      title: `${isEntrada ? 'Entrada' : 'Salida'} de ${movement.nombre_producto}`,
-      time: fecha.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      }),
+      title: `${tipoMovimiento}: ${movement.nombre_producto}`,
+      subtitle: `${fechaFormateada} ${horaFormateada}${entidadInfo}`,
+      time: horaFormateada,
       tag: {
         label: isEntrada ? 'Entrada' : 'Salida',
         type: isEntrada ? ('entrada' as const) : ('salida' as const),
       },
       value: movement.cantidad,
+      hasIcon: true,
     };
   });
 
@@ -153,11 +167,30 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div className='dashboard-row'>
         <StatusListCard
           title='Movimientos Recientes'
-          items={displayedMovements}
-          buttonLabel={showAllMovements ? 'Ver menos' : 'Ver todos los movimientos'}
+          items={
+            displayedMovements.length > 0
+              ? displayedMovements
+              : [
+                  {
+                    id: 'empty',
+                    title: 'No hay movimientos registrados',
+                    subtitle: 'Los movimientos de inventario aparecerán aquí',
+                    tag: { label: 'Sin datos', type: 'bajo' as const },
+                  },
+                ]
+          }
+          buttonLabel={
+            allMovements.length > 7
+              ? showAllMovements
+                ? 'Ver menos'
+                : `Ver todos (${allMovements.length})`
+              : undefined
+          }
           buttonVariant='secondary'
           buttonClassName='status-list-card__button--blue-border'
-          onButtonClick={() => setShowAllMovements(!showAllMovements)}
+          onButtonClick={
+            allMovements.length > 7 ? () => setShowAllMovements(!showAllMovements) : undefined
+          }
         />
         <StatusListCard
           title='Productos Críticos'
