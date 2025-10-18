@@ -17,6 +17,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/companies', require('./routes/companies'));
 app.use('/api/plans', require('./routes/plans'));
 app.use('/api/roles', require('./routes/roles'));
+app.use('/api/roles-plantilla', require('./routes/rolesPlantilla'));
 app.use('/api/subscriptions', require('./routes/subscription'));
 
 app.use(taskRoutes);

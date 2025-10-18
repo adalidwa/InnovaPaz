@@ -236,8 +236,8 @@ async function completeCompanySetup(req, res) {
       plan_id
     );
 
-    // ===== CREAR ROLES PREDETERMINADOS SEGÚN TIPO DE EMPRESA Y PLAN =====
-    const { obtenerRolesPorTipoEmpresa } = require('../utils/constants');
+    // ===== NUEVO SISTEMA: USAR PLANTILLAS DE ROLES =====
+    const RolePlantilla = require('../models/rolePlantilla.model');
     const TypeCompany = require('../models/typeCompany.model');
     const Plan = require('../models/plan.model');
 
@@ -249,31 +249,38 @@ async function completeCompanySetup(req, res) {
       throw new Error('Tipo de empresa o plan no encontrado');
     }
 
-    // Obtener límite de roles según el plan
-    const limiteRoles = plan.limites?.roles || null; // null = ilimitado (Premium)
+    // Buscar la plantilla de Administrador para este tipo de empresa
+    const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+      'Administrador',
+      tipo_empresa_id
+    );
 
-    // Obtener roles predeterminados para este tipo de empresa
-    const rolesConfig = obtenerRolesPorTipoEmpresa(tipoEmpresa.tipo_empresa, limiteRoles);
-
-    let rolAdministrador;
-
-    // Crear todos los roles predeterminados
-    for (const rolConfig of rolesConfig) {
-      const rolCreado = await Role.create({
-        empresa_id: nuevaEmpresa.empresa_id,
-        nombre_rol: rolConfig.nombre,
-        permisos: rolConfig.permisos,
-        es_predeterminado: true,
-        estado: 'activo',
-      });
-
-      // Guardar referencia al rol Administrador
-      if (rolConfig.nombre === 'Administrador') {
-        rolAdministrador = rolCreado;
-      }
+    if (!plantillaAdministrador) {
+      throw new Error('No se encontró la plantilla de rol Administrador para este tipo de empresa');
     }
 
-    const rol_id = rolAdministrador?.rol_id || null;
+    // En el nuevo sistema, podemos asignar directamente la plantilla al usuario
+    // o crear un rol temporal basado en la plantilla (por compatibilidad)
+
+    // OPCIÓN: Crear rol de Administrador basado en plantilla (para compatibilidad con sistema actual)
+    const rolAdministrador = await Role.create({
+      empresa_id: nuevaEmpresa.empresa_id,
+      nombre_rol: 'Administrador',
+      permisos: plantillaAdministrador.permisos,
+      es_predeterminado: true,
+      estado: 'activo',
+      plantilla_id_origen: plantillaAdministrador.plantilla_id,
+    });
+
+    const rol_id = rolAdministrador.rol_id;
+
+    console.log(
+      '✅ [NUEVO SISTEMA] Empresa creada con sistema de plantillas. Solo se creó rol de Administrador.'
+    );
+    console.log(
+      '📋 Plantillas disponibles para esta empresa:',
+      await RolePlantilla.findByTipoEmpresa(tipo_empresa_id)
+    );
 
     // Actualizar usuario
     const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
@@ -282,13 +289,23 @@ async function completeCompanySetup(req, res) {
       estado: 'activo',
     });
 
+    // Obtener plantillas disponibles para mostrar en el frontend
+    const plantillasDisponibles = await RolePlantilla.findByTipoEmpresa(tipo_empresa_id);
+
     res.status(200).json({
       success: true,
-      mensaje: 'Configuración de empresa completada.',
+      mensaje: 'Configuración de empresa completada exitosamente.',
       empresa: nuevaEmpresa,
       usuario: usuarioActualizado,
       rol: rolAdministrador,
       suscripcion: subscriptionResult,
+      plantillas_disponibles: plantillasDisponibles,
+      sistema_roles: {
+        tipo: 'plantillas',
+        descripcion: 'Sistema optimizado de roles con plantillas predefinidas',
+        total_plantillas: plantillasDisponibles.length,
+        limite_plan: plan.limites?.roles || 'Ilimitado',
+      },
     });
   } catch (err) {
     console.error('Error en completeCompanySetup:', err);

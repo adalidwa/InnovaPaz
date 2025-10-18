@@ -146,40 +146,37 @@ async function createCompany(req, res) {
       plan_id
     );
 
-    // ===== CREAR ROLES PREDETERMINADOS SEGÚN TIPO DE EMPRESA Y PLAN =====
-    const { obtenerRolesPorTipoEmpresa } = require('../utils/constants');
+    // ===== NUEVO SISTEMA: NO CREAR ROLES DUPLICADOS =====
+    // En el nuevo sistema, los roles predeterminados están en la tabla roles_plantilla
+    // Solo necesitamos obtener el rol de Administrador de la plantilla para asignárselo al usuario
 
-    // Obtener límite de roles según el plan
-    const limiteRoles = plan.limites?.roles || null; // null = ilimitado (Premium)
+    const RolePlantilla = require('../models/rolePlantilla.model');
 
-    // Obtener roles predeterminados para este tipo de empresa
-    const rolesConfig = obtenerRolesPorTipoEmpresa(tipoEmpresa.tipo_empresa, limiteRoles);
+    // Buscar la plantilla de Administrador para este tipo de empresa
+    const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+      'Administrador',
+      tipo_empresa_id
+    );
 
-    let rolAdministrador;
-    const rolesCreados = [];
-
-    // Crear todos los roles predeterminados
-    for (const rolConfig of rolesConfig) {
-      const rolCreado = await Role.create({
-        empresa_id: empresaGuardada.empresa_id,
-        nombre_rol: rolConfig.nombre,
-        permisos: rolConfig.permisos,
-        es_predeterminado: true,
-        estado: 'activo',
-      });
-
-      rolesCreados.push(rolCreado);
-
-      // Guardar referencia al rol Administrador
-      if (rolConfig.nombre === 'Administrador') {
-        rolAdministrador = rolCreado;
-      }
+    if (!plantillaAdministrador) {
+      throw new Error('No se encontró la plantilla de rol Administrador para este tipo de empresa');
     }
 
-    // Asignar el rol de Administrador al usuario que registra la empresa
-    if (!rolAdministrador) {
-      throw new Error('No se pudo crear el rol de Administrador');
-    }
+    // En el nuevo sistema, los usuarios pueden tener roles de plantilla o personalizados
+    // Por ahora, creamos un "rol virtual" que apunte a la plantilla
+    // O modificamos la estructura para que usuarios puedan apuntar directamente a plantillas
+
+    // OPCIÓN TEMPORAL: Crear solo el rol de Administrador para este usuario
+    const rolAdministrador = await Role.create({
+      empresa_id: empresaGuardada.empresa_id,
+      nombre_rol: 'Administrador',
+      permisos: plantillaAdministrador.permisos,
+      es_predeterminado: true,
+      estado: 'activo',
+      plantilla_id_origen: plantillaAdministrador.plantilla_id,
+    });
+
+    console.log('✅ Empresa creada con sistema de plantillas. Solo se creó rol de Administrador.');
 
     // Crear usuario con rol de Administrador
     const nuevoUsuario = await User.create({
@@ -195,8 +192,9 @@ async function createCompany(req, res) {
       empresa: empresaGuardada,
       usuario: nuevoUsuario,
       subscription: subscriptionResult,
-      roles_creados: rolesCreados.length,
-      mensaje: `Empresa creada con ${rolesCreados.length} roles predeterminados.`,
+      rol_administrador: rolAdministrador,
+      plantillas_disponibles: await RolePlantilla.findByTipoEmpresa(tipo_empresa_id),
+      mensaje: `Empresa creada exitosamente. Usando sistema de plantillas de roles.`,
     });
   } catch (err) {
     console.error('Error al crear empresa:', err);

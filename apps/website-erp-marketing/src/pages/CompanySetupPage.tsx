@@ -137,12 +137,20 @@ const CompanySetupPage: React.FC = () => {
 
       if (result.success && result.empresa && result.usuario) {
         console.log('✅ Configuración completada exitosamente');
-        setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
+        console.log('🆕 Sistema de roles:', result.sistema_roles);
+        console.log('📋 Plantillas disponibles:', result.plantillas_disponibles?.length || 0);
+
+        setSuccess(
+          `¡Empresa configurada exitosamente! ` +
+            `Se ha configurado el ${result.sistema_roles?.descripcion || 'sistema de roles'} ` +
+            `con ${result.plantillas_disponibles?.length || 0} plantillas disponibles. ` +
+            `Redirigiendo al sistema ERP...`
+        );
 
         setTimeout(() => {
           console.log('🚀 Redirigiendo al ERP');
           redirectToERP();
-        }, 2000);
+        }, 3000); // Dar más tiempo para leer el mensaje
       } else {
         setError(result.error || 'Error al configurar la empresa.');
       }

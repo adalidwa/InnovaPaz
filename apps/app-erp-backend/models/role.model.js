@@ -26,10 +26,18 @@ class Role {
   }
 
   static async create(data) {
-    const { empresa_id, nombre_rol, permisos, es_predeterminado, estado } = data;
+    const { empresa_id, nombre_rol, permisos, es_predeterminado, estado, plantilla_id_origen } =
+      data;
     const result = await pool.query(
-      'INSERT INTO roles (empresa_id, nombre_rol, permisos, es_predeterminado, estado, fecha_creacion) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
-      [empresa_id, nombre_rol, JSON.stringify(permisos || {}), es_predeterminado, estado]
+      'INSERT INTO roles (empresa_id, nombre_rol, permisos, es_predeterminado, estado, plantilla_id_origen, fecha_creacion) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
+      [
+        empresa_id,
+        nombre_rol,
+        JSON.stringify(permisos || {}),
+        es_predeterminado,
+        estado,
+        plantilla_id_origen || null,
+      ]
     );
     return result.rows[0];
   }

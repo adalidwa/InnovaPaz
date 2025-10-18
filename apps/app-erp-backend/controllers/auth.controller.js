@@ -118,8 +118,8 @@ async function registerUser(req, res) {
       const SubscriptionService = require('../services/subscriptionService');
       await SubscriptionService.setupInitialSubscription(empresa_id, plan_id);
 
-      // ===== CREAR ROLES PREDETERMINADOS SEGÚN TIPO DE EMPRESA Y PLAN =====
-      const { obtenerRolesPorTipoEmpresa } = require('../utils/constants');
+      // ===== NUEVO SISTEMA: USAR PLANTILLAS DE ROLES =====
+      const RolePlantilla = require('../models/rolePlantilla.model');
       const TypeCompany = require('../models/typeCompany.model');
       const Plan = require('../models/plan.model');
 
@@ -131,31 +131,40 @@ async function registerUser(req, res) {
         throw new Error('Tipo de empresa o plan no encontrado');
       }
 
-      // Obtener límite de roles según el plan
-      const limiteRoles = plan.limites?.roles || null; // null = ilimitado (Premium)
+      // Buscar la plantilla de Administrador para este tipo de empresa
+      const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+        'Administrador',
+        tipo_empresa_id
+      );
 
-      // Obtener roles predeterminados para este tipo de empresa
-      const rolesConfig = obtenerRolesPorTipoEmpresa(tipoEmpresa.tipo_empresa, limiteRoles);
-
-      let rolAdministrador;
-
-      // Crear todos los roles predeterminados
-      for (const rolConfig of rolesConfig) {
-        const rolCreado = await Role.create({
-          empresa_id,
-          nombre_rol: rolConfig.nombre,
-          permisos: rolConfig.permisos,
-          es_predeterminado: true,
-          estado: 'activo',
-        });
-
-        // Guardar referencia al rol Administrador
-        if (rolConfig.nombre === 'Administrador') {
-          rolAdministrador = rolCreado;
-        }
+      if (!plantillaAdministrador) {
+        throw new Error(
+          'No se encontró la plantilla de rol Administrador para este tipo de empresa'
+        );
       }
 
-      rol_id = rolAdministrador?.rol_id || null;
+      // En el nuevo sistema, podemos asignar directamente la plantilla al usuario
+      // o crear un rol temporal basado en la plantilla (para compatibilidad con sistema actual)
+
+      // OPCIÓN: Crear rol de Administrador basado en plantilla (para compatibilidad con sistema actual)
+      const rolAdministrador = await Role.create({
+        empresa_id,
+        nombre_rol: 'Administrador',
+        permisos: plantillaAdministrador.permisos,
+        es_predeterminado: true,
+        estado: 'activo',
+        plantilla_id_origen: plantillaAdministrador.plantilla_id,
+      });
+
+      rol_id = rolAdministrador.rol_id;
+
+      console.log(
+        '✅ [NUEVO SISTEMA - REGISTRO] Empresa creada con sistema de plantillas. Solo se creó rol de Administrador.'
+      );
+      console.log(
+        '📋 Plantillas disponibles para esta empresa:',
+        await RolePlantilla.findByTipoEmpresa(tipo_empresa_id)
+      );
     } else {
       empresa_id = null;
       rol_id = null;
@@ -479,33 +488,35 @@ async function verifyFirebaseToken(req, res, next) {
 // Endpoint protegido usando el nuevo middleware
 async function getMe(req, res) {
   try {
-    // Obtener usuario con el nombre del rol mediante JOIN
-    const result = await pool.query(
-      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, u.estado, 
-              u.preferencias, u.avatar_url, r.nombre_rol
-       FROM usuarios u
-       LEFT JOIN roles r ON u.rol_id = r.rol_id
-       WHERE u.uid = $1`,
-      [req.user.uid]
-    );
+    // Usar la nueva función que soporta plantillas y roles personalizados
+    const usuarioCompleto = await User.findByIdWithRole(req.user.uid);
 
-    if (result.rows.length === 0) {
+    if (!usuarioCompleto) {
       return res.status(404).json({ error: 'Usuario no encontrado.' });
     }
 
-    const usuario = result.rows[0];
+    console.log('🔍 [getMe] Usuario obtenido con rol:', {
+      uid: usuarioCompleto.uid,
+      nombre_rol: usuarioCompleto.nombre_rol,
+      tipo_rol: usuarioCompleto.tipo_rol,
+    });
 
     res.json({
       usuario: {
-        uid: usuario.uid,
-        nombre_completo: usuario.nombre_completo,
-        email: usuario.email,
-        rol_id: usuario.rol_id,
-        rol: usuario.nombre_rol || 'Sin rol', // Incluir el nombre del rol
-        empresa_id: usuario.empresa_id,
-        estado: usuario.estado,
-        preferencias: usuario.preferencias,
-        avatar_url: usuario.avatar_url || null,
+        uid: usuarioCompleto.uid,
+        nombre_completo: usuarioCompleto.nombre_completo,
+        email: usuarioCompleto.email,
+        rol_id: usuarioCompleto.rol_id,
+        plantilla_rol_id: usuarioCompleto.plantilla_rol_id,
+        rol: usuarioCompleto.nombre_rol || 'Sin rol', // Nombre del rol (plantilla o personalizado)
+        tipo_rol: usuarioCompleto.tipo_rol, // 'plantilla', 'personalizado' o 'sin_rol'
+        permisos: usuarioCompleto.permisos, // Permisos del rol
+        empresa_id: usuarioCompleto.empresa_id,
+        nombre_empresa: usuarioCompleto.nombre_empresa,
+        tipo_empresa: usuarioCompleto.tipo_empresa,
+        estado: usuarioCompleto.estado_usuario,
+        preferencias: usuarioCompleto.preferencias,
+        avatar_url: usuarioCompleto.avatar_url || null,
       },
     });
   } catch (err) {
