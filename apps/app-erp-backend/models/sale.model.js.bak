@@ -168,10 +168,11 @@ class SaleModel {
         }
       }
 
-      // Generar número de venta único globalmente
+      // Generar número de venta
       const numeroVentaResult = await client.query(
-        `SELECT COALESCE(MAX(CAST(SUBSTRING(numero_venta FROM 'V-([0-9]+)') AS INTEGER)), 0) + 1 as next_num
-         FROM ventas`
+        `SELECT COALESCE(MAX(CAST(SUBSTRING(numero_venta FROM '[0-9]+') AS INTEGER)), 0) + 1 as next_num
+         FROM ventas WHERE empresa_id = $1`,
+        [empresa_id]
       );
       const numeroVenta = `V-${String(numeroVentaResult.rows[0].next_num).padStart(6, '0')}`;
 
@@ -186,7 +187,7 @@ class SaleModel {
         [
           numeroVenta,
           cliente_id,
-          vendedor_id || null,
+          vendedor_id,
           empresa_id,
           subtotal,
           impuesto || 0,
@@ -239,13 +240,6 @@ class SaleModel {
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('❌ Error al crear venta:', error.message);
-      console.error('📋 Stack:', error.stack);
-      console.error('📋 Datos recibidos:', {
-        empresa_id: ventaData.empresa_id,
-        cliente_id: ventaData.cliente_id,
-        vendedor_id: ventaData.vendedor_id,
-        productos: detalles.map((d) => ({ producto_id: d.producto_id, cantidad: d.cantidad })),
-      });
       throw error;
     } finally {
       client.release();

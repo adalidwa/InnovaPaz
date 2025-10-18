@@ -242,8 +242,15 @@ export class SalesService {
   }): Promise<Sale> {
     const empresaId = this.getEmpresaId();
 
-    // Buscar el ID del método de pago (temporal - idealmente obtenerlo de la DB)
+    // Mapeo de métodos de pago - soporta tanto español como inglés
     const paymentMethodMap: Record<string, number> = {
+      // Español
+      efectivo: 1,
+      tarjeta_credito: 2,
+      tarjeta_debito: 3,
+      transferencia: 4,
+      qr: 4, // QR se mapea a transferencia
+      // Inglés (legacy)
       cash: 1,
       credit: 2,
       debit: 3,
@@ -252,7 +259,7 @@ export class SalesService {
 
     const venta = {
       cliente_id: saleData.clientId,
-      vendedor_id: 3, // TODO: obtener del usuario logueado
+      vendedor_id: null, // NULL si no hay vendedor asignado
       subtotal: saleData.subtotal,
       total: saleData.total,
       descuento: saleData.discount,

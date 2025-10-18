@@ -48,19 +48,37 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = (userData: User, token: string) => {
+    // ⚠️ LIMPIAR COMPLETAMENTE EL LOCALSTORAGE ANTES DE GUARDAR
+    console.log('🔄 Limpiando localStorage antes de nuevo login...');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
     const userToSave = {
       ...userData,
       avatar_url: userData.avatar_url || null,
     };
+
+    console.log('✅ Guardando nuevo usuario en sesión:', {
+      email: userToSave.email,
+      nombre: userToSave.nombre_completo,
+      empresa_id: userToSave.empresa_id,
+    });
+
     setUser(userToSave);
     localStorage.setItem('token', token || '');
     localStorage.setItem('user', JSON.stringify(userToSave));
+
+    // Verificar que se guardó correctamente
+    const savedUser = localStorage.getItem('user');
+    console.log('✅ Usuario guardado en localStorage:', savedUser);
   };
 
   const logout = () => {
+    console.log('👋 Cerrando sesión...');
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    console.log('✅ Sesión cerrada, localStorage limpiado');
   };
 
   const updateAvatar = (avatarUrl: string) => {
