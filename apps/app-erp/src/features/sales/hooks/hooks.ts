@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import SalesService from '../services/salesService';
 import type {
   Client,
@@ -644,15 +644,28 @@ export const useClientForm = () => {
 
   const [form, setForm] = useState(initialForm);
 
-  const updateField = (field: keyof typeof form, value: string | number): void => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  const updateField = useCallback(
+    (field: keyof Omit<Client, 'id'>, value: string | number): void => {
+      setForm((prev) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
-  const resetForm = (): void => {
-    setForm(initialForm);
-  };
+  const resetForm = useCallback((): void => {
+    setForm({
+      name: '',
+      email: '',
+      phone: '',
+      nit: '',
+      address: '',
+      type: 'regular',
+      creditLimit: 0,
+      currentDebt: 0,
+      lastPurchase: '',
+    });
+  }, []);
 
-  const loadClient = (client: Client): void => {
+  const loadClient = useCallback((client: Client): void => {
     setForm({
       name: client.name,
       email: client.email,
@@ -664,10 +677,10 @@ export const useClientForm = () => {
       currentDebt: client.currentDebt,
       lastPurchase: client.lastPurchase,
     });
-  };
+  }, []);
 
-  const handleFormInputChange =
-    (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFormInputChange = useCallback(
+    (field: keyof Omit<Client, 'id'>) => (e: React.ChangeEvent<HTMLInputElement>) => {
       let value: string | number = e.target.value;
 
       switch (field) {
@@ -689,7 +702,9 @@ export const useClientForm = () => {
       }
 
       updateField(field, value);
-    };
+    },
+    [updateField]
+  );
 
   return {
     form,
@@ -715,13 +730,13 @@ export const useProductForm = () => {
 
   const [form, setForm] = useState(initialForm);
 
-  const updateField = (field: keyof typeof form, value: string | number): void => {
+  const updateField = useCallback((field: keyof typeof form, value: string | number): void => {
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const resetForm = (): void => {
+  const resetForm = useCallback((): void => {
     setForm(initialForm);
-  };
+  }, []);
 
   const loadProduct = (product: Product): void => {
     setForm({
