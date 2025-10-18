@@ -23,7 +23,7 @@ class QuoteModel {
         COUNT(dc.detalle_cotizacion_id) AS total_items
        FROM cotizaciones c
        LEFT JOIN estado_cotizacion ec ON c.estado_cotizacion_id = ec.estado_cotizacion_id
-       LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id
+       LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id AND cl.empresa_id = $1
        LEFT JOIN detalle_cotizacion dc ON c.cotizacion_id = dc.cotizacion_id
        WHERE c.empresa_id = $1
        GROUP BY c.cotizacion_id, ec.nombre, cl.nombre
@@ -44,33 +44,66 @@ class QuoteModel {
         COALESCE(cl.telefono, c.telefono_cliente_directo) AS cliente_telefono
        FROM cotizaciones c
        LEFT JOIN estado_cotizacion ec ON c.estado_cotizacion_id = ec.estado_cotizacion_id
-       LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id
+       LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id AND cl.empresa_id = $2
        WHERE c.cotizacion_id = $1 AND c.empresa_id = $2`,
       [cotizacionId, empresaId]
     );
     return result.rows[0];
   }
 
-  // Obtener detalles de una cotización
-  static async findDetails(cotizacionId) {
-    const result = await pool.query(
-      `SELECT 
+  // Obtener detalles de una cotización con validación de empresa
+  static async findDetails(cotizacionId, empresaId = null) {
+    let query = `
+      SELECT 
         dc.*,
         p.nombre_producto AS producto_nombre,
         p.codigo AS producto_codigo
        FROM detalle_cotizacion dc
        INNER JOIN producto p ON dc.producto_id = p.producto_id
-       WHERE dc.cotizacion_id = $1`,
-      [cotizacionId]
-    );
+       WHERE dc.cotizacion_id = $1`;
+
+    const params = [cotizacionId];
+
+    // Si se proporciona empresa_id, validar que los productos pertenezcan a esa empresa
+    if (empresaId) {
+      query += ` AND p.empresa_id = $2`;
+      params.push(empresaId);
+    }
+
+    const result = await pool.query(query, params);
     return result.rows;
   }
 
-  // Crear nueva cotización
+  // Crear nueva cotización con validación de productos
   static async create(quoteData, empresaId) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
+
+      // Validar que todos los productos pertenezcan a la empresa
+      if (quoteData.productos && quoteData.productos.length > 0) {
+        const productIds = quoteData.productos.map((p) => p.producto_id);
+        const validationResult = await client.query(
+          `SELECT producto_id FROM producto WHERE producto_id = ANY($1) AND empresa_id = $2`,
+          [productIds, empresaId]
+        );
+
+        if (validationResult.rows.length !== productIds.length) {
+          throw new Error('Algunos productos no pertenecen a esta empresa');
+        }
+      }
+
+      // Validar que el cliente pertenezca a la empresa (si existe cliente_id)
+      if (quoteData.cliente_id) {
+        const clientValidation = await client.query(
+          `SELECT cliente_id FROM clientes WHERE cliente_id = $1 AND empresa_id = $2`,
+          [quoteData.cliente_id, empresaId]
+        );
+
+        if (clientValidation.rows.length === 0) {
+          throw new Error('El cliente no pertenece a esta empresa');
+        }
+      }
 
       // Insertar cotización
       const quoteResult = await client.query(
@@ -165,7 +198,7 @@ class QuoteModel {
     return result.rows[0];
   }
 
-  // Actualizar estado de cotización
+  // Actualizar estado de cotizacion
   static async updateStatus(cotizacionId, estadoId, empresaId) {
     const result = await pool.query(
       `UPDATE cotizaciones SET estado_cotizacion_id = $1
@@ -176,7 +209,6 @@ class QuoteModel {
     return result.rows[0];
   }
 
-  // Marcar cotización como convertida a pedido
   // Marcar cotización como convertida a pedido y crear el pedido
   static async markAsConverted(cotizacionId, empresaId) {
     const client = await pool.connect();
@@ -200,10 +232,12 @@ class QuoteModel {
         throw new Error('La cotización ya ha sido convertida a pedido');
       }
 
-      // 3. Obtener detalles de la cotización
+      // 3. Obtener detalles de la cotización (solo productos de la empresa)
       const detailsResult = await client.query(
-        `SELECT * FROM detalle_cotizacion WHERE cotizacion_id = $1`,
-        [cotizacionId]
+        `SELECT dc.* FROM detalle_cotizacion dc
+         INNER JOIN producto p ON dc.producto_id = p.producto_id
+         WHERE dc.cotizacion_id = $1 AND p.empresa_id = $2`,
+        [cotizacionId, empresaId]
       );
 
       // 4. Generar número de pedido

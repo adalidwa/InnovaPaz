@@ -52,7 +52,7 @@ const getQuoteById = async (req, res) => {
     }
 
     // Obtener detalles
-    const details = await QuoteModel.findDetails(quoteId);
+    const details = await QuoteModel.findDetails(quoteId, empresaId);
 
     res.status(200).json({
       success: true,

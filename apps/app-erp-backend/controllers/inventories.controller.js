@@ -125,6 +125,14 @@ const getAllProducts = async (req, res, next) => {
 const getProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { empresa_id } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Se requiere empresa_id',
+      });
+    }
 
     const result = await pool.query(
       `
@@ -310,7 +318,7 @@ const getProductByCode = async (req, res, next) => {
     if (!empresa_id) {
       return res.status(400).json({
         success: false,
-        message: 'empresa_id es requerido',
+        message: 'Se requiere empresa_id',
       });
     }
 
