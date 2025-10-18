@@ -28,16 +28,17 @@
 }
 
 .profile-content {
-  background: var(--white);
+  background: var(--content-bg);
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(36, 34, 49, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  border: 1px solid var(--pri-200);
 }
 
 .profile-tabs {
   display: flex;
-  background: var(--bg-50);
-  border-bottom: 1px solid var(--pri-100);
+  background: var(--content-bg);
+  border-bottom: 1px solid var(--pri-300);
 }
 
 .profile-tab {
@@ -50,21 +51,21 @@
   background: transparent;
   border: none;
   font: var(--font-16);
-  color: var(--pri-500);
+  color: var(--content-text);
   cursor: pointer;
   transition: all 0.3s ease;
   border-bottom: 3px solid transparent;
 }
 
 .profile-tab:hover {
-  background: var(--pri-50);
-  color: var(--pri-700);
+  background: var(--pri-100);
+  color: var(--content-text);
 }
 
 .profile-tab.active {
-  background: var(--white);
-  color: var(--sec-700);
-  border-bottom-color: var(--sec-700);
+  background: var(--content-bg);
+  color: var(--sec-600);
+  border-bottom-color: var(--sec-600);
   font-weight: 600;
 }
 

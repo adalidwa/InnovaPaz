@@ -116,9 +116,14 @@ const CompanyLogoUpload: React.FC<Props> = ({ empresaId, token, onUploaded, logo
 
   return (
     <div
-      className={`logo-upload logo-upload--large ${logoPreview ? 'logo-upload--with-image' : ''}`}
+      className={`logo-upload logo-upload--large ${logoPreview ? 'logo-upload--with-image' : ''} ${loading ? 'logo-upload--loading' : ''}`}
     >
-      {logoPreview ? (
+      {loading ? (
+        <div className='logo-upload-loading'>
+          <span className='logo-loading-spinner'></span>
+          <span className='logo-loading-text'>Subiendo imagen...</span>
+        </div>
+      ) : logoPreview ? (
         <img src={logoPreview} alt='Logo' className='logo-preview-img logo-preview-img--large' />
       ) : (
         <div className='logo-upload-inner logo-upload-inner--large'>
@@ -138,9 +143,8 @@ const CompanyLogoUpload: React.FC<Props> = ({ empresaId, token, onUploaded, logo
         className='logo-file-input'
         aria-label='Seleccionar logo'
         disabled={loading}
-        style={{ display: showAdjuster ? 'none' : undefined }}
+        style={{ display: showAdjuster || loading ? 'none' : undefined }}
       />
-      {loading && <span>Subiendo...</span>}
       {error && <span className='logo-upload-error'>{error}</span>}
       {removeBgError && <span className='logo-remove-bg-error'>{removeBgError}</span>}
       <Modal

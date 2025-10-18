@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IoEye, IoEyeOff } from 'react-icons/io5';
 import {
   loginToERP,
   checkActiveSession,
@@ -9,6 +10,7 @@ import {
 import { signInWithGoogleERP } from '../services/googleAuthService';
 import { useUser } from '../hooks/useContextBase';
 import GoogleButton from '../components/GoogleButton';
+import logoInnovaPaz from '../../../assets/icons/logoInnovaPaz.svg';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -16,6 +18,7 @@ const LoginPage: React.FC = () => {
   const { login } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +52,31 @@ const LoginPage: React.FC = () => {
 
     checkSession();
   }, [navigate, login]);
+
+  // Autocomplete de email similar al marketing
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+
+    // Autocompleta dominio
+    if (/^[^\s@]+@g$/.test(val)) {
+      val = val.replace(/@g$/, '@gmail.com');
+    } else if (/^[^\s@]+@o$/.test(val)) {
+      val = val.replace(/@o$/, '@outlook.com');
+    } else if (/^[^\s@]+@h$/.test(val)) {
+      val = val.replace(/@h$/, '@hotmail.com');
+    }
+
+    // Bloquea escritura después del dominio
+    const dominios = ['@gmail.com', '@outlook.com', '@hotmail.com'];
+    for (const dominio of dominios) {
+      const idx = val.indexOf(dominio);
+      if (idx !== -1 && val.length > idx + dominio.length) {
+        val = val.slice(0, idx + dominio.length);
+      }
+    }
+
+    setEmail(val);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,7 +167,14 @@ const LoginPage: React.FC = () => {
     <div className='login-container'>
       <div className='login-card'>
         <div className='login-header'>
-          <h1>INNOVAPAZ ERP</h1>
+          <div className='login-logo'>
+            <img src={logoInnovaPaz} alt='InnovaPaz Logo' className='login-logo-icon' />
+            <div className='login-logo-text'>
+              <span className='innovapaz-text'>INNOVAPAZ</span>{' '}
+              <span className='erp-text'>ERP</span>
+            </div>
+          </div>
+          <h1>Iniciar Sesión</h1>
           <p>Inicia sesión en tu cuenta empresarial</p>
         </div>
 
@@ -150,29 +185,41 @@ const LoginPage: React.FC = () => {
               id='email'
               type='email'
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               placeholder='ejemplo@empresa.com'
               required
               disabled={loading}
+              autoComplete='email'
             />
           </div>
 
           <div className='form-group'>
             <label htmlFor='password'>Contraseña</label>
-            <input
-              id='password'
-              type='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder='Contraseña'
-              required
-              disabled={loading}
-            />
+            <div className='password-input-wrapper'>
+              <input
+                id='password'
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder='Contraseña'
+                required
+                disabled={loading}
+                autoComplete='current-password'
+              />
+              <button
+                type='button'
+                className='password-toggle'
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+              </button>
+            </div>
           </div>
 
           {error && (
             <div className='error-message'>
-              {error}
+              <span>{error}</span>
               {(error.includes('Usuario sin empresa') ||
                 error.includes('Usuario no encontrado') ||
                 error.includes('Usuario no registrado')) && (

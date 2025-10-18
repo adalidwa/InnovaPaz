@@ -387,97 +387,6 @@ function CompanyGeneralSection() {
                 }}
                 required
               />
-              <div className='permissions-section'>
-                <h4 className='permissions-title'>Permisos de Personalización</h4>
-                <p className='permissions-description'>
-                  Controla qué elementos pueden editar los otros miembros del equipo.
-                </p>
-                <div className='permissions-grid'>
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_header}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_header: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores del Header</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_sidebar}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_sidebar: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores del Sidebar</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_contenido}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_contenido: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores del Contenido</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_marca}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_marca: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores de Marca</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.tipografia}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          tipografia: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Tipografía</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.logo}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          logo: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Logo de la Empresa</span>
-                  </label>
-                </div>
-              </div>
             </div>
           </section>
           <div className='visual-identity-note visual-identity-note--modern'>
@@ -493,28 +402,15 @@ function CompanyGeneralSection() {
       </>
 
       <div className='company-actions'>
-        <div className='company-actions-main'>
-          <Button type='submit' variant='primary' size='medium' loading={saving}>
-            Guardar Cambios
-          </Button>
-          <span className='btn-help-text'>Aplica y guarda todos los cambios realizados.</span>
-        </div>
-        <div className='company-actions-secondary'>
-          <div className='company-actions-secondary-item'>
-            <Button type='button' variant='secondary' size='medium' onClick={undoChanges}>
-              Deshacer cambios
-            </Button>
-            <span className='btn-help-text'>
-              Revierte los cambios hechos en esta sesión antes de guardar.
-            </span>
-          </div>
-          <div className='company-actions-secondary-item'>
-            <Button type='button' variant='outline' size='medium' onClick={handleResetDefaults}>
-              Restablecer valores
-            </Button>
-            <span className='btn-help-text'>Vuelve a los valores originales del sistema.</span>
-          </div>
-        </div>
+        <Button type='submit' variant='primary' size='medium' loading={saving}>
+          Guardar Cambios
+        </Button>
+        <Button type='button' variant='secondary' size='medium' onClick={undoChanges}>
+          Deshacer cambios
+        </Button>
+        <Button type='button' variant='outline' size='medium' onClick={handleResetDefaults}>
+          Restablecer valores
+        </Button>
       </div>
     </form>
   );

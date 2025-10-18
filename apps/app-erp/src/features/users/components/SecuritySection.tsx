@@ -13,6 +13,7 @@ function SecuritySection() {
     confirmPassword: '',
   });
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
     type: 'success' | 'warning' | 'error';
     title: string;
@@ -22,7 +23,6 @@ function SecuritySection() {
     title: '',
     message: '',
   });
-  const [userId] = useState('');
 
   const handleInputChange = (field: string, value: string) => {
     setPasswordData((prev) => ({
@@ -32,6 +32,7 @@ function SecuritySection() {
   };
 
   const handleChangePassword = async () => {
+    // Validaciones
     if (
       !passwordData.currentPassword ||
       !passwordData.newPassword ||
@@ -45,6 +46,7 @@ function SecuritySection() {
       setShowModal(true);
       return;
     }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setModalConfig({
         type: 'error',
@@ -54,6 +56,7 @@ function SecuritySection() {
       setShowModal(true);
       return;
     }
+
     if (passwordData.newPassword.length < 8) {
       setModalConfig({
         type: 'warning',
@@ -63,24 +66,16 @@ function SecuritySection() {
       setShowModal(true);
       return;
     }
+
+    // Cambiar contraseña en Firebase
+    setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setModalConfig({
-          type: 'error',
-          title: 'Error de autenticación',
-          message: 'No se encontró el token de autenticación.',
-        });
-        setShowModal(true);
-        return;
-      }
-      const res = await changeUserPassword(
-        userId,
+      const result = await changeUserPassword(
         passwordData.currentPassword,
-        passwordData.newPassword,
-        token
+        passwordData.newPassword
       );
-      if (res.ok) {
+
+      if (result.ok) {
         setModalConfig({
           type: 'success',
           title: 'Contraseña Actualizada',
@@ -94,18 +89,20 @@ function SecuritySection() {
       } else {
         setModalConfig({
           type: 'error',
-          title: 'Error',
-          message: res.error || 'No se pudo cambiar la contraseña.',
+          title: 'Error al cambiar contraseña',
+          message: result.error || 'No se pudo cambiar la contraseña.',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       setModalConfig({
         type: 'error',
-        title: 'Error',
-        message: 'No se pudo cambiar la contraseña.',
+        title: 'Error inesperado',
+        message: error.message || 'Ocurrió un error al cambiar la contraseña.',
       });
+    } finally {
+      setIsLoading(false);
+      setShowModal(true);
     }
-    setShowModal(true);
   };
 
   const getPasswordStrength = (password: string) => {
@@ -251,8 +248,14 @@ function SecuritySection() {
           </div>
 
           <div className='form-actions'>
-            <Button variant='primary' onClick={handleChangePassword} size='medium' icon={<IoKey />}>
-              Cambiar Contraseña
+            <Button
+              variant='primary'
+              onClick={handleChangePassword}
+              size='medium'
+              icon={<IoKey />}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Cambiando contraseña...' : 'Cambiar Contraseña'}
             </Button>
           </div>
         </div>

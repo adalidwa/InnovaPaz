@@ -1,5 +1,5 @@
 .company-roles-card {
-  background: var(--white);
+  background: var(--content-bg);
   border: 1px solid var(--pri-200);
   border-radius: 8px;
   padding: 1rem 1.25rem 1.1rem;
@@ -28,14 +28,14 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: var(--bg-50);
-  border: 1px solid var(--pri-200);
+  background: var(--pri-100);
+  border: 1px solid var(--pri-300);
   border-radius: 6px;
   font-size: 0.75rem;
 }
 
 .roles-stats-count {
-  color: var(--pri-700);
+  color: var(--content-text);
   font-weight: 500;
 }
 
@@ -70,16 +70,16 @@
 }
 
 .roles-table .table-row:hover {
-  background: var(--bg-50);
+  background: var(--pri-100);
 }
 
 .roles-table .table-row--active {
-  background: var(--bg-100);
+  background: var(--pri-200);
 }
 
 .role-name-cell {
   font-weight: 500;
-  color: var(--pri-800);
+  color: var(--content-text);
 }
 
 .perm-count {
@@ -99,7 +99,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid var(--pri-300);
-  background: var(--white);
+  background: var(--content-bg);
   border-radius: 6px;
   cursor: pointer;
   color: var(--pri-500);
@@ -110,9 +110,9 @@
 }
 
 .role-icon-btn--edit:hover {
-  background: var(--bg-100);
+  background: var(--pri-100);
   border-color: var(--pri-400);
-  color: var(--pri-800);
+  color: var(--content-text);
 }
 
 .role-icon-btn--delete {
@@ -153,8 +153,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 0.55rem 0.9rem;
-  background: var(--bg-50);
-  border: 1px solid var(--pri-200);
+  background: var(--pri-100);
+  border: 1px solid var(--pri-300);
   padding: 0.75rem 0.85rem;
   border-radius: 8px;
   max-height: 260px;
@@ -189,12 +189,12 @@
 }
 
 .perm-item:hover {
-  background: var(--bg-100);
+  background: var(--pri-200);
 }
 
 .perm-label {
   line-height: 1.1;
-  color: var(--pri-700);
+  color: var(--content-text);
 }
 
 .role-form-actions {
@@ -250,20 +250,20 @@
 .plantilla-info h5 {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--pri-800);
+  color: var(--content-text);
   margin: 0 0 0.25rem 0;
 }
 
 .plantilla-info p {
   font-size: 0.8rem;
-  color: var(--pri-600);
+  color: var(--pri-400);
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
 }
 
 .plantilla-permisos {
   font-size: 0.75rem;
-  color: var(--pri-500);
+  color: var(--pri-400);
   font-weight: 500;
 }
 
@@ -283,8 +283,8 @@
 }
 
 .plantilla-preview {
-  background: var(--bg-50);
-  border: 1px solid var(--pri-200);
+  background: var(--pri-100);
+  border: 1px solid var(--pri-300);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -292,7 +292,7 @@
 .plantilla-preview h5 {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--pri-700);
+  color: var(--content-text);
   margin: 0 0 0.75rem 0;
 }
 
@@ -307,8 +307,8 @@
 }
 
 .permission-tag {
-  background: var(--pri-100);
-  color: var(--pri-700);
+  background: var(--pri-200);
+  color: var(--content-text);
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
   font-size: 0.7rem;
@@ -316,8 +316,8 @@
 }
 
 .permission-tag-more {
-  background: var(--pri-200);
-  color: var(--pri-800);
+  background: var(--pri-300);
+  color: var(--content-text);
   padding: 0.3rem 0.6rem;
   border-radius: 4px;
   font-size: 0.7rem;
