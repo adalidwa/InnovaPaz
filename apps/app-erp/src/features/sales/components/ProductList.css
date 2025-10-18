@@ -140,7 +140,7 @@
 }
 
 /* Ensure ProductCards fill the grid cells properly and accommodate button width */
-.product-list .product-card {
+.product-list .product-card-sales {
   width: 100%;
   height: auto;
   min-height: auto;
@@ -240,7 +240,7 @@
 }
 
 /* Special handling for quantity input state */
-.product-list .product-card:has(.product-card__quantity-section) {
+.product-list .product-card-sales:has(.product-card-sales__quantity-section) {
   min-width: fit-content; /* Allow natural width when quantity section is active */
 }
 
@@ -260,7 +260,7 @@
   border: 2px dashed red;
   background: rgba(255, 0, 0, 0.1);
 }
-.product-list .product-card {
+.product-list .product-card-sales {
   border: 2px dashed blue;
 }
 */

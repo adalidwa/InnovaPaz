@@ -238,7 +238,19 @@ const RegisterPage: React.FC = () => {
     setError(null);
 
     try {
-      const result = await signInWithGoogleBackend();
+      // Preparar empresa_data si estamos en step 2 y hay plan seleccionado
+      let empresaData = undefined;
+
+      if (planSeleccionado && step === 2 && nombreEmpresa && tipoNegocio) {
+        // Usuario completó el formulario de empresa antes de hacer clic en Google
+        empresaData = {
+          nombre: nombreEmpresa,
+          tipo_empresa_id: getBusinessTypeId(tipoNegocio),
+          plan_id: getPlanId(planSeleccionado),
+        };
+      }
+
+      const result = await signInWithGoogleBackend(empresaData);
 
       if (!result.success) {
         setError(result.error || 'Error en registro con Google');
@@ -254,10 +266,12 @@ const RegisterPage: React.FC = () => {
       if (planSeleccionado) {
         // Si viene de un plan específico
         if (result.needsCompanySetup) {
+          // Usuario aún necesita configurar empresa
           setSuccess('¡Registro exitoso! Completa los datos de tu empresa.');
           setIsNavigating(true);
           setTimeout(() => navigate(`/company-setup?plan=${planSeleccionado}`), 800);
         } else {
+          // Usuario ya tiene empresa configurada (datos enviados o ya existía)
           setSuccess('¡Bienvenido de vuelta!');
           setIsNavigating(true);
           setTimeout(() => redirectToERP(), 600);

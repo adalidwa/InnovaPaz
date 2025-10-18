@@ -5,7 +5,7 @@
 .section-header {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--pri-100);
+  border-bottom: 1px solid var(--pri-300);
 }
 
 .section-title {
@@ -17,25 +17,25 @@
 
 .section-subtitle {
   font: var(--font-14);
-  color: var(--pri-500);
+  color: var(--pri-400);
   margin: 0;
 }
 
 .security-content {
-  background: var(--white);
-  border: 1px solid var(--pri-100);
+  background: var(--content-bg);
+  border: 1px solid var(--pri-300);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(36, 34, 49, 0.06);
 }
 
 .security-group-header {
-  background: var(--bg-50);
+  background: var(--pri-100);
   padding: 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  border-bottom: 1px solid var(--pri-100);
+  border-bottom: 1px solid var(--pri-300);
 }
 
 .security-icon {
@@ -59,7 +59,7 @@
 
 .security-group-subtitle {
   font: var(--font-14);
-  color: var(--pri-500);
+  color: var(--pri-400);
   margin: 0;
 }
 
@@ -139,10 +139,10 @@
 }
 
 .password-requirements {
-  background: var(--bg-50);
+  background: var(--pri-100);
   padding: 1.25rem;
   border-radius: 8px;
-  border: 1px solid var(--pri-100);
+  border: 1px solid var(--pri-300);
   max-width: 500px;
 }
 
@@ -189,9 +189,9 @@
 }
 
 .form-actions {
-  background: var(--bg-50);
+  background: var(--pri-100);
   padding: 1.5rem 2rem;
-  border-top: 1px solid var(--pri-100);
+  border-top: 1px solid var(--pri-300);
   display: flex;
   justify-content: flex-end;
 }

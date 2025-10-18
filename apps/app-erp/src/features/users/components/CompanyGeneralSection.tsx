@@ -3,6 +3,7 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
 import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
+import Modal from '../../../components/common/Modal';
 import { FiDroplet, FiBell, FiMenu, FiType, FiCircle } from 'react-icons/fi';
 import {
   useCompanyConfig,
@@ -78,6 +79,16 @@ function CompanyGeneralSection() {
 
   const [saving, setSaving] = useState(false);
   const [originalConfig, setOriginalConfig] = useState<CompanyConfig | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalConfig, setModalConfig] = useState<{
+    type: 'success' | 'warning' | 'error' | 'info';
+    title: string;
+    message: string;
+  }>({
+    type: 'success',
+    title: '',
+    message: '',
+  });
 
   useEffect(() => {
     if (config && !originalConfig) {
@@ -138,13 +149,13 @@ function CompanyGeneralSection() {
               } else if (dataEmpresa.empresa.tipo_empresa_id) {
                 switch (dataEmpresa.empresa.tipo_empresa_id) {
                   case 1:
-                    tipoNegocioValue = 'ferreteria';
+                    tipoNegocioValue = 'minimarket';
                     break;
                   case 2:
-                    tipoNegocioValue = 'licoreria';
+                    tipoNegocioValue = 'ferreteria';
                     break;
                   case 3:
-                    tipoNegocioValue = 'minimarket';
+                    tipoNegocioValue = 'licoreria';
                     break;
                   default:
                     tipoNegocioValue = '';
@@ -190,7 +201,12 @@ function CompanyGeneralSection() {
           logoPublicId = data.logo_public_id;
           updateVisualIdentity({ logo_url: logoUrl, logoPreview: logoUrl });
         } else {
-          alert('No se pudo subir el logo');
+          setModalConfig({
+            type: 'error',
+            title: 'Error al subir logo',
+            message: 'No se pudo subir el logo. Por favor intenta nuevamente.',
+          });
+          setShowModal(true);
           setSaving(false);
           return;
         }
@@ -217,12 +233,27 @@ function CompanyGeneralSection() {
         body: JSON.stringify({ ajustes: configToSave }),
       });
       if (res.ok) {
-        alert('¡Datos guardados exitosamente!');
+        setModalConfig({
+          type: 'success',
+          title: '¡Éxito!',
+          message: '¡Datos guardados exitosamente!',
+        });
+        setShowModal(true);
       } else {
-        alert('No se pudo guardar la configuración');
+        setModalConfig({
+          type: 'error',
+          title: 'Error al guardar',
+          message: 'No se pudo guardar la configuración. Por favor intenta nuevamente.',
+        });
+        setShowModal(true);
       }
     } catch (error) {
-      alert('Error de red al guardar configuración');
+      setModalConfig({
+        type: 'error',
+        title: 'Error de red',
+        message: 'Error de red al guardar configuración. Verifica tu conexión.',
+      });
+      setShowModal(true);
     }
     setSaving(false);
   };
@@ -230,19 +261,33 @@ function CompanyGeneralSection() {
   const undoChanges = useCallback(() => {
     if (originalConfig) {
       updateConfig(originalConfig);
-      alert('Cambios no guardados revertidos');
+      setModalConfig({
+        type: 'info',
+        title: 'Cambios revertidos',
+        message: 'Los cambios no guardados han sido revertidos.',
+      });
+      setShowModal(true);
     }
   }, [originalConfig, updateConfig]);
 
   const handleResetDefaults = useCallback(() => {
-    if (
-      window.confirm(
-        '¿Seguro que deseas restablecer los valores por defecto? Se perderán tus personalizaciones.'
-      )
-    ) {
-      setDefaultColors();
-      alert('Valores por defecto restablecidos');
-    }
+    setModalConfig({
+      type: 'warning',
+      title: '¿Restablecer valores?',
+      message:
+        '¿Seguro que deseas restablecer los valores por defecto? Se perderán tus personalizaciones.',
+    });
+    setShowModal(true);
+  }, []);
+
+  const confirmResetDefaults = useCallback(() => {
+    setDefaultColors();
+    setModalConfig({
+      type: 'success',
+      title: 'Valores restablecidos',
+      message: 'Los valores por defecto han sido restablecidos correctamente.',
+    });
+    setShowModal(true);
   }, [setDefaultColors]);
 
   return (
@@ -387,97 +432,6 @@ function CompanyGeneralSection() {
                 }}
                 required
               />
-              <div className='permissions-section'>
-                <h4 className='permissions-title'>Permisos de Personalización</h4>
-                <p className='permissions-description'>
-                  Controla qué elementos pueden editar los otros miembros del equipo.
-                </p>
-                <div className='permissions-grid'>
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_header}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_header: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores del Header</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_sidebar}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_sidebar: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores del Sidebar</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_contenido}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_contenido: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores del Contenido</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.colores_marca}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          colores_marca: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Colores de Marca</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.tipografia}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          tipografia: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Tipografía</span>
-                  </label>
-
-                  <label className='permission-item'>
-                    <input
-                      type='checkbox'
-                      checked={config.identidad_visual.permisos.logo}
-                      onChange={(e) =>
-                        updateVisual('permisos', {
-                          ...config.identidad_visual.permisos,
-                          logo: e.target.checked,
-                        })
-                      }
-                    />
-                    <span className='permission-label'>Logo de la Empresa</span>
-                  </label>
-                </div>
-              </div>
             </div>
           </section>
           <div className='visual-identity-note visual-identity-note--modern'>
@@ -493,29 +447,36 @@ function CompanyGeneralSection() {
       </>
 
       <div className='company-actions'>
-        <div className='company-actions-main'>
-          <Button type='submit' variant='primary' size='medium' loading={saving}>
-            Guardar Cambios
-          </Button>
-          <span className='btn-help-text'>Aplica y guarda todos los cambios realizados.</span>
-        </div>
-        <div className='company-actions-secondary'>
-          <div className='company-actions-secondary-item'>
-            <Button type='button' variant='secondary' size='medium' onClick={undoChanges}>
-              Deshacer cambios
-            </Button>
-            <span className='btn-help-text'>
-              Revierte los cambios hechos en esta sesión antes de guardar.
-            </span>
-          </div>
-          <div className='company-actions-secondary-item'>
-            <Button type='button' variant='outline' size='medium' onClick={handleResetDefaults}>
-              Restablecer valores
-            </Button>
-            <span className='btn-help-text'>Vuelve a los valores originales del sistema.</span>
-          </div>
-        </div>
+        <Button type='submit' variant='primary' size='medium' loading={saving}>
+          Guardar Cambios
+        </Button>
+        <Button type='button' variant='secondary' size='medium' onClick={undoChanges}>
+          Deshacer cambios
+        </Button>
+        <Button type='button' variant='outline' size='medium' onClick={handleResetDefaults}>
+          Restablecer valores
+        </Button>
       </div>
+
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        modalType={modalConfig.type}
+        confirmButtonText='Aceptar'
+        showCancelButton={
+          modalConfig.type === 'warning' && modalConfig.title.includes('Restablecer')
+        }
+        cancelButtonText='Cancelar'
+        onConfirm={() => {
+          if (modalConfig.type === 'warning' && modalConfig.title.includes('Restablecer')) {
+            confirmResetDefaults();
+          }
+          setShowModal(false);
+        }}
+        onCancel={() => setShowModal(false)}
+      />
     </form>
   );
 }

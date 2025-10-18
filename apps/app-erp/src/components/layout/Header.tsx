@@ -23,20 +23,9 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
       .slice(0, 2);
   };
 
-  const getRoleName = (rol: string | undefined, rol_id: string | number | undefined) => {
-    if (rol) return rol;
-    switch (String(rol_id)) {
-      case '1':
-        return 'Usuario';
-      case '2':
-        return 'Gerente';
-      case '3':
-        return 'Supervisor';
-      case '4':
-        return 'Administrador';
-      default:
-        return 'Sin rol';
-    }
+  // Ya no necesitamos mapear - el backend envía directamente el nombre_rol
+  const getRoleName = (roleName: string | undefined) => {
+    return roleName || 'Sin rol';
   };
 
   useEffect(() => {
@@ -56,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
   }, [showUserDropdown]);
 
   const goToProfile = () => {
-    navigate('/configuracion/perfil');
+    navigate('/app-erp/configuracion/perfil');
     setShowUserDropdown(false);
   };
 
@@ -111,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
             </div>
             <div className='header__user-info'>
               <span className='header__user-name'>{user?.nombre_completo}</span>
-              <span className='header__user-role'>{getRoleName(user?.rol, user?.rol_id)}</span>
+              <span className='header__user-role'>{getRoleName(user?.rol)}</span>
             </div>
             <IoChevronDownOutline
               className={`header__dropdown-arrow ${showUserDropdown ? 'rotated' : ''}`}
@@ -144,9 +133,7 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
                 <div className='header__dropdown-user-info'>
                   <span className='header__dropdown-name'>{user?.nombre_completo}</span>
                   <span className='header__dropdown-email'>{user?.email}</span>
-                  <span className='header__dropdown-role'>
-                    {getRoleName(user?.rol, user?.rol_id)}
-                  </span>
+                  <span className='header__dropdown-role'>{getRoleName(user?.rol)}</span>
                 </div>
               </div>
 

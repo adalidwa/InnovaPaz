@@ -153,6 +153,9 @@ CREATE TABLE empresas (
   fecha_fin_prueba TIMESTAMP WITH TIME ZONE,
   fecha_fin_periodo_actual TIMESTAMP WITH TIME ZONE,
   id_cliente_procesador_pago VARCHAR(150),
+  logo_url VARCHAR(500),
+  logo_public_id VARCHAR(300),
+  zona_horaria VARCHAR(100) DEFAULT 'America/Bogota',
   fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -174,6 +177,8 @@ CREATE TABLE usuarios (
   email VARCHAR(150) UNIQUE NOT NULL,
   estado VARCHAR(50) DEFAULT 'activo',
   preferencias JSONB,
+  avatar_url VARCHAR(500),
+  avatar_public_id VARCHAR(300),
   fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

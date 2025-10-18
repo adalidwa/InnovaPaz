@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button } from '../../../components/common';
 import { SalesService } from '../services/salesService';
-import type { Client } from '../types';
 import './ManageClientsModal.css';
 
 interface ManageClientsModalProps {
@@ -71,6 +70,7 @@ export const ManageClientsModal: React.FC<ManageClientsModalProps> = ({
 
   return (
     <Modal
+      message=''
       isOpen={isOpen}
       onClose={onClose}
       title='Gestión de Clientes'
@@ -138,7 +138,7 @@ export const ManageClientsModal: React.FC<ManageClientsModalProps> = ({
                   </div>
                   <div className='manage-clients-modal__item-actions'>
                     <Button
-                      variant={client.estado === 'activo' ? 'danger' : 'success'}
+                      variant={client.estado === 'activo' ? 'accent' : 'success'}
                       size='small'
                       onClick={() => handleToggleStatus(client.cliente_id, client.estado)}
                     >

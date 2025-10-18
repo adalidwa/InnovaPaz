@@ -62,6 +62,7 @@ export class SalesService {
       telefono: clientData.phone,
       nit_ci: clientData.nit,
       direccion: clientData.address,
+      categoria_cliente_id: clientData.categoryId,
       tipo_cliente: clientData.type,
       limite_credito: clientData.creditLimit,
       deuda_actual: clientData.currentDebt,
@@ -86,6 +87,8 @@ export class SalesService {
     if (clientData.type) backendData.tipo_cliente = clientData.type;
     if (clientData.creditLimit !== undefined) backendData.limite_credito = clientData.creditLimit;
     if (clientData.currentDebt !== undefined) backendData.deuda_actual = clientData.currentDebt;
+    if (clientData.categoryId !== undefined)
+      backendData.categoria_cliente_id = clientData.categoryId;
 
     const response = await ApiService.put<ApiResponse<any>>(
       `/clients/empresa/${empresaId}/${id}`,
@@ -113,26 +116,29 @@ export class SalesService {
   // ==================== CATEGORÍAS ====================
 
   static async getAllCategories(): Promise<any[]> {
-    const response = await ApiService.get<ApiResponse<any[]>>(`/categories`);
+    const response = await ApiService.get<ApiResponse<any[]>>(`/client-categories`);
     return response.data || [];
   }
 
   static async createCategory(categoryData: any): Promise<any> {
-    const response = await ApiService.post<ApiResponse<any>>(`/categories`, categoryData);
+    const response = await ApiService.post<ApiResponse<any>>(`/client-categories`, categoryData);
     return response.data;
   }
 
   static async updateCategory(id: number, categoryData: any): Promise<any> {
-    const response = await ApiService.put<ApiResponse<any>>(`/categories/${id}`, categoryData);
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/client-categories/${id}`,
+      categoryData
+    );
     return response.data;
   }
 
   static async activateCategory(id: number): Promise<void> {
-    await ApiService.put(`/categories/${id}/activate`, {});
+    await ApiService.put(`/client-categories/${id}/activate`, {});
   }
 
   static async deactivateCategory(id: number): Promise<void> {
-    await ApiService.delete(`/categories/${id}`);
+    await ApiService.delete(`/client-categories/${id}`);
   }
 
   // ==================== PRODUCTOS ====================
@@ -236,8 +242,15 @@ export class SalesService {
   }): Promise<Sale> {
     const empresaId = this.getEmpresaId();
 
-    // Buscar el ID del método de pago (temporal - idealmente obtenerlo de la DB)
+    // Mapeo de métodos de pago - soporta tanto español como inglés
     const paymentMethodMap: Record<string, number> = {
+      // Español
+      efectivo: 1,
+      tarjeta_credito: 2,
+      tarjeta_debito: 3,
+      transferencia: 4,
+      qr: 4, // QR se mapea a transferencia
+      // Inglés (legacy)
       cash: 1,
       credit: 2,
       debit: 3,
@@ -246,7 +259,7 @@ export class SalesService {
 
     const venta = {
       cliente_id: saleData.clientId,
-      vendedor_id: 1, // TODO: obtener del usuario logueado
+      vendedor_id: null, // NULL si no hay vendedor asignado
       subtotal: saleData.subtotal,
       total: saleData.total,
       descuento: saleData.discount,
@@ -277,30 +290,15 @@ export class SalesService {
     return [];
   }
 
-  static async getOrderById(id: number): Promise<Order | null> {
+  static async getOrderById(_id: number): Promise<Order | null> {
     return null;
   }
 
-  static async getOrdersByClient(clientId: number): Promise<Order[]> {
+  static async getOrdersByClient(_clientId: number): Promise<Order[]> {
     return [];
   }
 
   static async getPendingOrders(): Promise<Order[]> {
-    return [];
-  }
-
-  // ==================== COTIZACIONES (PLACEHOLDER) ====================
-
-  static async getAllQuotes(): Promise<Quote[]> {
-    // TODO: Implementar cuando se creen las rutas de cotizaciones
-    return [];
-  }
-
-  static async getQuoteById(id: number): Promise<Quote | null> {
-    return null;
-  }
-
-  static async getPendingQuotes(): Promise<Quote[]> {
     return [];
   }
 
@@ -333,14 +331,14 @@ export class SalesService {
   }
 
   static async getTopSellingProducts(
-    limit: number = 10
+    _limit: number = 10
   ): Promise<Array<{ product: Product; quantity: number }>> {
     // TODO: Implementar endpoint en backend
     return [];
   }
 
   static async getTopClients(
-    limit: number = 10
+    _limit: number = 10
   ): Promise<Array<{ client: Client; totalSpent: number }>> {
     // TODO: Implementar endpoint en backend
     return [];
@@ -461,6 +459,7 @@ export class SalesService {
       currentDebt: parseFloat(data.deuda_actual) || 0,
       lastPurchase: data.ultima_compra || '',
       categoryName: data.categoria_nombre || 'Sin categoría',
+      categoryId: data.categoria_cliente_id || undefined,
     };
   }
 
@@ -536,6 +535,67 @@ export class SalesService {
 
   private static mapSalesFromBackend(data: any[]): Sale[] {
     return data.map((item) => this.mapSaleFromBackend(item));
+  }
+
+  // ==================== COTIZACIONES API ====================
+
+  static async getAllQuotes(empresaId: string): Promise<any[]> {
+    const response = await ApiService.get<ApiResponse<any[]>>(`/quotes?empresaId=${empresaId}`);
+    return response.data || [];
+  }
+
+  static async getQuoteById(quoteId: number, empresaId: string): Promise<any> {
+    const response = await ApiService.get<ApiResponse<any>>(
+      `/quotes/${quoteId}?empresaId=${empresaId}`
+    );
+    return response.data;
+  }
+
+  static async createQuote(quoteData: any, empresaId: string): Promise<any> {
+    const response = await ApiService.post<ApiResponse<any>>(
+      `/quotes?empresaId=${empresaId}`,
+      quoteData
+    );
+    return response.data;
+  }
+
+  static async updateQuote(quoteId: number, quoteData: any, empresaId: string): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/quotes/${quoteId}?empresaId=${empresaId}`,
+      quoteData
+    );
+    return response.data;
+  }
+
+  static async updateQuoteStatus(
+    quoteId: number,
+    estadoId: number,
+    empresaId: string
+  ): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/quotes/${quoteId}/status?empresaId=${empresaId}`,
+      { estado_cotizacion_id: estadoId }
+    );
+    return response.data;
+  }
+
+  static async convertQuoteToOrder(quoteId: number, empresaId: string): Promise<any> {
+    const response = await ApiService.put<ApiResponse<any>>(
+      `/quotes/${quoteId}/convert?empresaId=${empresaId}`,
+      {}
+    );
+    return response.data;
+  }
+
+  static async deleteQuote(quoteId: number, empresaId: string): Promise<void> {
+    await ApiService.delete(`/quotes/${quoteId}?empresaId=${empresaId}`);
+  }
+
+  static async generateQuoteNumber(empresaId: string): Promise<string> {
+    const response = await ApiService.get<ApiResponse<{ numero_cotizacion: string }>>(
+      `/quotes/generate-number?empresaId=${empresaId}`
+    );
+    return response.data.numero_cotizacion;
   }
 }
 

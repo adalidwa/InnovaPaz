@@ -102,31 +102,75 @@ export const checkMarketingSession = async (): Promise<any> => {
   }
 };
 
+export const validateTokenAndLogin = async (): Promise<{ success: boolean; user: any }> => {
+  try {
+    // Primero verificar si hay sesión activa
+    const activeUser = await checkActiveSession();
+    if (activeUser) {
+      return { success: true, user: activeUser };
+    }
+
+    // Si no hay sesión activa, verificar sesión del marketing
+    const marketingUser = await checkMarketingSession();
+    if (marketingUser) {
+      return { success: true, user: marketingUser };
+    }
+
+    // Si no hay sesión válida, redirigir al marketing
+    redirectToMarketing('/login');
+    return { success: false, user: null };
+  } catch (error) {
+    console.error('Error validando token:', error);
+    redirectToMarketing('/login');
+    return { success: false, user: null };
+  }
+};
+
 export const changeUserPassword = async (
-  userId: string,
   currentPassword: string,
-  newPassword: string,
-  token: string
+  newPassword: string
 ): Promise<{ ok: boolean; error?: string }> => {
   try {
-    const res = await fetch(`/api/users/${userId}/password`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        currentPassword,
-        newPassword,
-      }),
-    });
-    if (res.ok) {
+    // Importar funciones necesarias de Firebase
+    const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import(
+      'firebase/auth'
+    );
+
+    // Obtener el usuario actual de Firebase
+    const currentUser = auth.currentUser;
+
+    if (!currentUser || !currentUser.email) {
+      return { ok: false, error: 'No se encontró el usuario autenticado' };
+    }
+
+    // Paso 1: Re-autenticar al usuario con su contraseña actual
+    // Esto es requerido por Firebase por seguridad
+    const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+
+    try {
+      await reauthenticateWithCredential(currentUser, credential);
+    } catch (error: any) {
+      // Error de contraseña actual incorrecta
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        return { ok: false, error: 'La contraseña actual es incorrecta' };
+      }
+      return { ok: false, error: 'Error al verificar la contraseña actual' };
+    }
+
+    // Paso 2: Actualizar la contraseña en Firebase
+    try {
+      await updatePassword(currentUser, newPassword);
       return { ok: true };
-    } else {
-      const error = await res.json();
-      return { ok: false, error: error.message || 'No se pudo cambiar la contraseña.' };
+    } catch (error: any) {
+      if (error.code === 'auth/weak-password') {
+        return { ok: false, error: 'La nueva contraseña es muy débil' };
+      }
+      if (error.code === 'auth/requires-recent-login') {
+        return { ok: false, error: 'Por seguridad, debes iniciar sesión nuevamente' };
+      }
+      return { ok: false, error: error.message || 'No se pudo cambiar la contraseña' };
     }
   } catch (error: any) {
-    return { ok: false, error: error.message || 'Error de red.' };
+    return { ok: false, error: error.message || 'Error inesperado al cambiar la contraseña' };
   }
 };

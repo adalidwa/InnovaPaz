@@ -4,6 +4,35 @@ const Company = require('../models/company.model');
 const Plan = require('../models/plan.model');
 
 /**
+ * Obtener información de la suscripción actual (TESTING - Sin auth)
+ */
+async function getSubscriptionInfoTest(req, res) {
+  try {
+    // Usar empresa Mandarina para testing
+    const empresaId = '09b7be01-5f2d-49c0-8f0c-750550755c39';
+
+    console.log('🧪 TEST - Obteniendo información de suscripción para empresa:', empresaId);
+
+    const [subscriptionInfo, usageInfo] = await Promise.all([
+      SubscriptionService.getSubscriptionInfo(empresaId),
+      getUsageInfo(empresaId),
+    ]);
+
+    console.log('✅ TEST - Información obtenida:', { subscriptionInfo, usageInfo });
+
+    res.json({
+      subscription: subscriptionInfo,
+      usage: usageInfo,
+    });
+  } catch (error) {
+    console.error('❌ TEST - Error en getSubscriptionInfoTest:', error);
+    res
+      .status(500)
+      .json({ error: 'Error al obtener información de suscripción', details: error.message });
+  }
+}
+
+/**
  * Obtener información de la suscripción actual
  */
 async function getSubscriptionInfo(req, res) {
@@ -230,6 +259,7 @@ async function getSubscriptionAlerts(req, res) {
 
 module.exports = {
   getSubscriptionInfo,
+  getSubscriptionInfoTest,
   processPayment,
   renewSubscription,
   cancelSubscription,

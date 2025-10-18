@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useUser } from '../../users/hooks/useContextBase';
 import Button from '../../../components/common/Button';
 import TitleDescription from '../../../components/common/TitleDescription';
 import QuoteCard from './QuoteCard';
+import SalesService from '../services/salesService';
+import NewQuoteModal from './NewQuoteModal';
+import QuoteDetailsModal from './QuoteDetailsModal';
 import './QuotesManagement.css';
 
 export interface Quote {
@@ -19,50 +23,6 @@ interface QuotesManagementProps {
   onNewQuote?: () => void;
 }
 
-// Datos de ejemplo basados en la imagen
-const mockQuotes: Quote[] = [
-  {
-    id: '1',
-    quoteNumber: 'COT-2024-001',
-    client: 'Juan Pérez',
-    date: '2024-03-20',
-    items: 3,
-    validUntil: '2024-04-20',
-    total: 450.0,
-    status: 'Pendiente',
-  },
-  {
-    id: '2',
-    quoteNumber: 'COT-2024-002',
-    client: 'María García',
-    date: '2024-03-19',
-    items: 5,
-    validUntil: '2024-04-19',
-    total: 780.0,
-    status: 'Aprobada',
-  },
-  {
-    id: '3',
-    quoteNumber: 'COT-2024-003',
-    client: 'Pedro López',
-    date: '2024-03-18',
-    items: 2,
-    validUntil: '2024-04-18',
-    total: 230.0,
-    status: 'Rechazada',
-  },
-  {
-    id: '4',
-    quoteNumber: 'COT-2024-004',
-    client: 'Ana Martínez',
-    date: '2024-03-17',
-    items: 4,
-    validUntil: '2024-04-17',
-    total: 560.0,
-    status: 'Convertida',
-  },
-];
-
 const filterOptions = [
   { id: 'todas', label: 'Todas' },
   { id: 'pendientes', label: 'Pendientes' },
@@ -70,11 +30,67 @@ const filterOptions = [
   { id: 'rechazadas', label: 'Rechazadas' },
 ];
 
+// Mapeo de estados de la BD al frontend
+const statusMap: Record<string, 'Pendiente' | 'Aprobada' | 'Rechazada' | 'Convertida'> = {
+  Pendiente: 'Pendiente',
+  Aprobada: 'Aprobada',
+  Rechazada: 'Rechazada',
+  Convertida: 'Convertida',
+};
+
+// Mapeo inverso para actualizar estados
+const statusToIdMap: Record<string, number> = {
+  Pendiente: 1,
+  Aprobada: 2,
+  Rechazada: 3,
+  Convertida: 4,
+};
+
 function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
-  const [quotes] = useState<Quote[]>(mockQuotes);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [activeFilter, setActiveFilter] = useState('todas');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
+  const { user } = useUser();
+  const empresaId = user?.empresa_id || '';
+
+  useEffect(() => {
+    loadQuotes();
+  }, []);
+
+  const loadQuotes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await SalesService.getAllQuotes(empresaId);
+
+      // Mapear datos del backend al formato del frontend
+      const mappedQuotes: Quote[] = data.map((item: any) => ({
+        id: item.cotizacion_id.toString(),
+        quoteNumber: item.numero_cotizacion,
+        client: item.cliente_nombre,
+        date: item.fecha_cotizacion.split('T')[0],
+        items: parseInt(item.total_items) || 0,
+        validUntil: item.fecha_validez.split('T')[0],
+        total: parseFloat(item.total),
+        status: statusMap[item.estado] || 'Pendiente',
+      }));
+
+      setQuotes(mappedQuotes);
+    } catch (err: any) {
+      console.error('Error al cargar cotizaciones:', err);
+      setError('Error al cargar las cotizaciones. Por favor, intente nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleNewQuote = () => {
+    setIsModalOpen(true);
     if (onNewQuote) {
       onNewQuote();
     } else {
@@ -82,20 +98,47 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
     }
   };
 
-  const handleApproveQuote = (quote: Quote) => {
-    console.log('Aprobando cotización:', quote.quoteNumber);
+  const handleApproveQuote = async (quote: Quote) => {
+    try {
+      await SalesService.updateQuoteStatus(
+        parseInt(quote.id),
+        statusToIdMap['Aprobada'],
+        empresaId
+      );
+      await loadQuotes();
+    } catch (err) {
+      console.error('Error al aprobar cotización:', err);
+      alert('Error al aprobar la cotización');
+    }
   };
 
-  const handleRejectQuote = (quote: Quote) => {
-    console.log('Rechazando cotización:', quote.quoteNumber);
+  const handleRejectQuote = async (quote: Quote) => {
+    try {
+      await SalesService.updateQuoteStatus(
+        parseInt(quote.id),
+        statusToIdMap['Rechazada'],
+        empresaId
+      );
+      await loadQuotes();
+    } catch (err) {
+      console.error('Error al rechazar cotización:', err);
+      alert('Error al rechazar la cotización');
+    }
   };
 
-  const handleConvertToOrder = (quote: Quote) => {
-    console.log('Convirtiendo a pedido:', quote.quoteNumber);
+  const handleConvertToOrder = async (quote: Quote) => {
+    try {
+      await SalesService.convertQuoteToOrder(parseInt(quote.id), empresaId);
+      await loadQuotes();
+    } catch (err) {
+      console.error('Error al convertir cotización:', err);
+      alert('Error al convertir la cotización a pedido');
+    }
   };
 
   const handleViewDetails = (quote: Quote) => {
-    console.log('Viendo detalles:', quote.quoteNumber);
+    setSelectedQuoteId(quote.id);
+    setIsDetailsModalOpen(true);
   };
 
   const filteredQuotes = quotes.filter((quote) => {
@@ -110,6 +153,33 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
         return true;
     }
   });
+
+  if (loading) {
+    return (
+      <div className='quotes-management'>
+        <div className='quotes-management__container'>
+          <div className='quotes-management__loading'>
+            <p>Cargando cotizaciones...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className='quotes-management'>
+        <div className='quotes-management__container'>
+          <div className='quotes-management__error'>
+            <p>{error}</p>
+            <Button variant='primary' size='medium' onClick={loadQuotes}>
+              Reintentar
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='quotes-management'>
@@ -200,6 +270,23 @@ function QuotesManagement({ onNewQuote }: QuotesManagementProps) {
           )}
         </div>
       </div>
+
+      <NewQuoteModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadQuotes}
+      />
+
+      {isDetailsModalOpen && selectedQuoteId && (
+        <QuoteDetailsModal
+          isOpen={isDetailsModalOpen}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedQuoteId(null);
+          }}
+          quoteId={selectedQuoteId}
+        />
+      )}
     </div>
   );
 }

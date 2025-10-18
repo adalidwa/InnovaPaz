@@ -18,15 +18,15 @@ export function getPlanId(planName: string | null): number {
 
 // Helper para convertir tipos de empresa a IDs (ahora dinámico)
 export function getBusinessTypeId(businessType: string): number {
-  // Mapeo basado en los nombres que vienen de la base de datos
+  // Mapeo basado en los IDs reales de la base de datos
   switch (businessType.toLowerCase()) {
+    case 'minimarket':
+      return 1;
     case 'ferreteria':
     case 'ferretería':
-      return 1;
+      return 2;
     case 'licoreria':
     case 'licorería':
-      return 2;
-    case 'minimarket':
       return 3;
     default:
       return 1;

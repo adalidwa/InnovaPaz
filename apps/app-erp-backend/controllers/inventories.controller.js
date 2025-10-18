@@ -125,6 +125,14 @@ const getAllProducts = async (req, res, next) => {
 const getProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const { empresa_id } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Se requiere empresa_id',
+      });
+    }
 
     const result = await pool.query(
       `
@@ -310,7 +318,7 @@ const getProductByCode = async (req, res, next) => {
     if (!empresa_id) {
       return res.status(400).json({
         success: false,
-        message: 'empresa_id es requerido',
+        message: 'Se requiere empresa_id',
       });
     }
 
@@ -345,6 +353,179 @@ const getProductByCode = async (req, res, next) => {
   }
 };
 
+// ============================================
+// FUNCIONES PARA EL DASHBOARD
+// ============================================
+
+// Obtener movimientos recientes de inventario
+const getRecentMovements = async (req, res, next) => {
+  try {
+    const { empresaId } = req.params;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await pool.query(
+      `SELECT 
+        mi.movimiento_id,
+        mi.cantidad,
+        mi.fecha_movimiento,
+        mi.motivo,
+        tm.nombre as tipo_movimiento,
+        tm.tipo as tipo_operacion,
+        p.nombre_producto,
+        mi.entidad_tipo,
+        mi.entidad_id
+      FROM movimientos_inventario mi
+      INNER JOIN producto p ON mi.producto_id = p.producto_id
+      LEFT JOIN tipo_movimiento tm ON mi.tipo_movimiento_id = tm.tipo_movimiento_id
+      WHERE mi.empresa_id = $1
+      ORDER BY mi.fecha_movimiento DESC
+      LIMIT $2`,
+      [empresaId, limit]
+    );
+
+    res.json({
+      success: true,
+      movimientos: result.rows,
+      count: result.rows.length,
+    });
+  } catch (error) {
+    console.error('Error al obtener movimientos recientes:', error);
+    next(error);
+  }
+};
+
+// Obtener productos críticos (stock bajo)
+const getCriticalProducts = async (req, res, next) => {
+  try {
+    const { empresaId } = req.params;
+
+    // Query simplificada que solo usa la tabla producto
+    const result = await pool.query(
+      `SELECT 
+        p.producto_id,
+        p.nombre_producto,
+        p.stock,
+        COALESCE(c.nombre_categoria, 'Sin categoría') as categoria,
+        p.imagen
+      FROM producto p
+      LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
+      WHERE p.empresa_id = $1 
+        AND (p.estado_id = 1 OR p.estado_id IS NULL)
+        AND p.stock <= 15
+      ORDER BY p.stock ASC`,
+      [empresaId]
+    );
+
+    res.json({
+      success: true,
+      productos_criticos: result.rows,
+      count: result.rows.length,
+    });
+  } catch (error) {
+    console.error('Error al obtener productos críticos:', error);
+    next(error);
+  }
+};
+
+// Obtener métricas del dashboard
+const getDashboardMetrics = async (req, res, next) => {
+  try {
+    const { empresaId } = req.params;
+
+    // Obtener todas las métricas en paralelo
+    const [
+      totalProductos,
+      productosCriticos,
+      productosBajoStock,
+      movimientosHoy,
+      entradasSemana,
+      salidasSemana,
+      valorInventario,
+    ] = await Promise.all([
+      // Total de productos
+      pool.query('SELECT COUNT(*) as total FROM producto WHERE empresa_id = $1 AND estado_id = 1', [
+        empresaId,
+      ]),
+
+      // Productos críticos (stock <= 5)
+      pool.query(
+        `SELECT COUNT(*) as total 
+         FROM producto 
+         WHERE empresa_id = $1 AND stock <= 5 AND estado_id = 1`,
+        [empresaId]
+      ),
+
+      // Productos con stock bajo (stock entre 6 y 15)
+      pool.query(
+        `SELECT COUNT(*) as total 
+         FROM producto 
+         WHERE empresa_id = $1 
+           AND stock > 5 
+           AND stock <= 15 
+           AND estado_id = 1`,
+        [empresaId]
+      ),
+
+      // Movimientos de hoy
+      pool.query(
+        `SELECT COUNT(*) as total 
+         FROM movimientos_inventario mi 
+         INNER JOIN producto p ON mi.producto_id = p.producto_id 
+         WHERE p.empresa_id = $1 AND DATE(mi.fecha_movimiento) = CURRENT_DATE`,
+        [empresaId]
+      ),
+
+      // Entradas de la semana
+      pool.query(
+        `SELECT COALESCE(SUM(mi.cantidad), 0) as total 
+         FROM movimientos_inventario mi 
+         INNER JOIN producto p ON mi.producto_id = p.producto_id 
+         WHERE p.empresa_id = $1 
+           AND mi.tipo_movimiento = 'entrada' 
+           AND mi.fecha_movimiento >= CURRENT_DATE - INTERVAL '7 days'`,
+        [empresaId]
+      ),
+
+      // Salidas de la semana
+      pool.query(
+        `SELECT COALESCE(SUM(mi.cantidad), 0) as total 
+         FROM movimientos_inventario mi 
+         INNER JOIN producto p ON mi.producto_id = p.producto_id 
+         WHERE p.empresa_id = $1 
+           AND mi.tipo_movimiento = 'salida' 
+           AND mi.fecha_movimiento >= CURRENT_DATE - INTERVAL '7 days'`,
+        [empresaId]
+      ),
+
+      // Valor total del inventario
+      pool.query(
+        `SELECT COALESCE(SUM(p.precio_costo::numeric * p.stock), 0) as total 
+         FROM producto p 
+         WHERE p.empresa_id = $1 AND p.estado_id = 1`,
+        [empresaId]
+      ),
+    ]);
+
+    const metricas = {
+      total_productos: parseInt(totalProductos.rows[0].total),
+      productos_criticos: parseInt(productosCriticos.rows[0].total),
+      productos_bajo_stock: parseInt(productosBajoStock.rows[0].total),
+      movimientos_hoy: parseInt(movimientosHoy.rows[0].total),
+      entradas_semana: parseInt(entradasSemana.rows[0].total),
+      salidas_semana: parseInt(salidasSemana.rows[0].total),
+      valor_inventario_total: parseFloat(valorInventario.rows[0].total),
+    };
+
+    res.json({
+      success: true,
+      metricas,
+    });
+  } catch (error) {
+    console.error('Error al obtener métricas del dashboard:', error);
+    next(error);
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -353,4 +534,8 @@ module.exports = {
   deleteProduct,
   searchProducts,
   getProductByCode,
+  // Dashboard functions
+  getRecentMovements,
+  getCriticalProducts,
+  getDashboardMetrics,
 };

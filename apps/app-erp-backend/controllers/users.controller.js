@@ -8,9 +8,21 @@ const fs = require('fs');
 
 async function getUsersByCompany(req, res) {
   try {
-    const usuarios = await User.find({ empresa_id: req.params.companyId });
+    const empresaId = req.params.empresa_id; // Nombre correcto del parámetro de la ruta
+    console.log('🔍 [getUsersByCompany] Buscando usuarios para empresa_id:', empresaId);
+    const usuarios = await User.find({ empresa_id: empresaId });
+    console.log(
+      `✅ [getUsersByCompany] Encontrados ${usuarios.length} usuarios para empresa_id: ${empresaId}`
+    );
+    console.log(
+      '📋 [getUsersByCompany] Primeros 3 usuarios:',
+      usuarios
+        .slice(0, 3)
+        .map((u) => ({ uid: u.uid, nombre: u.nombre_completo, empresa_id: u.empresa_id }))
+    );
     res.json(usuarios);
   } catch (err) {
+    console.error('❌ [getUsersByCompany] Error:', err);
     res.status(500).json({ error: 'Error al obtener los usuarios de la empresa.' });
   }
 }
@@ -29,32 +41,82 @@ async function createUser(req, res) {
   let firebaseUser;
   try {
     const { empresa_id, rol_id, nombre_completo, email, password, estado, preferencias } = req.body;
+
+    // ===== VALIDACIONES =====
+    // Validar campos requeridos
     if (!empresa_id || !rol_id || !nombre_completo || !email || !password) {
       return res.status(400).json({
         error: 'Faltan campos obligatorios: empresa_id, rol_id, nombre_completo, email, password.',
       });
     }
-    const emailRegex = /\S+@\S+\.\S+/;
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'El formato del email no es válido.' });
     }
+
+    // Validar longitud de nombre
+    if (nombre_completo.trim().length === 0) {
+      return res.status(400).json({ error: 'El nombre completo no puede estar vacío.' });
+    }
+    if (nombre_completo.length > 150) {
+      return res.status(400).json({ error: 'El nombre completo no puede exceder 150 caracteres.' });
+    }
+
+    // Validar longitud de email
+    if (email.length > 150) {
+      return res.status(400).json({ error: 'El email no puede exceder 150 caracteres.' });
+    }
+
+    // Validar contraseña
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    // Validar que la empresa exista
+    const empresa = await Company.findById(empresa_id);
+    if (!empresa) {
+      return res.status(404).json({ error: `Empresa con ID ${empresa_id} no encontrada.` });
+    }
+
+    // Validar que el rol exista y pertenezca a la empresa
+    const rol = await Role.findByIdAndCompany(rol_id, empresa_id);
+    if (!rol) {
+      return res.status(404).json({
+        error: `Rol con ID ${rol_id} no encontrado o no pertenece a la empresa.`,
+      });
+    }
+
+    // Validar que el email no esté en uso
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ error: 'El email ya está registrado.' });
+    }
+
+    // Crear usuario en Firebase
     firebaseUser = await firebaseAuth.createUser(email, password, nombre_completo);
     if (!firebaseUser.success) {
       return res
         .status(400)
         .json({ error: 'Error al crear usuario en Firebase.', details: firebaseUser.error });
     }
+
+    // Crear usuario en la base de datos
     const nuevoUsuario = await User.create({
       uid: firebaseUser.uid,
       empresa_id,
       rol_id,
       nombre_completo,
       email,
-      estado,
-      preferencias,
+      estado: estado || 'activo',
+      preferencias: preferencias || {},
     });
+
     res.status(201).json(nuevoUsuario);
   } catch (err) {
+    console.error('Error al crear usuario:', err);
+    // Rollback: eliminar usuario de Firebase si la creación en DB falla
     if (firebaseUser && firebaseUser.success) {
       await firebaseAuth.deleteUser(firebaseUser.uid);
     }
@@ -179,28 +241,85 @@ async function completeCompanySetup(req, res) {
       estado_suscripcion: 'en_prueba',
     });
 
-    // Crear rol de administrador
-    const nuevoRol = await Role.create({
+    // ===== ACTIVAR SUSCRIPCIÓN Y PERÍODO DE PRUEBA (SI APLICA) =====
+    const SubscriptionService = require('../services/subscriptionService');
+    const subscriptionResult = await SubscriptionService.setupInitialSubscription(
+      nuevaEmpresa.empresa_id,
+      plan_id
+    );
+
+    // ===== NUEVO SISTEMA: USAR PLANTILLAS DE ROLES =====
+    const RolePlantilla = require('../models/rolePlantilla.model');
+    const TypeCompany = require('../models/typeCompany.model');
+    const Plan = require('../models/plan.model');
+
+    // Obtener datos del tipo de empresa y plan
+    const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+    const plan = await Plan.findById(plan_id);
+
+    if (!tipoEmpresa || !plan) {
+      throw new Error('Tipo de empresa o plan no encontrado');
+    }
+
+    // Buscar la plantilla de Administrador para este tipo de empresa
+    const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+      'Administrador',
+      tipo_empresa_id
+    );
+
+    if (!plantillaAdministrador) {
+      throw new Error('No se encontró la plantilla de rol Administrador para este tipo de empresa');
+    }
+
+    // En el nuevo sistema, podemos asignar directamente la plantilla al usuario
+    // o crear un rol temporal basado en la plantilla (por compatibilidad)
+
+    // OPCIÓN: Crear rol de Administrador basado en plantilla (para compatibilidad con sistema actual)
+    const rolAdministrador = await Role.create({
       empresa_id: nuevaEmpresa.empresa_id,
       nombre_rol: 'Administrador',
-      permisos: { full_access: true },
+      permisos: plantillaAdministrador.permisos,
       es_predeterminado: true,
+      estado: 'activo',
+      plantilla_id_origen: plantillaAdministrador.plantilla_id,
+    });
+
+    const rol_id = rolAdministrador.rol_id;
+
+    console.log(
+      '✅ [NUEVO SISTEMA] Empresa creada con sistema de plantillas. Solo se creó rol de Administrador.'
+    );
+    console.log(
+      '📋 Plantillas disponibles para esta empresa:',
+      await RolePlantilla.findByTipoEmpresa(tipo_empresa_id)
+    );
+
+    // Actualizar usuario - reemplazar plantilla_rol_id con rol_id
+    // El constraint requiere: rol_id O plantilla_rol_id, no ambos
+    const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
+      empresa_id: nuevaEmpresa.empresa_id,
+      rol_id,
+      plantilla_rol_id: null, // Limpiar plantilla cuando asignamos rol real
       estado: 'activo',
     });
 
-    // Actualizar usuario
-    const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
-      empresa_id: nuevaEmpresa.empresa_id,
-      rol_id: nuevoRol.rol_id,
-      estado: 'activo',
-    });
+    // Obtener plantillas disponibles para mostrar en el frontend
+    const plantillasDisponibles = await RolePlantilla.findByTipoEmpresa(tipo_empresa_id);
 
     res.status(200).json({
       success: true,
-      mensaje: 'Configuración de empresa completada.',
+      mensaje: 'Configuración de empresa completada exitosamente.',
       empresa: nuevaEmpresa,
       usuario: usuarioActualizado,
-      rol: nuevoRol,
+      rol: rolAdministrador,
+      suscripcion: subscriptionResult,
+      plantillas_disponibles: plantillasDisponibles,
+      sistema_roles: {
+        tipo: 'plantillas',
+        descripcion: 'Sistema optimizado de roles con plantillas predefinidas',
+        total_plantillas: plantillasDisponibles.length,
+        limite_plan: plan.limites?.roles || 'Ilimitado',
+      },
     });
   } catch (err) {
     console.error('Error en completeCompanySetup:', err);
@@ -215,24 +334,77 @@ async function completeCompanySetup(req, res) {
 async function uploadUserAvatar(req, res) {
   try {
     const uid = req.params.uid;
+
+    // Validación: archivo requerido
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió ningún archivo.' });
     }
+
+    // Validación: verificar que el usuario exista
+    const usuario = await User.findById(uid);
+    if (!usuario) {
+      // Eliminar archivo temporal si el usuario no existe
+      if (req.file.path) {
+        fs.unlink(req.file.path, () => {});
+      }
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    // Validación: tipo de archivo (solo imágenes)
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP).',
+      });
+    }
+
+    // Validación: tamaño máximo (2MB para avatares)
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (req.file.size > maxSize) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'El archivo es demasiado grande. Tamaño máximo: 2MB.',
+      });
+    }
+
+    // Subir a Cloudinary
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'user_avatars',
       public_id: `usuario_${uid}_avatar`,
       overwrite: true,
+      transformation: [
+        { width: 300, height: 300, crop: 'fill', gravity: 'face' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' },
+      ],
     });
+
+    // Eliminar archivo temporal
     fs.unlink(req.file.path, () => {});
+
+    // Actualizar base de datos
     const usuarioActualizado = await User.findByIdAndUpdate(uid, {
       avatar_url: result.secure_url,
+      avatar_public_id: result.public_id,
     });
-    if (!usuarioActualizado) return res.status(404).json({ error: 'Usuario no encontrado.' });
+
     console.log('[BACKEND] POST /api/users/upload/avatar/:uid - Respuesta:', {
       avatar_url: result.secure_url,
+      avatar_public_id: result.public_id,
     });
-    res.json({ avatar_url: result.secure_url });
+
+    res.json({
+      avatar_url: result.secure_url,
+      avatar_public_id: result.public_id,
+      message: 'Avatar subido exitosamente.',
+    });
   } catch (err) {
+    console.error('Error al subir avatar:', err);
+    // Eliminar archivo temporal en caso de error
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, () => {});
+    }
     res.status(500).json({ error: 'Error al subir el avatar.', details: err.message });
   }
 }

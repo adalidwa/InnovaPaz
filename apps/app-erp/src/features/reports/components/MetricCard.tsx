@@ -6,6 +6,7 @@ interface MetricCardProps {
   value: string | number;
   trend?: number; // porcentaje
   hint?: string;
+  icon?: string; // emoji icon
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, hint }) => {
@@ -21,12 +22,14 @@ const MetricCard: React.FC<MetricCardProps> = ({ label, value, trend, hint }) =>
     <div className='report-metric-card'>
       <p className='report-metric-card__label'>{label}</p>
       <p className='report-metric-card__value'>{value}</p>
-      {trend != null && (
-        <span style={{ font: 'var(--font-10)', color: trendColor }}>
-          {trend > 0 ? '▲' : trend < 0 ? '▼' : '●'} {Math.abs(trend)}%
-        </span>
-      )}
-      {hint && <span style={{ font: 'var(--font-10)', color: 'var(--pri-500)' }}>{hint}</span>}
+      <div className='report-metric-card__footer'>
+        {trend != null && Math.abs(trend) > 0 && (
+          <span className='report-metric-card__trend' style={{ color: trendColor }}>
+            {trend > 0 ? '▲' : trend < 0 ? '▼' : '●'} {Math.abs(trend)}%
+          </span>
+        )}
+        {hint && <span className='report-metric-card__hint'>{hint}</span>}
+      </div>
     </div>
   );
 };

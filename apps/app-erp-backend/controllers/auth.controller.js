@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const pool = require('../db');
 const User = require('../models/user.model');
 const Company = require('../models/company.model');
 const Role = require('../models/role.model');
@@ -104,6 +105,7 @@ async function registerUser(req, res) {
     if (empresa_data) {
       const { nombre, tipo_empresa_id, plan_id } = empresa_data;
 
+      // Crear empresa
       const nuevaEmpresa = await Company.create({
         nombre,
         tipo_empresa_id,
@@ -112,27 +114,94 @@ async function registerUser(req, res) {
       });
       empresa_id = nuevaEmpresa.empresa_id;
 
-      const nuevoRol = await Role.create({
+      // ===== ACTIVAR SUSCRIPCIÓN Y PERÍODO DE PRUEBA (SI APLICA) =====
+      const SubscriptionService = require('../services/subscriptionService');
+      await SubscriptionService.setupInitialSubscription(empresa_id, plan_id);
+
+      // ===== NUEVO SISTEMA: USAR PLANTILLAS DE ROLES =====
+      const RolePlantilla = require('../models/rolePlantilla.model');
+      const TypeCompany = require('../models/typeCompany.model');
+      const Plan = require('../models/plan.model');
+
+      // Obtener datos del tipo de empresa y plan
+      const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+      const plan = await Plan.findById(plan_id);
+
+      if (!tipoEmpresa || !plan) {
+        throw new Error('Tipo de empresa o plan no encontrado');
+      }
+
+      // Buscar la plantilla de Administrador para este tipo de empresa
+      const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+        'Administrador',
+        tipo_empresa_id
+      );
+
+      if (!plantillaAdministrador) {
+        throw new Error(
+          'No se encontró la plantilla de rol Administrador para este tipo de empresa'
+        );
+      }
+
+      // En el nuevo sistema, podemos asignar directamente la plantilla al usuario
+      // o crear un rol temporal basado en la plantilla (para compatibilidad con sistema actual)
+
+      // OPCIÓN: Crear rol de Administrador basado en plantilla (para compatibilidad con sistema actual)
+      const rolAdministrador = await Role.create({
         empresa_id,
         nombre_rol: 'Administrador',
-        permisos: { full_access: true },
+        permisos: plantillaAdministrador.permisos,
         es_predeterminado: true,
         estado: 'activo',
+        plantilla_id_origen: plantillaAdministrador.plantilla_id,
       });
-      rol_id = nuevoRol.rol_id;
+
+      rol_id = rolAdministrador.rol_id;
+
+      console.log(
+        '✅ [NUEVO SISTEMA - REGISTRO] Empresa creada con sistema de plantillas. Solo se creó rol de Administrador.'
+      );
+      console.log(
+        '📋 Plantillas disponibles para esta empresa:',
+        await RolePlantilla.findByTipoEmpresa(tipo_empresa_id)
+      );
     } else {
       empresa_id = null;
       rol_id = null;
     }
 
-    const nuevoUsuario = await User.create({
-      uid: firebaseUser.uid,
-      empresa_id,
-      rol_id,
-      nombre_completo,
-      email,
-      estado: 'activo',
-    });
+    // Crear usuario según si tiene o no empresa
+    let nuevoUsuario;
+    if (empresa_id && rol_id) {
+      // Usuario con empresa y rol de Administrador
+      nuevoUsuario = await User.create({
+        uid: firebaseUser.uid,
+        empresa_id,
+        rol_id,
+        plantilla_rol_id: null, // Explícitamente NULL cuando hay rol_id
+        nombre_completo,
+        email,
+        estado: 'activo',
+      });
+    } else {
+      // Usuario sin empresa - usar plantilla_rol_id para satisfacer constraint
+      const insertResult = await pool.query(
+        `INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+         RETURNING *`,
+        [
+          firebaseUser.uid,
+          null, // sin empresa
+          null, // sin rol específico
+          1, // plantilla_rol_id = 1 (satisface constraint)
+          nombre_completo,
+          email,
+          'activo',
+          JSON.stringify({}),
+        ]
+      );
+      nuevoUsuario = insertResult.rows[0];
+    }
 
     res.status(201).json({
       mensaje: 'Usuario registrado exitosamente.',
@@ -161,10 +230,29 @@ async function loginUser(req, res) {
         .json({ error: 'Token de Firebase inválido.', details: decodedFirebaseToken.error });
     }
 
-    const usuario = await User.findOne({ uid: decodedFirebaseToken.uid });
-    if (!usuario) {
+    console.log('🔍 Login Debug - Firebase UID:', decodedFirebaseToken.uid);
+    console.log('🔍 Login Debug - Firebase Email:', decodedFirebaseToken.email);
+
+    // Obtener usuario con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
+              u.estado, u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [decodedFirebaseToken.uid]
+    );
+
+    console.log('🔍 Login Debug - Query result rows:', result.rows.length);
+    if (result.rows.length > 0) {
+      console.log('🔍 Login Debug - Usuario encontrado:', result.rows[0].email);
+    }
+
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado en la base de datos local.' });
     }
+
+    const usuario = result.rows[0];
 
     const localToken = jwt.sign(
       {
@@ -176,8 +264,23 @@ async function loginUser(req, res) {
       JWT_SECRET,
       { expiresIn: '8h' }
     );
-    res.json({ token: localToken, usuario });
+
+    res.json({
+      token: localToken,
+      usuario: {
+        uid: usuario.uid,
+        email: usuario.email,
+        nombre_completo: usuario.nombre_completo,
+        empresa_id: usuario.empresa_id,
+        rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol', // Nombre del rol
+        estado: usuario.estado,
+        preferencias: usuario.preferencias,
+        avatar_url: usuario.avatar_url || null,
+      },
+    });
   } catch (err) {
+    console.error('Error en loginUser:', err);
     res.status(500).json({ error: 'Error al iniciar sesión.' });
   }
 }
@@ -202,8 +305,21 @@ async function verifyTokenEndpoint(req, res) {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    const usuario = await User.findOne({ uid: decoded.uid });
-    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    // Obtener usuario con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, u.estado, 
+              u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [decoded.uid]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    const usuario = result.rows[0];
 
     res.json({
       usuario: {
@@ -212,12 +328,14 @@ async function verifyTokenEndpoint(req, res) {
         nombre_completo: usuario.nombre_completo,
         empresa_id: usuario.empresa_id,
         rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol', // Nombre del rol
         estado: usuario.estado,
         preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,
       },
     });
   } catch (err) {
+    console.error('Error en verifyTokenEndpoint:', err);
     res.status(401).json({ error: 'Token inválido.' });
   }
 }
@@ -229,7 +347,7 @@ async function logoutUser(req, res) {
 // Nuevo: Autenticación con Google (login o registro automático)
 async function googleAuth(req, res) {
   try {
-    const { idToken } = req.body;
+    const { idToken, empresa_data } = req.body;
 
     if (!idToken) {
       return res.status(400).json({
@@ -259,22 +377,125 @@ async function googleAuth(req, res) {
       });
     }
 
-    // Buscar usuario existente en PostgreSQL
-    let usuario = await User.findOne({ uid });
+    // Buscar usuario existente en PostgreSQL con nombre del rol
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
+              u.estado, u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [uid]
+    );
 
-    if (!usuario) {
-      // Usuario no existe en PostgreSQL, crearlo sin empresa
-      usuario = await User.create({
-        uid,
-        empresa_id: null,
-        rol_id: null,
-        nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
-        email,
-        estado: 'activo',
-        preferencias: {},
-      });
+    let usuario;
 
+    if (result.rows.length === 0) {
+      // Usuario no existe en PostgreSQL, crearlo
+      console.log(`🆕 Nuevo usuario Google detectado: ${email}`);
+
+      let empresa_id, rol_id;
+
+      // Si viene con empresa_data, crear empresa y rol (igual que registro normal)
+      if (empresa_data) {
+        const { nombre, tipo_empresa_id, plan_id } = empresa_data;
+
+        // Crear empresa
+        const nuevaEmpresa = await Company.create({
+          nombre,
+          tipo_empresa_id,
+          plan_id,
+          estado_suscripcion: 'en_prueba',
+        });
+        empresa_id = nuevaEmpresa.empresa_id;
+
+        // Activar suscripción y período de prueba
+        const SubscriptionService = require('../services/subscriptionService');
+        await SubscriptionService.setupInitialSubscription(empresa_id, plan_id);
+
+        // Usar plantillas de roles
+        const RolePlantilla = require('../models/rolePlantilla.model');
+        const TypeCompany = require('../models/typeCompany.model');
+        const Plan = require('../models/plan.model');
+
+        const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+        const plan = await Plan.findById(plan_id);
+
+        if (!tipoEmpresa || !plan) {
+          throw new Error('Tipo de empresa o plan no encontrado');
+        }
+
+        // Buscar plantilla de Administrador para este tipo de empresa
+        const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+          'Administrador',
+          tipo_empresa_id
+        );
+
+        if (!plantillaAdministrador) {
+          throw new Error(
+            'No se encontró la plantilla de rol Administrador para este tipo de empresa'
+          );
+        }
+
+        // Crear rol de Administrador basado en plantilla
+        const rolAdministrador = await Role.create({
+          empresa_id,
+          nombre_rol: 'Administrador',
+          permisos: plantillaAdministrador.permisos,
+          es_predeterminado: true,
+          estado: 'activo',
+          plantilla_id_origen: plantillaAdministrador.plantilla_id,
+        });
+
+        rol_id = rolAdministrador.rol_id;
+
+        console.log('✅ [GOOGLE AUTH - CON PLAN] Empresa creada con sistema de plantillas.');
+      } else {
+        // Usuario sin empresa (explorador)
+        empresa_id = null;
+        rol_id = null;
+        console.log('👤 [GOOGLE AUTH - SIN PLAN] Usuario explorador');
+      }
+
+      // Crear usuario según si tiene o no empresa
+      let nuevoUsuario;
+      if (empresa_id && rol_id) {
+        // Usuario con empresa y rol de Administrador
+        nuevoUsuario = await User.create({
+          uid,
+          empresa_id,
+          rol_id,
+          plantilla_rol_id: null, // Explícitamente NULL cuando hay rol_id
+          nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
+          email,
+          estado: 'activo',
+        });
+      } else {
+        // Usuario sin empresa - usar plantilla_rol_id para satisfacer constraint
+        const insertResult = await pool.query(
+          `INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+           RETURNING *`,
+          [
+            uid,
+            null, // sin empresa
+            null, // sin rol específico
+            1, // plantilla_rol_id = 1 (satisface constraint)
+            firebaseUserInfo.displayName || 'Usuario Google',
+            email,
+            'activo',
+            JSON.stringify({}),
+          ]
+        );
+        nuevoUsuario = insertResult.rows[0];
+      }
+
+      usuario = nuevoUsuario;
+      usuario.nombre_rol = rol_id ? 'Administrador' : null;
       console.log(`✅ Nuevo usuario Google creado en PostgreSQL: ${uid}`);
+    } else {
+      // Usuario ya existe
+      usuario = result.rows[0];
+      console.log(`🔄 Usuario Google existente: ${uid}`);
     }
 
     // Generar token JWT local
@@ -301,6 +522,7 @@ async function googleAuth(req, res) {
         nombre_completo: usuario.nombre_completo,
         empresa_id: usuario.empresa_id,
         rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol',
         estado: usuario.estado,
         preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,
@@ -375,20 +597,39 @@ async function verifyFirebaseToken(req, res, next) {
 // Endpoint protegido usando el nuevo middleware
 async function getMe(req, res) {
   try {
-    const usuario = await User.findOne({ uid: req.user.uid });
-    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    // Usar la nueva función que soporta plantillas y roles personalizados
+    const usuarioCompleto = await User.findByIdWithRole(req.user.uid);
+
+    if (!usuarioCompleto) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    console.log('🔍 [getMe] Usuario obtenido con rol:', {
+      uid: usuarioCompleto.uid,
+      nombre_rol: usuarioCompleto.nombre_rol,
+      tipo_rol: usuarioCompleto.tipo_rol,
+    });
 
     res.json({
       usuario: {
-        uid: usuario.uid,
-        nombre_completo: usuario.nombre_completo,
-        email: usuario.email,
-        rol_id: usuario.rol_id,
-        empresa_id: usuario.empresa_id,
-        avatar_url: usuario.avatar_url || null,
+        uid: usuarioCompleto.uid,
+        nombre_completo: usuarioCompleto.nombre_completo,
+        email: usuarioCompleto.email,
+        rol_id: usuarioCompleto.rol_id,
+        plantilla_rol_id: usuarioCompleto.plantilla_rol_id,
+        rol: usuarioCompleto.nombre_rol || 'Sin rol', // Nombre del rol (plantilla o personalizado)
+        tipo_rol: usuarioCompleto.tipo_rol, // 'plantilla', 'personalizado' o 'sin_rol'
+        permisos: usuarioCompleto.permisos, // Permisos del rol
+        empresa_id: usuarioCompleto.empresa_id,
+        nombre_empresa: usuarioCompleto.nombre_empresa,
+        tipo_empresa: usuarioCompleto.tipo_empresa,
+        estado: usuarioCompleto.estado_usuario,
+        preferencias: usuarioCompleto.preferencias,
+        avatar_url: usuarioCompleto.avatar_url || null,
       },
     });
   } catch (err) {
+    console.error('Error en getMe:', err);
     res.status(500).json({ error: 'Error al obtener el usuario.' });
   }
 }
@@ -503,17 +744,25 @@ async function syncSession(req, res) {
 
     const { uid } = decodedToken;
 
-    // Buscar usuario en PostgreSQL
-    const usuario = await User.findOne({ uid });
+    // Buscar usuario en PostgreSQL con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
+              u.estado, u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [uid]
+    );
 
-    if (!usuario) {
+    if (result.rows.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'Usuario no encontrado',
       });
     }
 
-    // Verificar que tenga empresa asociada
+    const usuario = result.rows[0];
+
     if (!usuario.empresa_id) {
       return res.status(400).json({
         success: false,
@@ -545,7 +794,7 @@ async function syncSession(req, res) {
         estado: usuario.estado,
         preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,
-        rol: usuario.rol || 'Usuario',
+        rol: usuario.nombre_rol || 'Sin rol', // Usar nombre_rol del JOIN
       },
     });
   } catch (error) {
@@ -560,9 +809,9 @@ async function syncSession(req, res) {
 module.exports = {
   loginDirect,
   loginUser,
-  googleAuth, // Nuevo export
-  googleLoginERP, // Export de la nueva función
-  syncSession, // Nueva función de sincronización
+  googleAuth,
+  googleLoginERP,
+  syncSession,
   verifyToken,
   verifyTokenEndpoint,
   registerUser,

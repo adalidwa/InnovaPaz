@@ -149,20 +149,53 @@ async function checkSpecificPermission(plan, permission, empresaId) {
 
   switch (permission) {
     case 'create_user':
-      const currentUsers = await User.find({ empresa_id: empresaId });
-      if (limits.max_usuarios !== -1 && currentUsers.length >= limits.max_usuarios) {
+      const currentUsers = await User.count({ empresa_id: empresaId });
+      const maxUsuarios = limits.miembros || 2;
+
+      // Si el plan es ilimitado (Premium: miembros = null), permitir
+      if (maxUsuarios === null || maxUsuarios === -1) {
+        break;
+      }
+
+      if (currentUsers >= maxUsuarios) {
         return {
           allowed: false,
-          reason: `Has alcanzado el límite de usuarios (${limits.max_usuarios}) para tu plan ${plan.nombre_plan}`,
-          current: currentUsers.length,
-          limit: limits.max_usuarios,
+          reason: `Has alcanzado el límite de usuarios (${maxUsuarios}) para tu plan ${plan.nombre_plan}`,
+          current: currentUsers,
+          limit: maxUsuarios,
+        };
+      }
+      break;
+
+    case 'create_role':
+      const Role = require('../models/role.model');
+      // ⚠️ IMPORTANTE: Solo contar roles PERSONALIZADOS (es_predeterminado = false)
+      // Los roles predeterminados NO consumen el límite del plan
+      const currentRolesPersonalizados = await Role.count({
+        empresa_id: empresaId,
+        es_predeterminado: false,
+      });
+      const maxRolesPersonalizados = limits.roles || 2;
+
+      // Si el plan es ilimitado (Premium: roles = null), permitir
+      if (maxRolesPersonalizados === null || maxRolesPersonalizados === -1) {
+        break;
+      }
+
+      if (currentRolesPersonalizados >= maxRolesPersonalizados) {
+        return {
+          allowed: false,
+          reason: `Has alcanzado el límite de roles personalizados (${maxRolesPersonalizados}) para tu plan ${plan.nombre_plan}`,
+          current: currentRolesPersonalizados,
+          limit: maxRolesPersonalizados,
+          note: 'Los roles predeterminados no cuentan para este límite',
         };
       }
       break;
 
     case 'access_module':
       const module = permission.split(':')[1]; // ej: "access_module:reportes"
-      if (module && !limits.modulos.includes(module)) {
+      if (module && limits.modulos && !limits.modulos.includes(module)) {
         return {
           allowed: false,
           reason: `El módulo ${module} no está disponible en tu plan ${plan.nombre_plan}`,
@@ -189,6 +222,15 @@ async function checkSpecificPermission(plan, permission, empresaId) {
       }
       break;
 
+    case 'export_data':
+      if (!limits.features?.exportacion) {
+        return {
+          allowed: false,
+          reason: `La exportación de datos no está disponible en tu plan ${plan.nombre_plan}`,
+        };
+      }
+      break;
+
     default:
       // Si no hay permiso específico definido, permitir acceso
       break;
@@ -209,6 +251,8 @@ function checkModuleAccess(moduleName) {
  */
 async function getUsageInfo(empresaId) {
   try {
+    console.log('📊 getUsageInfo - Obteniendo datos de uso para empresa:', empresaId);
+
     // Obtener usuarios y empresa
     const [usuarios, empresa] = await Promise.all([
       User.find({ empresa_id: empresaId }),
@@ -219,35 +263,88 @@ async function getUsageInfo(empresaId) {
       throw new Error('Empresa no encontrada');
     }
 
+    console.log('👥 Usuarios encontrados:', usuarios.length);
+    console.log('🏢 Empresa encontrada:', {
+      empresa_id: empresa.empresa_id,
+      nombre: empresa.nombre,
+      plan_id: empresa.plan_id,
+    });
+
     // Obtener el plan
     const plan = await Plan.findById(empresa.plan_id);
     if (!plan) {
       throw new Error('Plan no encontrado');
     }
 
+    console.log('💼 Plan encontrado para uso:', {
+      plan_id: plan.plan_id,
+      nombre_plan: plan.nombre_plan,
+      precio_mensual: plan.precio_mensual,
+      limites: plan.limites,
+    });
+
     const limits = plan.limites || {};
 
-    return {
+    // Obtener información de roles
+    let rolesUsage = { current: 0, limit: 2, percentage: 0 };
+    try {
+      const Role = require('../models/role.model');
+      const totalRoles = await Role.count({ empresa_id: empresaId });
+      const rolesPersonalizados = await Role.count({
+        empresa_id: empresaId,
+        es_predeterminado: false,
+      });
+
+      // Usar el límite del plan para roles personalizados
+      const rolesLimit = limits.roles || 2;
+      const isUnlimited = rolesLimit === -1 || rolesLimit === null;
+
+      rolesUsage = {
+        current: rolesPersonalizados,
+        limit: isUnlimited ? -1 : rolesLimit,
+        percentage: isUnlimited ? 0 : (rolesPersonalizados / rolesLimit) * 100,
+        total_roles: totalRoles,
+        roles_predeterminados: totalRoles - rolesPersonalizados,
+      };
+
+      console.log('🎭 Roles encontrados:', rolesUsage);
+    } catch (roleError) {
+      console.warn('⚠️ No se pudo obtener información de roles:', roleError.message);
+    }
+
+    const usageData = {
       usuarios: {
         current: usuarios.length,
-        limit: limits.max_usuarios || 2,
-        percentage:
-          limits.max_usuarios === -1 ? 0 : (usuarios.length / (limits.max_usuarios || 2)) * 100,
+        limit: limits.miembros || 2,
+        percentage: limits.miembros === -1 ? 0 : (usuarios.length / (limits.miembros || 2)) * 100,
       },
+      roles: rolesUsage,
       plan: {
         nombre: plan.nombre_plan,
         precio: plan.precio_mensual,
         features: limits.features || {},
         modulos: limits.modulos || [],
+        soporte: limits.soporte || {},
       },
       subscription: await checkSubscriptionStatus(empresa),
     };
+
+    console.log('📤 Datos de uso finales:', JSON.stringify(usageData, null, 2));
+
+    return usageData;
   } catch (error) {
-    console.error('Error getting usage info:', error);
+    console.error('❌ Error getting usage info:', error);
     // Retornar datos por defecto en caso de error
     return {
       usuarios: { current: 1, limit: 2, percentage: 50 },
-      plan: { nombre: 'Plan Básico', precio: 10, features: {}, modulos: [] },
+      roles: { current: 0, limit: 2, percentage: 0 },
+      plan: {
+        nombre: 'Plan Básico',
+        precio: 10,
+        features: {},
+        modulos: [],
+        soporte: {},
+      },
       subscription: { isActive: false, status: 'error', message: 'Error al obtener información' },
     };
   }

@@ -75,6 +75,55 @@ async function createCompany(req, res) {
   try {
     const { nombre, tipo_empresa_id, plan_id, nombre_completo, email, password } = req.body;
 
+    // ===== VALIDACIONES =====
+    // Validar campos requeridos
+    if (!nombre || nombre.trim() === '') {
+      return res.status(400).json({ error: 'El nombre de la empresa es requerido.' });
+    }
+    if (!tipo_empresa_id) {
+      return res.status(400).json({ error: 'El tipo de empresa es requerido.' });
+    }
+    if (!plan_id) {
+      return res.status(400).json({ error: 'El plan es requerido.' });
+    }
+    if (!nombre_completo || nombre_completo.trim() === '') {
+      return res.status(400).json({ error: 'El nombre completo del usuario es requerido.' });
+    }
+    if (!email || email.trim() === '') {
+      return res.status(400).json({ error: 'El email es requerido.' });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'La contraseña debe tener al menos 6 caracteres.' });
+    }
+
+    // Validar longitud de campos
+    if (nombre.length > 150) {
+      return res
+        .status(400)
+        .json({ error: 'El nombre de la empresa no puede exceder 150 caracteres.' });
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'El formato del email no es válido.' });
+    }
+
+    // Validar que el tipo de empresa exista
+    const tipoEmpresa = await TypeCompany.findById(tipo_empresa_id);
+    if (!tipoEmpresa) {
+      return res
+        .status(404)
+        .json({ error: `Tipo de empresa con ID ${tipo_empresa_id} no encontrado.` });
+    }
+
+    // Validar que el plan exista
+    const Plan = require('../models/plan.model');
+    const plan = await Plan.findById(plan_id);
+    if (!plan) {
+      return res.status(404).json({ error: `Plan con ID ${plan_id} no encontrado.` });
+    }
+
     // Crear usuario en Firebase
     firebaseUser = await firebaseAuth.createUser(email, password, nombre_completo);
     if (!firebaseUser.success) {
@@ -82,6 +131,8 @@ async function createCompany(req, res) {
         .status(400)
         .json({ error: 'Error al crear usuario en Firebase.', details: firebaseUser.error });
     }
+
+    // Crear empresa con estado inicial
 
     // Crear empresa con estado inicial
     const empresaGuardada = await Company.create({
@@ -97,20 +148,43 @@ async function createCompany(req, res) {
       plan_id
     );
 
-    // Crear rol administrador
-    const nuevoRol = await Role.create({
+    // ===== NUEVO SISTEMA: NO CREAR ROLES DUPLICADOS =====
+    // En el nuevo sistema, los roles predeterminados están en la tabla roles_plantilla
+    // Solo necesitamos obtener el rol de Administrador de la plantilla para asignárselo al usuario
+
+    const RolePlantilla = require('../models/rolePlantilla.model');
+
+    // Buscar la plantilla de Administrador para este tipo de empresa
+    const plantillaAdministrador = await RolePlantilla.findByNombreYTipo(
+      'Administrador',
+      tipo_empresa_id
+    );
+
+    if (!plantillaAdministrador) {
+      throw new Error('No se encontró la plantilla de rol Administrador para este tipo de empresa');
+    }
+
+    // En el nuevo sistema, los usuarios pueden tener roles de plantilla o personalizados
+    // Por ahora, creamos un "rol virtual" que apunte a la plantilla
+    // O modificamos la estructura para que usuarios puedan apuntar directamente a plantillas
+
+    // OPCIÓN TEMPORAL: Crear solo el rol de Administrador para este usuario
+    const rolAdministrador = await Role.create({
       empresa_id: empresaGuardada.empresa_id,
       nombre_rol: 'Administrador',
-      permisos: { full_access: true },
+      permisos: plantillaAdministrador.permisos,
       es_predeterminado: true,
       estado: 'activo',
+      plantilla_id_origen: plantillaAdministrador.plantilla_id,
     });
 
-    // Crear usuario
+    console.log('✅ Empresa creada con sistema de plantillas. Solo se creó rol de Administrador.');
+
+    // Crear usuario con rol de Administrador
     const nuevoUsuario = await User.create({
       uid: firebaseUser.uid,
       empresa_id: empresaGuardada.empresa_id,
-      rol_id: nuevoRol.rol_id,
+      rol_id: rolAdministrador.rol_id,
       nombre_completo,
       email,
       estado: 'activo',
@@ -120,8 +194,12 @@ async function createCompany(req, res) {
       empresa: empresaGuardada,
       usuario: nuevoUsuario,
       subscription: subscriptionResult,
+      rol_administrador: rolAdministrador,
+      plantillas_disponibles: await RolePlantilla.findByTipoEmpresa(tipo_empresa_id),
+      mensaje: `Empresa creada exitosamente. Usando sistema de plantillas de roles.`,
     });
   } catch (err) {
+    console.error('Error al crear empresa:', err);
     if (firebaseUser && firebaseUser.success) {
       await firebaseAuth.deleteUser(firebaseUser.uid);
     }
@@ -187,24 +265,64 @@ async function deleteCompany(req, res) {
 async function changePlan(req, res) {
   try {
     const { planId } = req.body;
-    const empresa = await Company.findByIdAndUpdate(req.params.empresa_id, { plan_id: planId });
-    if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada.' });
-    res.json({ mensaje: 'Plan cambiado correctamente.', empresa });
+
+    // ===== VALIDACIONES =====
+    if (!planId) {
+      return res.status(400).json({ error: 'El campo planId es requerido.' });
+    }
+
+    // Validar que el plan exista
+    const Plan = require('../models/plan.model');
+    const plan = await Plan.findById(planId);
+    if (!plan) {
+      return res.status(404).json({ error: `Plan con ID ${planId} no encontrado.` });
+    }
+
+    // Validar que la empresa exista
+    const empresa = await Company.findById(req.params.empresa_id);
+    if (!empresa) {
+      return res.status(404).json({ error: 'Empresa no encontrada.' });
+    }
+
+    const empresaActualizada = await Company.findByIdAndUpdate(req.params.empresa_id, {
+      plan_id: planId,
+    });
+    res.json({ mensaje: 'Plan cambiado correctamente.', empresa: empresaActualizada });
   } catch (err) {
-    res.status(400).json({ error: 'Error al cambiar el plan de la empresa.' });
+    console.error('Error al cambiar plan:', err);
+    res
+      .status(400)
+      .json({ error: 'Error al cambiar el plan de la empresa.', details: err.message });
   }
 }
 
 async function updateSubscriptionStatus(req, res) {
   try {
     const { status } = req.body;
+
+    // ===== VALIDACIONES =====
+    if (!status) {
+      return res.status(400).json({ error: 'El campo status es requerido.' });
+    }
+
+    // Validar valores de estado de suscripción
+    const estadosValidos = ['en_prueba', 'activa', 'expirada', 'cancelada', 'suspendida'];
+    if (!estadosValidos.includes(status)) {
+      return res.status(400).json({
+        error: `Estado de suscripción no válido. Valores permitidos: ${estadosValidos.join(', ')}`,
+      });
+    }
+
     const empresa = await Company.findByIdAndUpdate(req.params.empresa_id, {
       estado_suscripcion: status,
     });
     if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada.' });
     res.json({ mensaje: 'Estado de suscripción actualizado.', empresa });
   } catch (err) {
-    res.status(400).json({ error: 'Error al actualizar el estado de suscripción.' });
+    console.error('Error al actualizar estado de suscripción:', err);
+    res
+      .status(400)
+      .json({ error: 'Error al actualizar el estado de suscripción.', details: err.message });
   }
 }
 
@@ -230,17 +348,56 @@ async function createCompanyType(req, res) {
 async function uploadCompanyLogo(req, res) {
   try {
     const empresaId = req.params.empresa_id;
+
+    // Validación: archivo requerido
     if (!req.file) {
       return res.status(400).json({ error: 'No se recibió ningún archivo.' });
     }
+
+    // Validación: verificar que la empresa exista
+    const empresa = await Company.findById(empresaId);
+    if (!empresa) {
+      // Eliminar archivo temporal si la empresa no existe
+      if (req.file.path) {
+        fs.unlink(req.file.path, () => {});
+      }
+      return res.status(404).json({ error: 'Empresa no encontrada.' });
+    }
+
+    // Validación: tipo de archivo (solo imágenes)
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!allowedMimeTypes.includes(req.file.mimetype)) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP).',
+      });
+    }
+
+    // Validación: tamaño máximo (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (req.file.size > maxSize) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(400).json({
+        error: 'El archivo es demasiado grande. Tamaño máximo: 5MB.',
+      });
+    }
+
+    // Subir a Cloudinary
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'company_logos',
       public_id: `empresa_${empresaId}_logo`,
       overwrite: true,
+      transformation: [
+        { width: 500, height: 500, crop: 'limit' },
+        { quality: 'auto' },
+        { fetch_format: 'auto' },
+      ],
     });
+
+    // Eliminar archivo temporal
     fs.unlink(req.file.path, () => {});
-    const empresa = await Company.findById(empresaId);
-    if (!empresa) return res.status(404).json({ error: 'Empresa no encontrada.' });
+
+    // Actualizar base de datos
     let ajustesObj = empresa.ajustes;
     if (typeof ajustesObj === 'string') {
       try {
@@ -249,15 +406,27 @@ async function uploadCompanyLogo(req, res) {
         ajustesObj = {};
       }
     }
+
     ajustesObj.identidad_visual = ajustesObj.identidad_visual || {};
     ajustesObj.identidad_visual.logo_url = result.secure_url;
+
     await Company.findByIdAndUpdate(empresaId, {
       ajustes: JSON.stringify(ajustesObj),
       logo_url: result.secure_url,
       logo_public_id: result.public_id,
     });
-    res.json({ logo_url: result.secure_url, logo_public_id: result.public_id });
+
+    res.json({
+      logo_url: result.secure_url,
+      logo_public_id: result.public_id,
+      message: 'Logo subido exitosamente.',
+    });
   } catch (err) {
+    console.error('Error al subir logo:', err);
+    // Eliminar archivo temporal en caso de error
+    if (req.file && req.file.path) {
+      fs.unlink(req.file.path, () => {});
+    }
     res.status(500).json({ error: 'Error al subir el logo.', details: err.message });
   }
 }

@@ -19,6 +19,14 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Resetear el formulario cuando el modal se cierra
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+      setError(null);
+    }
+  }, [isOpen, resetForm]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -73,6 +81,7 @@ export const AddClientModal: React.FC<AddClientModalProps> = ({
 
   return (
     <Modal
+      message=''
       isOpen={isOpen}
       onClose={handleClose}
       title='Agregar Nuevo Cliente'

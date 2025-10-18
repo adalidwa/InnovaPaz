@@ -28,3 +28,4 @@ export { default as SalesNavigation } from './SalesNavigation';
 export { default as SearchProducts } from './SearchProducts';
 export { default as StatusTag } from './StatusTag';
 export { default as TabButton } from './TabButton';
+export { default as NewQuoteModal } from './NewQuoteModal';

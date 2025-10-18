@@ -2,17 +2,12 @@ import { useState, useEffect } from 'react';
 import { IoMail } from 'react-icons/io5';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
-import Select from '../../../components/common/Select';
 import Modal from '../../../components/common/Modal';
 import ProfileAvatarUpload from './ProfileAvatarUpload';
 import './PersonalInfoSection.css';
 import { useUser } from '../hooks/useContextBase.ts';
 
-const roleOptions = [
-  { value: 'admin', label: 'Administrador' },
-  { value: 'user', label: 'Usuario' },
-  { value: 'manager', label: 'Gerente' },
-];
+// Ya no necesitamos mapear - el backend envía directamente el nombre_rol
 
 function PersonalInfoSection() {
   const [formData, setFormData] = useState({
@@ -53,7 +48,7 @@ function PersonalInfoSection() {
           setFormData({
             fullName: data.usuario.nombre_completo || '',
             email: data.usuario.email || '',
-            role: data.usuario.rol_id || '',
+            role: data.usuario.rol || 'Sin rol', // Ahora usamos el nombre_rol directamente
           });
           setAvatarUrl(data.usuario.avatar_url || null);
         }
@@ -137,7 +132,7 @@ function PersonalInfoSection() {
           </div>
           <div className='avatar-info'>
             <h3 className='user-name'>{formData.fullName}</h3>
-            <p className='user-role'>{roleOptions.find((r) => r.value === formData.role)?.label}</p>
+            <p className='user-role'>{formData.role}</p>
           </div>
         </div>
 
@@ -169,13 +164,7 @@ function PersonalInfoSection() {
               <div className='field-note'>El correo electrónico no puede ser modificado</div>
             </div>
             <div className='form-field'>
-              <Select
-                label='Rol Asignado'
-                value={formData.role}
-                onChange={(e) => handleInputChange('role', e.target.value)}
-                options={roleOptions}
-                disabled={true}
-              />
+              <Input label='Rol Asignado' value={formData.role} disabled={true} />
               <div className='field-note'>Asignado por administrador</div>
             </div>
           </div>

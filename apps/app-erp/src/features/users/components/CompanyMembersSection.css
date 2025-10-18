@@ -1,5 +1,5 @@
 .company-members-card {
-  background: var(--white);
+  background: var(--content-bg);
   border: 1px solid var(--pri-200);
   border-radius: 8px;
   padding: 1rem 1.25rem 1.2rem;
@@ -35,7 +35,7 @@
   line-height: 1;
   letter-spacing: 0.25px;
   background: var(--pri-200);
-  color: var(--pri-700);
+  color: var(--content-text);
   font-family: var(--font);
 }
 
@@ -59,7 +59,7 @@
   justify-content: center;
   border-radius: 6px;
   border: 1px solid var(--pri-300);
-  background: var(--white);
+  background: var(--content-bg);
   cursor: pointer;
   color: var(--pri-500);
   transition:
@@ -69,9 +69,9 @@
 }
 
 .icon-action-btn:hover {
-  background: var(--bg-100);
+  background: var(--pri-100);
   border-color: var(--pri-400);
-  color: var(--pri-800);
+  color: var(--content-text);
 }
 
 .icon-action-btn:active {
@@ -133,7 +133,7 @@
   text-align: left;
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--pri-900);
+  color: var(--content-text);
   margin: 0;
   font-family: var(--font);
 }

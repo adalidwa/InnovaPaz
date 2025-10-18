@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, Button, Input } from '../../../components/common';
 import { useClientForm, useClients } from '../hooks/hooks';
+import SalesService from '../services/salesService';
 import type { Client } from '../types';
 
 interface ClientModalProps {
@@ -17,10 +18,25 @@ export const ClientModal: React.FC<ClientModalProps> = ({
   onSuccess,
 }) => {
   const isEditMode = !!client;
-  const { form, handleFormInputChange, resetForm, loadClient } = useClientForm();
+  const { form, handleFormInputChange, resetForm, loadClient, updateField } = useClientForm();
   const { addClient, updateClient, validateClient } = useClients();
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [categories, setCategories] = React.useState<any[]>([]);
+
+  // Cargar categorías disponibles
+  React.useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const cats = await SalesService.getAllCategories();
+        console.log('Categorías cargadas:', cats);
+        setCategories(cats);
+      } catch (err) {
+        console.error('Error cargando categorías:', err);
+      }
+    };
+    loadCategories();
+  }, []);
 
   // Cargar datos del cliente cuando se abre en modo edición
   React.useEffect(() => {
@@ -77,8 +93,23 @@ export const ClientModal: React.FC<ClientModalProps> = ({
     }
   };
 
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    console.log('Valor seleccionado (raw):', value);
+
+    if (value === '' || value === 'undefined') {
+      console.log('Estableciendo categoryId como undefined');
+      updateField('categoryId', undefined);
+    } else {
+      const numValue = parseInt(value, 10);
+      console.log('Estableciendo categoryId como:', numValue);
+      updateField('categoryId', numValue);
+    }
+  };
+
   return (
     <Modal
+      message=''
       isOpen={isOpen}
       onClose={handleClose}
       title={isEditMode ? 'Editar Cliente' : 'Agregar Nuevo Cliente'}
@@ -237,17 +268,11 @@ export const ClientModal: React.FC<ClientModalProps> = ({
                 fontSize: '14px',
               }}
             >
-              Tipo de Cliente *
+              Categoría de Cliente
             </label>
             <select
-              value={form.type}
-              onChange={(e) => {
-                const event = {
-                  target: { value: e.target.value },
-                } as React.ChangeEvent<HTMLInputElement>;
-                handleFormInputChange('type')(event);
-              }}
-              required
+              value={form.categoryId || ''}
+              onChange={handleCategoryChange}
               disabled={isSubmitting}
               style={{
                 width: '100%',
@@ -259,9 +284,15 @@ export const ClientModal: React.FC<ClientModalProps> = ({
                 cursor: 'pointer',
               }}
             >
-              <option value='regular'>Cliente Regular</option>
-              <option value='corporate'>Empresa/Corporativo</option>
-              <option value='wholesale'>Cliente Mayorista</option>
+              <option value=''>Sin categoría</option>
+              {categories.map((cat) => (
+                <option
+                  key={cat.categoria_cliente_id || cat.id}
+                  value={cat.categoria_cliente_id || cat.id}
+                >
+                  {cat.nombre}
+                </option>
+              ))}
             </select>
           </div>
 

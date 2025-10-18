@@ -21,7 +21,9 @@ const PricingSection = () => {
     const fetchPlans = async () => {
       try {
         const fetchedPlans = await getPlans();
-        setPlans(fetchedPlans);
+        // Ordenar planes por plan_id para asegurar orden: Básico (1), Estándar (2), Premium (3)
+        const sortedPlans = fetchedPlans.sort((a, b) => a.plan_id - b.plan_id);
+        setPlans(sortedPlans);
       } catch (error) {
         console.error('Error cargando planes:', error);
       } finally {

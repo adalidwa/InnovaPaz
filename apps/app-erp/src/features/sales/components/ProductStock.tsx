@@ -36,7 +36,7 @@ function ProductStock({ stock, className = '' }: ProductStockProps) {
       width='auto'
       height={24}
       radius={6}
-      className={`product-card__stock-tag ${className}`}
+      className={`product-card-sales__stock-tag ${className}`}
     />
   );
 }
