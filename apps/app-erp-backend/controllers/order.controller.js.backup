@@ -159,126 +159,18 @@ class OrderController {
         return res.status(400).json({ message: 'Estado requerido' });
       }
 
-      const estadoIdInt = parseInt(estadoId);
-      const pedidoIdInt = parseInt(pedidoId);
+      const pedidoActualizado = await OrderModel.updateStatus(
+        parseInt(pedidoId),
+        empresaId,
+        parseInt(estadoId)
+      );
 
-      // Obtener el pedido con detalles antes de actualizar
-      const pedidoActual = await OrderModel.findByIdWithDetails(pedidoIdInt, empresaId);
-
-      if (!pedidoActual) {
+      if (!pedidoActualizado) {
         return res.status(404).json({ message: 'Pedido no encontrado' });
       }
 
-      // Verificar si ya está completado
-      if (pedidoActual.estado_pedido_id === 3) {
-        return res.status(400).json({
-          message: 'Este pedido ya está completado y no se puede modificar',
-        });
-      }
-
-      // Actualizar estado del pedido
-      const pedidoActualizado = await OrderModel.updateStatus(pedidoIdInt, empresaId, estadoIdInt);
-
-      // Si el nuevo estado es "Completado" (id=3), crear la venta
-      if (estadoIdInt === 3) {
-        const pool = require('../db');
-        const client = await pool.connect();
-
-        try {
-          await client.query('BEGIN');
-
-          // Verificar si ya existe una venta para este pedido
-          const existingVenta = await client.query(
-            'SELECT venta_id FROM ventas WHERE pedido_id = $1',
-            [pedidoIdInt]
-          );
-
-          if (existingVenta.rows.length === 0) {
-            // Generar número de venta
-            const countResult = await client.query(
-              'SELECT COUNT(*) as total FROM ventas WHERE empresa_id = $1',
-              [empresaId]
-            );
-            const numeroVenta = `VENTA-${new Date().getFullYear()}-${String(parseInt(countResult.rows[0].total) + 1).padStart(3, '0')}`;
-
-            // Crear venta
-            const ventaResult = await client.query(
-              `
-              INSERT INTO ventas (
-                numero_venta, cliente_id, vendedor_id, empresa_id, 
-                cotizacion_id, pedido_id, fecha_venta, hora_venta,
-                subtotal, impuesto, descuento, total,
-                metodo_pago_id, estado_venta_id, observaciones
-              ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()::time, $7, $8, $9, $10, $11, $12, $13)
-              RETURNING venta_id`,
-              [
-                numeroVenta,
-                pedidoActual.cliente_id,
-                pedidoActual.vendedor_id,
-                empresaId,
-                pedidoActual.cotizacion_id,
-                pedidoIdInt,
-                pedidoActual.subtotal,
-                pedidoActual.impuesto,
-                pedidoActual.descuento,
-                pedidoActual.total,
-                1, // Método de pago por defecto (ajustar según necesidad)
-                1, // Estado de venta "Pagada" o similar (ajustar según necesidad)
-                pedidoActual.observaciones,
-              ]
-            );
-
-            const ventaId = ventaResult.rows[0].venta_id;
-
-            // Obtener detalles del pedido
-            const detallesResult = await client.query(
-              'SELECT * FROM detalle_pedido WHERE pedido_id = $1',
-              [pedidoIdInt]
-            );
-
-            // Crear detalles de venta
-            for (const detalle of detallesResult.rows) {
-              await client.query(
-                `
-                INSERT INTO detalle_venta (
-                  venta_id, producto_id, cantidad, precio_unitario, subtotal, descuento
-                ) VALUES ($1, $2, $3, $4, $5, $6)`,
-                [
-                  ventaId,
-                  detalle.producto_id,
-                  detalle.cantidad,
-                  detalle.precio_unitario,
-                  detalle.subtotal,
-                  0, // descuento por línea (ajustar si es necesario)
-                ]
-              );
-            }
-
-            // Marcar pedido como completado
-            await client.query('UPDATE pedidos SET completado = true WHERE pedido_id = $1', [
-              pedidoIdInt,
-            ]);
-
-            console.log(
-              `✅ Venta ${numeroVenta} creada automáticamente para pedido ${pedidoActual.numero_pedido}`
-            );
-          }
-
-          await client.query('COMMIT');
-        } catch (error) {
-          await client.query('ROLLBACK');
-          console.error('Error al crear venta:', error);
-          throw error;
-        } finally {
-          client.release();
-        }
-      }
-
       res.json({
-        message:
-          estadoIdInt === 3
-            ? 'Pedido completado y venta registrada en el historial exitosamente'
-            : 'Estado del pedido actualizado exitosamente',
+        message: 'Estado del pedido actualizado exitosamente',
         pedido: pedidoActualizado,
       });
     } catch (error) {

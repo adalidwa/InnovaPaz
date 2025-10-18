@@ -23,6 +23,7 @@ function OrderDetailsModal({
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const isCompleted = order?.estadoId === 3; // Estado "Completado
 
   useEffect(() => {
     if (isOpen && orderId) {
@@ -172,6 +173,19 @@ function OrderDetailsModal({
                 <strong>{formatCurrency(order.total)}</strong>
               </div>
             </div>
+            {isCompleted && (
+              <p
+                style={{
+                  marginTop: '0.75rem',
+                  color: 'var(--success-600)',
+                  fontSize: '0.875rem',
+                  fontStyle: 'italic',
+                }}
+              >
+                Este pedido está completado y no se puede modificar su estado. La venta ha sido
+                registrada en el historial.
+              </p>
+            )}
           </div>
 
           {/* Observaciones */}
@@ -191,8 +205,9 @@ function OrderDetailsModal({
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 label='Cambiar Estado'
+                disabled={isCompleted}
               />
-              {selectedStatus !== order.estadoId.toString() && (
+              {!isCompleted && selectedStatus !== order.estadoId.toString() && (
                 <Button variant='primary' size='medium' onClick={handleStatusChange}>
                   Actualizar Estado
                 </Button>
