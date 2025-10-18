@@ -58,7 +58,7 @@ class OrderModel {
         ep.nombre as estado_nombre,
         cot.numero_cotizacion
       FROM pedidos p
-      LEFT JOIN clientes c ON p.cliente_id = c.cliente_id AND c.empresa_id = $1
+      LEFT JOIN clientes c ON p.cliente_id = c.cliente_id AND c.empresa_id = $2
       LEFT JOIN estado_pedido ep ON p.estado_pedido_id = ep.estado_pedido_id
       LEFT JOIN cotizaciones cot ON p.cotizacion_id = cot.cotizacion_id
       WHERE p.pedido_id = $1 AND p.empresa_id = $2`,

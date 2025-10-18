@@ -563,7 +563,7 @@ export class SalesService {
   ): Promise<any> {
     const response = await ApiService.put<ApiResponse<any>>(
       `/quotes/${quoteId}/status?empresaId=${empresaId}`,
-      { estadoId }
+      { estado_cotizacion_id: estadoId }
     );
     return response.data;
   }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useUser } from '../../users/hooks/useContextBase';
 import Modal from '../../../components/common/Modal';
 import SalesService from '../services/salesService';
 import './QuoteDetailsModal.css';
@@ -10,11 +11,12 @@ interface QuoteDetailsModalProps {
 }
 
 function QuoteDetailsModal({ isOpen, onClose, quoteId }: QuoteDetailsModalProps) {
+  const { user } = useUser();
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const empresaId = localStorage.getItem('empresaId') || '5dc644b0-3ce9-4c41-a83d-c7da2962214d';
+  const empresaId = user?.empresa_id || '';
 
   useEffect(() => {
     if (isOpen && quoteId) {
@@ -29,41 +31,32 @@ function QuoteDetailsModal({ isOpen, onClose, quoteId }: QuoteDetailsModalProps)
       const data = await SalesService.getQuoteById(parseInt(quoteId), empresaId);
       setQuote(data);
     } catch (err: any) {
-      console.error('Error al cargar detalles:', err);
+      console.error('Error al cargar detalles de cotización:', err);
       setError('Error al cargar los detalles de la cotización');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-BO', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const getStatusBadgeClass = (status: string) => {
+  const getStatusClass = (estado: string) => {
     const statusMap: Record<string, string> = {
-      Pendiente: 'quote-details__status--pending',
-      Aprobada: 'quote-details__status--approved',
-      Rechazada: 'quote-details__status--rejected',
-      Convertida: 'quote-details__status--converted',
+      Pendiente: 'pending',
+      Aprobada: 'approved',
+      Rechazada: 'rejected',
+      Convertida: 'converted',
     };
-    return statusMap[status] || 'quote-details__status--pending';
+    return statusMap[estado] || 'pending';
   };
 
   if (!isOpen) return null;
 
   return (
     <Modal
-      message=''
       isOpen={isOpen}
       onClose={onClose}
-      title='Detalles de Cotización'
+      title='Detalle de Cotización'
       size='large'
-      showConfirmButton={false}
+      message={''}
     >
       <div className='quote-details'>
         {loading && (
@@ -80,44 +73,46 @@ function QuoteDetailsModal({ isOpen, onClose, quoteId }: QuoteDetailsModalProps)
 
         {!loading && !error && quote && (
           <>
-            {/* Header con información principal */}
+            {/* Header */}
             <div className='quote-details__header'>
               <div className='quote-details__header-left'>
                 <h3>{quote.numero_cotizacion}</h3>
-                <span className={`quote-details__status ${getStatusBadgeClass(quote.estado)}`}>
-                  {quote.estado}
+                <span
+                  className={`quote-details__status quote-details__status--${getStatusClass(
+                    quote.estado
+                  )}`}
+                >
+                  {quote.estado || 'Pendiente'}
                 </span>
               </div>
               <div className='quote-details__header-right'>
                 <div className='quote-details__total'>
                   <span className='quote-details__total-label'>Total</span>
                   <span className='quote-details__total-amount'>
-                    Bs. {parseFloat(quote.total).toFixed(2)}
+                    Bs. {parseFloat(quote.total || 0).toFixed(2)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Información del cliente */}
+            {/* Información del Cliente */}
             <div className='quote-details__section'>
               <h4>Información del Cliente</h4>
               <div className='quote-details__info-grid'>
                 <div className='quote-details__info-item'>
-                  <span className='quote-details__info-label'>Cliente:</span>
-                  <span className='quote-details__info-value'>{quote.cliente_nombre}</span>
+                  <span className='quote-details__info-label'>Cliente</span>
+                  <span className='quote-details__info-value'>{quote.cliente_nombre || 'N/A'}</span>
                 </div>
-                {quote.cliente_email && (
-                  <div className='quote-details__info-item'>
-                    <span className='quote-details__info-label'>Email:</span>
-                    <span className='quote-details__info-value'>{quote.cliente_email}</span>
-                  </div>
-                )}
-                {quote.cliente_telefono && (
-                  <div className='quote-details__info-item'>
-                    <span className='quote-details__info-label'>Teléfono:</span>
-                    <span className='quote-details__info-value'>{quote.cliente_telefono}</span>
-                  </div>
-                )}
+                <div className='quote-details__info-item'>
+                  <span className='quote-details__info-label'>Email</span>
+                  <span className='quote-details__info-value'>{quote.cliente_email || 'N/A'}</span>
+                </div>
+                <div className='quote-details__info-item'>
+                  <span className='quote-details__info-label'>Teléfono</span>
+                  <span className='quote-details__info-value'>
+                    {quote.cliente_telefono || 'N/A'}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -126,71 +121,90 @@ function QuoteDetailsModal({ isOpen, onClose, quoteId }: QuoteDetailsModalProps)
               <h4>Fechas</h4>
               <div className='quote-details__info-grid'>
                 <div className='quote-details__info-item'>
-                  <span className='quote-details__info-label'>Fecha de emisión:</span>
+                  <span className='quote-details__info-label'>Fecha de Cotización</span>
                   <span className='quote-details__info-value'>
-                    {formatDate(quote.fecha_cotizacion)}
+                    {new Date(quote.fecha_cotizacion).toLocaleDateString('es-BO', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
                   </span>
                 </div>
                 <div className='quote-details__info-item'>
-                  <span className='quote-details__info-label'>Válida hasta:</span>
+                  <span className='quote-details__info-label'>Válida hasta</span>
                   <span className='quote-details__info-value'>
-                    {formatDate(quote.fecha_validez)}
+                    {new Date(quote.fecha_validez).toLocaleDateString('es-BO', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Productos */}
-            {quote.productos && quote.productos.length > 0 && (
-              <div className='quote-details__section'>
-                <h4>Productos</h4>
-                <div className='quote-details__products'>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Producto</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unit.</th>
-                        <th>Descuento</th>
-                        <th>Subtotal</th>
+            <div className='quote-details__section'>
+              <h4>Productos</h4>
+              <div className='quote-details__products'>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th style={{ textAlign: 'center' }}>Cantidad</th>
+                      <th style={{ textAlign: 'right' }}>Precio Unit.</th>
+                      <th style={{ textAlign: 'right' }}>Descuento</th>
+                      <th style={{ textAlign: 'right' }}>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {quote.productos?.map((product: any, index: number) => (
+                      <tr key={index}>
+                        <td>
+                          <div>
+                            <strong>{product.producto_nombre || product.name}</strong>
+                            {product.producto_codigo && (
+                              <div>
+                                <small>Código: {product.producto_codigo}</small>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>{product.cantidad}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          Bs. {parseFloat(product.precio_unitario || 0).toFixed(2)}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {parseFloat(product.descuento || 0) > 0
+                            ? `- Bs. ${parseFloat(product.descuento).toFixed(2)}`
+                            : '-'}
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          <strong>Bs. {parseFloat(product.subtotal || 0).toFixed(2)}</strong>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {quote.productos.map((producto: any, index: number) => (
-                        <tr key={index}>
-                          <td>
-                            <strong>{producto.producto_nombre}</strong>
-                            <br />
-                            <small>{producto.producto_codigo}</small>
-                          </td>
-                          <td>{producto.cantidad}</td>
-                          <td>Bs. {parseFloat(producto.precio_unitario).toFixed(2)}</td>
-                          <td>Bs. {parseFloat(producto.descuento || 0).toFixed(2)}</td>
-                          <td>
-                            <strong>Bs. {parseFloat(producto.subtotal).toFixed(2)}</strong>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            )}
+            </div>
 
             {/* Totales */}
             <div className='quote-details__section'>
               <div className='quote-details__totals'>
                 <div className='quote-details__total-row'>
                   <span>Subtotal:</span>
-                  <span>Bs. {parseFloat(quote.subtotal).toFixed(2)}</span>
+                  <span>Bs. {parseFloat(quote.subtotal || 0).toFixed(2)}</span>
                 </div>
-                {parseFloat(quote.descuento) > 0 && (
+                {parseFloat(quote.descuento || 0) > 0 && (
                   <div className='quote-details__total-row'>
                     <span>Descuento:</span>
-                    <span>- Bs. {parseFloat(quote.descuento).toFixed(2)}</span>
+                    <span style={{ color: 'var(--danger)' }}>
+                      - Bs. {parseFloat(quote.descuento).toFixed(2)}
+                    </span>
                   </div>
                 )}
-                {parseFloat(quote.impuesto) > 0 && (
+                {parseFloat(quote.impuesto || 0) > 0 && (
                   <div className='quote-details__total-row'>
                     <span>Impuesto:</span>
                     <span>Bs. {parseFloat(quote.impuesto).toFixed(2)}</span>
@@ -198,7 +212,7 @@ function QuoteDetailsModal({ isOpen, onClose, quoteId }: QuoteDetailsModalProps)
                 )}
                 <div className='quote-details__total-row quote-details__total-final'>
                   <span>Total:</span>
-                  <strong>Bs. {parseFloat(quote.total).toFixed(2)}</strong>
+                  <span>Bs. {parseFloat(quote.total || 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -207,7 +221,7 @@ function QuoteDetailsModal({ isOpen, onClose, quoteId }: QuoteDetailsModalProps)
             {quote.observaciones && (
               <div className='quote-details__section'>
                 <h4>Observaciones</h4>
-                <p className='quote-details__observations'>{quote.observaciones}</p>
+                <div className='quote-details__observations'>{quote.observaciones}</div>
               </div>
             )}
           </>
