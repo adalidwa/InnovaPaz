@@ -66,10 +66,9 @@ const Header: React.FC = () => {
     navigate('/');
   };
 
-  // Nueva función para ir al ERP con lógica de redirección inteligente
   const handleGoToERP = () => {
-    setIsUserMenuOpen(false); // Cerrar menú de usuario si está abierto
-    goToERP(); // Usar la nueva función que maneja la lógica de redirección
+    setIsUserMenuOpen(false);
+    goToERP();
   };
 
   useEffect(() => {
@@ -133,7 +132,8 @@ const Header: React.FC = () => {
                 </div>
                 {isUserMenuOpen && (
                   <div className='header__user-menu'>
-                    {user.empresa_id && ( // Mostrar solo si el usuario tiene una empresa
+                    {/* Solo mostrar el botón Ir al ERP si el usuario lo solicita explícitamente */}
+                    {user.empresa_id && (
                       <button className='header__menu-item' onClick={handleGoToERP}>
                         Ir al ERP
                       </button>

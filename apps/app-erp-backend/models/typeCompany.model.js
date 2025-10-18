@@ -2,8 +2,8 @@ const pool = require('../db');
 
 class TypeCompany {
   static normalizeTypeValue(tipoEmpresa) {
-    const value = tipoEmpresa.toLowerCase();
-    if (['ferreteria', 'licoreria', 'minimarket'].includes(value)) {
+    const value = tipoEmpresa.trim();
+    if (['Ferreteria', 'Licoreria', 'Minimarket'].includes(value)) {
       return value;
     }
     return value;

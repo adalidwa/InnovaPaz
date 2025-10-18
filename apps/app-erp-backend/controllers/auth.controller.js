@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const pool = require('../db');
 const User = require('../models/user.model');
 const Company = require('../models/company.model');
 const Role = require('../models/role.model');
@@ -196,6 +197,9 @@ async function loginUser(req, res) {
         .json({ error: 'Token de Firebase inválido.', details: decodedFirebaseToken.error });
     }
 
+    console.log('🔍 Login Debug - Firebase UID:', decodedFirebaseToken.uid);
+    console.log('🔍 Login Debug - Firebase Email:', decodedFirebaseToken.email);
+
     // Obtener usuario con el nombre del rol mediante JOIN
     const result = await pool.query(
       `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
@@ -205,6 +209,11 @@ async function loginUser(req, res) {
        WHERE u.uid = $1`,
       [decodedFirebaseToken.uid]
     );
+
+    console.log('🔍 Login Debug - Query result rows:', result.rows.length);
+    if (result.rows.length > 0) {
+      console.log('🔍 Login Debug - Usuario encontrado:', result.rows[0].email);
+    }
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Usuario no encontrado en la base de datos local.' });
@@ -470,8 +479,21 @@ async function verifyFirebaseToken(req, res, next) {
 // Endpoint protegido usando el nuevo middleware
 async function getMe(req, res) {
   try {
-    const usuario = await User.findOne({ uid: req.user.uid });
-    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    // Obtener usuario con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, u.estado, 
+              u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [req.user.uid]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    const usuario = result.rows[0];
 
     res.json({
       usuario: {
@@ -479,11 +501,15 @@ async function getMe(req, res) {
         nombre_completo: usuario.nombre_completo,
         email: usuario.email,
         rol_id: usuario.rol_id,
+        rol: usuario.nombre_rol || 'Sin rol', // Incluir el nombre del rol
         empresa_id: usuario.empresa_id,
+        estado: usuario.estado,
+        preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,
       },
     });
   } catch (err) {
+    console.error('Error en getMe:', err);
     res.status(500).json({ error: 'Error al obtener el usuario.' });
   }
 }
@@ -598,17 +624,25 @@ async function syncSession(req, res) {
 
     const { uid } = decodedToken;
 
-    // Buscar usuario en PostgreSQL
-    const usuario = await User.findOne({ uid });
+    // Buscar usuario en PostgreSQL con el nombre del rol mediante JOIN
+    const result = await pool.query(
+      `SELECT u.uid, u.email, u.nombre_completo, u.empresa_id, u.rol_id, 
+              u.estado, u.preferencias, u.avatar_url, r.nombre_rol
+       FROM usuarios u
+       LEFT JOIN roles r ON u.rol_id = r.rol_id
+       WHERE u.uid = $1`,
+      [uid]
+    );
 
-    if (!usuario) {
+    if (result.rows.length === 0) {
       return res.status(400).json({
         success: false,
         error: 'Usuario no encontrado',
       });
     }
 
-    // Verificar que tenga empresa asociada
+    const usuario = result.rows[0];
+
     if (!usuario.empresa_id) {
       return res.status(400).json({
         success: false,
@@ -640,7 +674,7 @@ async function syncSession(req, res) {
         estado: usuario.estado,
         preferencias: usuario.preferencias,
         avatar_url: usuario.avatar_url || null,
-        rol: usuario.rol || 'Usuario',
+        rol: usuario.nombre_rol || 'Sin rol', // Usar nombre_rol del JOIN
       },
     });
   } catch (error) {
@@ -655,9 +689,9 @@ async function syncSession(req, res) {
 module.exports = {
   loginDirect,
   loginUser,
-  googleAuth, // Nuevo export
-  googleLoginERP, // Export de la nueva función
-  syncSession, // Nueva función de sincronización
+  googleAuth,
+  googleLoginERP,
+  syncSession,
   verifyToken,
   verifyTokenEndpoint,
   registerUser,

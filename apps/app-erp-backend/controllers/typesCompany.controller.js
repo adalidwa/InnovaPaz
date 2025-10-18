@@ -1,4 +1,5 @@
 const TypeCompany = require('../models/typeCompany.model');
+const { validadores, TIPOS_EMPRESA_ARRAY } = require('../utils/constants');
 
 async function getAllTypes(req, res) {
   try {
@@ -34,6 +35,13 @@ async function createType(req, res) {
       return res.status(400).json({ error: 'El tipo de empresa no puede exceder 100 caracteres.' });
     }
 
+    // Validación: tipo permitido
+    if (!validadores.isTipoEmpresaValido(tipo_empresa)) {
+      return res.status(400).json({
+        error: `Tipo de empresa no válido. Tipos permitidos: ${TIPOS_EMPRESA_ARRAY.join(', ')}`,
+      });
+    }
+
     const nuevoTipo = await TypeCompany.create({ tipo_empresa });
     res.status(201).json(nuevoTipo);
   } catch (err) {
@@ -54,6 +62,13 @@ async function updateType(req, res) {
     // Validación: longitud máxima
     if (tipo_empresa.length > 100) {
       return res.status(400).json({ error: 'El tipo de empresa no puede exceder 100 caracteres.' });
+    }
+
+    // Validación: tipo permitido
+    if (!validadores.isTipoEmpresaValido(tipo_empresa)) {
+      return res.status(400).json({
+        error: `Tipo de empresa no válido. Tipos permitidos: ${TIPOS_EMPRESA_ARRAY.join(', ')}`,
+      });
     }
 
     const tipoActualizado = await TypeCompany.findByIdAndUpdate(req.params.tipo_id, {

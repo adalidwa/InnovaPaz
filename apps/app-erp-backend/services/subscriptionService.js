@@ -35,17 +35,20 @@ class SubscriptionService {
           fechaFinPrueba: fechaFinPrueba,
         };
       } else {
-        // Sin prueba gratuita, requiere pago inmediato
+        // Sin prueba gratuita, activar directamente
+        const fechaFinPeriodo = new Date(now);
+        fechaFinPeriodo.setDate(fechaFinPeriodo.getDate() + 30); // 30 días activo
+
         await Company.findByIdAndUpdate(empresaId, {
-          estado_suscripcion: 'pendiente_pago',
+          estado_suscripcion: 'activa',
           fecha_fin_prueba: null,
-          fecha_fin_periodo_actual: null,
+          fecha_fin_periodo_actual: fechaFinPeriodo,
         });
 
         return {
-          status: 'pendiente_pago',
-          mensaje: 'Se requiere pago para activar la suscripción',
-          requierePago: true,
+          status: 'activa',
+          mensaje: 'Suscripción activada directamente',
+          fechaFinPeriodo: fechaFinPeriodo,
         };
       }
     } catch (error) {

@@ -413,9 +413,9 @@ const validadores = {
   isEstadoRolValido: (estado) => ESTADOS_ROL_ARRAY.includes(estado),
 
   /**
-   * Valida si un tipo de empresa es válido
+   * Verifica si el tipo de empresa es válido
    */
-  isTipoEmpresaValido: (tipo) => TIPOS_EMPRESA_ARRAY.includes(tipo.toLowerCase()),
+  isTipoEmpresaValido: (tipo) => TIPOS_EMPRESA_ARRAY.includes(tipo),
 
   /**
    * Valida formato de email

@@ -138,13 +138,13 @@ function CompanyGeneralSection() {
               } else if (dataEmpresa.empresa.tipo_empresa_id) {
                 switch (dataEmpresa.empresa.tipo_empresa_id) {
                   case 1:
-                    tipoNegocioValue = 'ferreteria';
+                    tipoNegocioValue = 'minimarket';
                     break;
                   case 2:
-                    tipoNegocioValue = 'licoreria';
+                    tipoNegocioValue = 'ferreteria';
                     break;
                   case 3:
-                    tipoNegocioValue = 'minimarket';
+                    tipoNegocioValue = 'licoreria';
                     break;
                   default:
                     tipoNegocioValue = '';

@@ -36,7 +36,7 @@ export interface SubscriptionInfo {
     };
   };
   suscripcion: {
-    estado: 'en_prueba' | 'activa' | 'expirada' | 'cancelada' | 'suspendida' | 'pendiente_pago';
+    estado: 'en_prueba' | 'activa' | 'expirada' | 'cancelada' | 'suspendida';
     fechaExpiracion: string | null;
     diasRestantes: number;
     enPeriodoPrueba: boolean;
@@ -299,7 +299,6 @@ export const subscriptionHelpers = {
       expirada: 'Expirada',
       cancelada: 'Cancelada',
       suspendida: 'Suspendida',
-      pendiente_pago: 'Pendiente de Pago',
     };
     return estados[estado] || 'Desconocido';
   },
@@ -314,7 +313,6 @@ export const subscriptionHelpers = {
       expirada: 'status-expired',
       cancelada: 'status-canceled',
       suspendida: 'status-suspended',
-      pendiente_pago: 'status-pending',
     };
     return classes[estado] || 'status-unknown';
   },
