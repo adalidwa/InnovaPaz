@@ -22,7 +22,17 @@ interface StatusListCardProps {
   items: StatusListItem[];
   buttonLabel?: string;
   onButtonClick?: () => void;
-  buttonVariant?: string;
+  buttonVariant?:
+    | 'primary'
+    | 'secondary'
+    | 'warning'
+    | 'success'
+    | 'outline'
+    | 'accent'
+    | 'table-primary'
+    | 'table-secondary'
+    | 'table-success'
+    | 'table-danger';
   buttonClassName?: string;
 }
 

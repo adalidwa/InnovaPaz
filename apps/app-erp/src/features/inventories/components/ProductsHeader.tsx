@@ -4,8 +4,8 @@ import Button from '../../../components/common/Button';
 interface ProductsHeaderProps {
   title: string;
   subtitle: string;
-  buttonText: string;
-  buttonVariant: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent' | 'ghost';
+  buttonText?: string;
+  buttonVariant?: 'primary' | 'secondary' | 'warning' | 'success' | 'outline' | 'accent';
   hasIcon?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
@@ -28,17 +28,19 @@ function ProductsHeader({
         <h1>{title}</h1>
         <p>{subtitle}</p>
       </div>
-      <div>
-        <Button
-          variant={buttonVariant}
-          size='medium'
-          icon={hasIcon ? icon : undefined}
-          iconPosition={iconPosition}
-          onClick={onButtonClick}
-        >
-          {buttonText}
-        </Button>
-      </div>
+      {buttonText && buttonVariant && (
+        <div>
+          <Button
+            variant={buttonVariant}
+            size='medium'
+            icon={hasIcon ? icon : undefined}
+            iconPosition={iconPosition}
+            onClick={onButtonClick}
+          >
+            {buttonText}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

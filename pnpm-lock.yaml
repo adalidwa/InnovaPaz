@@ -13,6 +13,9 @@ importers:
       prop-types:
         specifier: ^15.8.1
         version: 15.8.1
+      react-easy-crop:
+        specifier: ^5.5.3
+        version: 5.5.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react-icons:
         specifier: ^5.5.0
         version: 5.5.0(react@19.1.1)
