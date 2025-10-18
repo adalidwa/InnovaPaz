@@ -107,6 +107,21 @@ class SaleModel {
     try {
       await client.query('BEGIN');
 
+      // Extraer variables primero antes de usarlas
+      const {
+        cliente_id,
+        empresa_id,
+        vendedor_id,
+        subtotal,
+        impuesto,
+        total,
+        metodo_pago_id,
+        estado_venta_id,
+        descuento,
+        observaciones,
+        numero_factura,
+      } = ventaData;
+
       // Validar que todos los productos pertenezcan a la empresa
       if (detalles && detalles.length > 0) {
         const productIds = detalles.map((d) => d.producto_id);
@@ -131,20 +146,6 @@ class SaleModel {
           throw new Error('El cliente no pertenece a esta empresa');
         }
       }
-
-      const {
-        cliente_id,
-        empresa_id,
-        vendedor_id,
-        subtotal,
-        impuesto,
-        total,
-        metodo_pago_id,
-        estado_venta_id,
-        descuento,
-        observaciones,
-        numero_factura,
-      } = ventaData;
 
       // Generar número de venta
       const numeroVentaResult = await client.query(
