@@ -177,96 +177,14 @@ class QuoteModel {
   }
 
   // Marcar cotización como convertida a pedido
-  // Marcar cotización como convertida a pedido y crear el pedido
   static async markAsConverted(cotizacionId, empresaId) {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-
-      // 1. Obtener datos de la cotización
-      const quoteResult = await client.query(
-        `SELECT * FROM cotizaciones WHERE cotizacion_id = $1 AND empresa_id = $2`,
-        [cotizacionId, empresaId]
-      );
-
-      if (quoteResult.rows.length === 0) {
-        throw new Error('Cotización no encontrada');
-      }
-
-      const quote = quoteResult.rows[0];
-
-      // 2. Verificar si ya está convertida
-      if (quote.convertida_pedido) {
-        throw new Error('La cotización ya ha sido convertida a pedido');
-      }
-
-      // 3. Obtener detalles de la cotización
-      const detailsResult = await client.query(
-        `SELECT * FROM detalle_cotizacion WHERE cotizacion_id = $1`,
-        [cotizacionId]
-      );
-
-      // 4. Generar número de pedido
-      const countResult = await client.query(
-        `SELECT COUNT(*) as total FROM pedidos WHERE empresa_id = $1`,
-        [empresaId]
-      );
-      const numeroPedido = `PED-${new Date().getFullYear()}-${String(parseInt(countResult.rows[0].total) + 1).padStart(3, '0')}`;
-
-      // 5. Obtener el estado "Pendiente" (id = 1)
-      const estadoPendienteId = 1;
-
-      // 6. Crear el pedido
-      const orderResult = await client.query(
-        `INSERT INTO pedidos (
-          numero_pedido, cliente_id, vendedor_id, empresa_id, cotizacion_id,
-          fecha_pedido, subtotal, impuesto, descuento, total,
-          estado_pedido_id, observaciones, completado
-        ) VALUES ($1, $2, $3, $4, $5, NOW(), $6, $7, $8, $9, $10, $11, false)
-        RETURNING *`,
-        [
-          numeroPedido,
-          quote.cliente_id,
-          quote.vendedor_id,
-          quote.empresa_id,
-          quote.cotizacion_id,
-          quote.subtotal,
-          quote.impuesto,
-          quote.descuento,
-          quote.total,
-          estadoPendienteId,
-          quote.observaciones,
-        ]
-      );
-
-      const pedidoId = orderResult.rows[0].pedido_id;
-
-      // 7. Crear detalles del pedido
-      for (const detail of detailsResult.rows) {
-        await client.query(
-          `INSERT INTO detalle_pedido (
-            pedido_id, producto_id, cantidad, precio_unitario, subtotal
-          ) VALUES ($1, $2, $3, $4, $5)`,
-          [pedidoId, detail.producto_id, detail.cantidad, detail.precio_unitario, detail.subtotal]
-        );
-      }
-
-      // 8. Marcar la cotización como convertida
-      await client.query(
-        `UPDATE cotizaciones SET convertida_pedido = true, estado_cotizacion_id = 4
-         WHERE cotizacion_id = $1`,
-        [cotizacionId]
-      );
-
-      await client.query('COMMIT');
-
-      return orderResult.rows[0];
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
+    const result = await pool.query(
+      `UPDATE cotizaciones SET convertida_pedido = true, estado_cotizacion_id = 4
+       WHERE cotizacion_id = $1 AND empresa_id = $2
+       RETURNING *`,
+      [cotizacionId, empresaId]
+    );
+    return result.rows[0];
   }
 
   // Eliminar cotización

@@ -30,6 +30,8 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/client-categories', categoriesRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/quotes', quotesRoutes);
+const orderRoutes = require('./routes/order.routes');
+app.use('/api', orderRoutes);
 
 app.use((err, req, res, next) => {
   return res.json({
