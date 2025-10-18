@@ -399,32 +399,20 @@ const getCriticalProducts = async (req, res, next) => {
   try {
     const { empresaId } = req.params;
 
-    // Query mejorada que incluye productos sin configuración de aprovisionamiento
+    // Query simplificada que solo usa la tabla producto
     const result = await pool.query(
-      `SELECT DISTINCT
+      `SELECT 
         p.producto_id,
         p.nombre_producto,
         p.stock,
-        COALESCE(a.stock_minimo, 0) as stock_minimo,
         COALESCE(c.nombre_categoria, 'Sin categoría') as categoria,
         p.imagen
       FROM producto p
-      LEFT JOIN aprovisionamiento a ON p.producto_id = a.producto_id
       LEFT JOIN categorias c ON p.categoria_id = c.categoria_id
       WHERE p.empresa_id = $1 
         AND (p.estado_id = 1 OR p.estado_id IS NULL)
-        AND (
-          (a.stock_minimo IS NOT NULL AND p.stock <= a.stock_minimo) OR
-          (a.stock_minimo IS NULL AND p.stock <= 10) OR
-          p.stock = 0
-        )
-      ORDER BY 
-        CASE 
-          WHEN p.stock = 0 THEN 0
-          WHEN a.stock_minimo IS NOT NULL THEN (p.stock::float / NULLIF(a.stock_minimo, 1))
-          ELSE (p.stock::float / 10)
-        END ASC,
-        p.stock ASC`,
+        AND p.stock <= 15
+      ORDER BY p.stock ASC`,
       [empresaId]
     );
 
@@ -459,24 +447,22 @@ const getDashboardMetrics = async (req, res, next) => {
         empresaId,
       ]),
 
-      // Productos críticos
+      // Productos críticos (stock <= 5)
       pool.query(
-        `SELECT COUNT(DISTINCT p.producto_id) as total 
-         FROM producto p 
-         INNER JOIN aprovisionamiento a ON p.producto_id = a.producto_id 
-         WHERE p.empresa_id = $1 AND p.stock <= a.stock_minimo AND p.estado_id = 1`,
+        `SELECT COUNT(*) as total 
+         FROM producto 
+         WHERE empresa_id = $1 AND stock <= 5 AND estado_id = 1`,
         [empresaId]
       ),
 
-      // Productos con stock bajo (entre mínimo y mínimo * 1.5)
+      // Productos con stock bajo (stock entre 6 y 15)
       pool.query(
-        `SELECT COUNT(DISTINCT p.producto_id) as total 
-         FROM producto p 
-         INNER JOIN aprovisionamiento a ON p.producto_id = a.producto_id 
-         WHERE p.empresa_id = $1 
-           AND p.stock > a.stock_minimo 
-           AND p.stock <= (a.stock_minimo * 1.5) 
-           AND p.estado_id = 1`,
+        `SELECT COUNT(*) as total 
+         FROM producto 
+         WHERE empresa_id = $1 
+           AND stock > 5 
+           AND stock <= 15 
+           AND estado_id = 1`,
         [empresaId]
       ),
 

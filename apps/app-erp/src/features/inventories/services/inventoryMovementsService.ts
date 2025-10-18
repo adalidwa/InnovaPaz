@@ -18,7 +18,6 @@ export interface ProductoCritico {
   producto_id: number;
   nombre_producto: string;
   stock: number;
-  stock_minimo: number;
   categoria: string;
   imagen?: string;
 }

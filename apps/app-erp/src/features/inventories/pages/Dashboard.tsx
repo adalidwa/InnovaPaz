@@ -21,6 +21,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const { config } = useCompanyConfig();
   const [showCriticalStockModal, setShowCriticalStockModal] = useState(false);
   const [showAllMovements, setShowAllMovements] = useState(false);
+  const [showAllCriticalProducts, setShowAllCriticalProducts] = useState(false);
   const [recentMovements, setRecentMovements] = useState<MovimientoInventario[]>([]);
   const [criticalProductsData, setCriticalProductsData] = useState<ProductoCritico[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,29 +122,33 @@ const Dashboard: React.FC<DashboardProps> = () => {
   // Convertir productos críticos de BD al formato esperado por StatusListCard
   const criticalProducts = criticalProductsData
     .sort((a, b) => {
-      // Ordenar por criticidad: stock agotado primero, luego por porcentaje de stock
-      const stockPercentageA = a.stock_minimo > 0 ? a.stock / a.stock_minimo : a.stock / 10;
-      const stockPercentageB = b.stock_minimo > 0 ? b.stock / b.stock_minimo : b.stock / 10;
-      return stockPercentageA - stockPercentageB;
+      // Ordenar por stock: productos con menos stock primero
+      return a.stock - b.stock;
     })
     .map((product) => {
-      const stockMinimo = product.stock_minimo || 0;
       const stockActual = product.stock || 0;
-      const stockPercentage = stockMinimo > 0 ? stockActual / stockMinimo : 0;
 
-      // Determinar nivel de criticidad
-      const isCritical = stockPercentage <= 0.1 || stockActual === 0; // Crítico si está al 10% o menos del mínimo
-      const isLow = stockPercentage > 0.1 && stockPercentage <= 0.5; // Bajo si está entre 10% y 50%
+      // Determinar nivel de criticidad basado solo en stock actual
+      let tagLabel = 'Normal';
+      let tagType: 'critico' | 'bajo' = 'bajo';
 
-      // Calcular días estimados de stock (asumiendo consumo diario promedio)
-      const diasEstimados =
-        stockActual > 0 ? Math.floor(stockActual / Math.max(1, stockMinimo * 0.1)) : 0;
+      if (stockActual === 0) {
+        tagLabel = 'Agotado';
+        tagType = 'critico';
+      } else if (stockActual <= 5) {
+        tagLabel = 'Crítico';
+        tagType = 'critico';
+      } else if (stockActual <= 15) {
+        tagLabel = 'Bajo';
+        tagType = 'bajo';
+      }
 
-      // Formatear información del stock
-      const stockInfo =
-        stockMinimo > 0
-          ? `${stockActual}/${stockMinimo} unidades`
-          : `${stockActual} unidades (sin mínimo definido)`;
+      // Calcular días estimados de stock (asumiendo consumo promedio de 1-2 unidades por día)
+      const consumoDiarioPromedio = 1.5;
+      const diasEstimados = stockActual > 0 ? Math.floor(stockActual / consumoDiarioPromedio) : 0;
+
+      // Formatear información del stock simplificada
+      const stockInfo = `${stockActual} unidades disponibles`;
 
       const tiempoEstimado =
         diasEstimados > 0 ? `~${diasEstimados} días de stock` : 'Stock agotado';
@@ -157,13 +162,17 @@ const Dashboard: React.FC<DashboardProps> = () => {
         title: product.nombre_producto,
         subtitle: `${stockInfo} • ${tiempoEstimado}${categoriaInfo}`,
         tag: {
-          label: isCritical ? 'Crítico' : isLow ? 'Bajo' : 'Normal',
-          type: isCritical ? ('critico' as const) : ('bajo' as const),
+          label: tagLabel,
+          type: tagType,
         },
         value: stockActual,
         hasIcon: true,
       };
     });
+
+  const displayedCriticalProducts = showAllCriticalProducts
+    ? criticalProducts
+    : criticalProducts.slice(0, 5);
 
   if (loading) {
     return (
@@ -225,8 +234,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
         <StatusListCard
           title={`Productos Críticos${criticalProducts.length > 0 ? ` (${criticalProducts.length})` : ''}`}
           items={
-            criticalProducts.length > 0
-              ? criticalProducts.slice(0, 5) // Mostrar máximo 5 productos críticos
+            displayedCriticalProducts.length > 0
+              ? displayedCriticalProducts
               : [
                   {
                     id: 'empty-critical',
@@ -237,16 +246,18 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 ]
           }
           buttonLabel={
-            criticalProducts.length > 0
-              ? criticalProducts.length > 5
-                ? `Ver todos (${criticalProducts.length})`
-                : 'Gestionar stock crítico'
+            criticalProducts.length > 5
+              ? showAllCriticalProducts
+                ? 'Ver menos'
+                : `Ver todos (${criticalProducts.length})`
               : undefined
           }
-          buttonVariant='warning'
-          buttonClassName='status-list-card__button--text-primary'
+          buttonVariant='secondary'
+          buttonClassName='status-list-card__button--blue-border'
           onButtonClick={
-            criticalProducts.length > 0 ? () => setShowCriticalStockModal(true) : undefined
+            criticalProducts.length > 5
+              ? () => setShowAllCriticalProducts(!showAllCriticalProducts)
+              : undefined
           }
         />
       </div>
