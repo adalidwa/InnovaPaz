@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { validateTokenAndLogin } from '../../services/authService';
+import { validateTokenAndLogin } from '../../features/users/services/authService';
 import type { User } from 'firebase/auth';
 
 interface AuthGuardProps {

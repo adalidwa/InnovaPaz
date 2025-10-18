@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal, Button, Input, Table, Pagination, StatusTag } from '../../../components/common';
-import { useHistory, useClients, formatCurrency, formatDate } from '../hooks/hooks';
+import { formatCurrency, formatDate } from '../utils';
+import { useClients } from '../hooks/hooks';
+import SalesService from '../services/salesService';
+import type { Sale } from '../types';
 
 interface ClientHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   clientId?: number | null;
+}
+
+interface HistoryItem {
+  date: string;
+  type: 'sale' | 'payment' | 'credit';
+  description: string;
+  amount: number;
+  status: 'completed' | 'pending' | 'cancelled';
 }
 
 export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
@@ -14,60 +25,167 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
   clientId,
 }) => {
   const { clients } = useClients();
-  const {
-    selectedClientId,
-    currentHistoryItems,
-    searchTerm,
-    currentPage,
-    totalPages,
-    getTotalAmount,
-    getStatusColor,
-    getTypeIcon,
-    getStatusText,
-    selectClient,
-    clearSelection,
-    handleSearchChange,
-    handlePageChange,
-  } = useHistory();
+  const [selectedClientId, setSelectedClientId] = useState<number | null>(clientId || null);
+  const [sales, setSales] = useState<Sale[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
-  // Si se pasa un clientId, seleccionarlo automáticamente
-  React.useEffect(() => {
-    if (clientId && clientId !== selectedClientId) {
-      selectClient(clientId);
+  // Cargar ventas del cliente seleccionado
+  useEffect(() => {
+    if (selectedClientId) {
+      loadClientSales(selectedClientId);
     }
-  }, [clientId, selectedClientId, selectClient]);
+  }, [selectedClientId]);
+
+  // Si se pasa un clientId como prop, seleccionarlo automáticamente
+  useEffect(() => {
+    if (clientId && clientId !== selectedClientId) {
+      setSelectedClientId(clientId);
+    }
+  }, [clientId]);
+
+  const loadClientSales = async (clientId: number) => {
+    try {
+      setLoading(true);
+      const clientSales = await SalesService.getSalesByClient(clientId);
+      setSales(clientSales);
+    } catch (error) {
+      console.error('Error al cargar ventas del cliente:', error);
+      setSales([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Convertir ventas a items de historial
+  const historyItems: HistoryItem[] = useMemo(() => {
+    return sales.map((sale) => ({
+      date: sale.date,
+      type: 'sale' as const,
+      description: `Venta #${sale.id} - ${sale.products.length} productos`,
+      amount: sale.total,
+      status: sale.status,
+    }));
+  }, [sales]);
+
+  // Filtrar items por búsqueda
+  const filteredItems = useMemo(() => {
+    if (!searchTerm) return historyItems;
+    const searchLower = searchTerm.toLowerCase();
+    return historyItems.filter(
+      (item) =>
+        item.description.toLowerCase().includes(searchLower) || item.date.includes(searchLower)
+    );
+  }, [historyItems, searchTerm]);
+
+  // Paginación
+  const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const currentHistoryItems = filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
+
+  const getTotalAmount = () => {
+    return filteredItems.reduce((sum, item) => sum + item.amount, 0);
+  };
+
+  const getStatusColor = (status: string): { text: string; bg: string } => {
+    switch (status) {
+      case 'completed':
+        return { text: 'var(--success)', bg: 'var(--success-bg)' };
+      case 'pending':
+        return { text: 'var(--warning)', bg: 'var(--warning-bg)' };
+      case 'cancelled':
+        return { text: 'var(--danger)', bg: 'var(--danger-bg)' };
+      default:
+        return { text: 'var(--gray-700)', bg: 'var(--gray-100)' };
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'sale':
+        return '💰';
+      case 'payment':
+        return '💳';
+      case 'credit':
+        return '📋';
+      default:
+        return '📄';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'Completado';
+      case 'pending':
+        return 'Pendiente';
+      case 'cancelled':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  };
+
+  const selectClient = (clientId: number) => {
+    setSelectedClientId(clientId);
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  const clearSelection = () => {
+    setSelectedClientId(null);
+    setSales([]);
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleClose = () => {
+    clearSelection();
+    onClose();
+  };
 
   const columns = [
     {
       key: 'date',
-      label: 'Fecha',
-      render: (item: any) => formatDate(item.date),
+      header: 'Fecha',
+      render: (item: HistoryItem) => formatDate(item.date),
     },
     {
       key: 'type',
-      label: 'Tipo',
-      render: (item: any) => (
+      header: 'Tipo',
+      render: (item: HistoryItem) => (
         <div className='flex items-center space-x-2'>
           <span>{getTypeIcon(item.type)}</span>
-          <span className='capitalize'>{item.type}</span>
+          <span className='capitalize'>{item.type === 'sale' ? 'Venta' : item.type}</span>
         </div>
       ),
     },
     {
       key: 'description',
-      label: 'Descripción',
+      header: 'Descripción',
     },
     {
       key: 'amount',
-      label: 'Monto',
-      render: (item: any) => formatCurrency(item.amount),
+      header: 'Monto',
+      render: (item: HistoryItem) => formatCurrency(item.amount),
     },
     {
       key: 'status',
-      label: 'Estado',
-      render: (item: any) => {
+      header: 'Estado',
+      render: (item: HistoryItem) => {
         const colors = getStatusColor(item.status);
         return (
           <StatusTag
@@ -80,13 +198,14 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
     },
   ];
 
-  const handleClose = () => {
-    clearSelection();
-    onClose();
-  };
-
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title='Historial de Cliente' size='large'>
+    <Modal
+      message=''
+      isOpen={isOpen}
+      onClose={handleClose}
+      title='Historial de Cliente'
+      size='large'
+    >
       <div className='space-y-4'>
         {!selectedClient ? (
           <div className='text-center py-8'>
@@ -148,24 +267,33 @@ export const ClientHistoryModal: React.FC<ClientHistoryModalProps> = ({
               />
             </div>
 
-            {/* Tabla de historial */}
-            <div className='space-y-4'>
-              <Table
-                data={currentHistoryItems}
-                columns={columns}
-                emptyMessage='No se encontró historial para este cliente'
-              />
-
-              {totalPages > 1 && (
-                <div className='flex justify-center'>
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
+            {/* Estado de carga */}
+            {loading ? (
+              <div className='text-center py-8 text-gray-500'>Cargando historial...</div>
+            ) : (
+              <>
+                {/* Tabla de historial */}
+                <div className='space-y-4'>
+                  <Table
+                    data={currentHistoryItems}
+                    columns={columns}
+                    emptyMessage='No se encontró historial para este cliente'
                   />
+
+                  {totalPages > 1 && (
+                    <div className='flex justify-center'>
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={historyItems.length}
+                        itemsPerPage={ITEMS_PER_PAGE}
+                        onPageChange={handlePageChange}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </>
         )}
 

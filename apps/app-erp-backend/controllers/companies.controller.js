@@ -133,6 +133,8 @@ async function createCompany(req, res) {
     }
 
     // Crear empresa con estado inicial
+
+    // Crear empresa con estado inicial
     const empresaGuardada = await Company.create({
       nombre,
       tipo_empresa_id,

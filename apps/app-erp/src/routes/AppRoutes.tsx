@@ -6,6 +6,7 @@ import ReportsRoutes from './reports/ReportsRoutes';
 import UserRoutes from './users/UserRoutes';
 import Dashboard from '../features/inventories/pages/Dashboard';
 import LoginPage from '../features/users/pages/LoginPage';
+import { ProductsProvider } from '../features/inventories/context/ProductsContext';
 
 import React from 'react';
 
@@ -27,7 +28,14 @@ const AppRoutes = () => (
       <Route path='/app-erp/ventas/*' element={<SalesRoutes />} />
       <Route path='/app-erp/reportes/*' element={<ReportsRoutes />} />
       <Route path='/app-erp/configuracion/*' element={<UserRoutes />} />
-      <Route path='/app-erp/dashboard' element={<Dashboard />} />
+      <Route
+        path='/app-erp/dashboard'
+        element={
+          <ProductsProvider>
+            <Dashboard />
+          </ProductsProvider>
+        }
+      />
     </Route>
     <Route path='*' element={<Navigate to='/app-erp/configuracion/empresa#general' replace />} />
   </Routes>

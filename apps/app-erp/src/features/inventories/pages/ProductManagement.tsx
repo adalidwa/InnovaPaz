@@ -5,8 +5,10 @@ import ProductsCardCrud from '../components/ProductsCardCrud';
 import ModalImputs from '../components/ModalImputs';
 import EditProductModal from '../components/EditProductModal';
 import { useProductsContext } from '../context/ProductsContext';
-import type { ProductFormData } from '../hooks/useProducts';
+import { useCompanyConfig } from '../../../contexts/CompanyConfigContext';
+
 import type { ProductLegacy } from '../types/inventory';
+import type { ProductFormData } from '../hooks/useProductsReal';
 import './ProductManagement.css';
 
 function ProductManagement() {
@@ -15,6 +17,28 @@ function ProductManagement() {
   const [productToEdit, setProductToEdit] = useState<ProductLegacy | null>(null);
   const { products, searchTerm, loading, addProduct, updateProduct, deactivateProduct } =
     useProductsContext();
+  const { config } = useCompanyConfig();
+
+  // Función para obtener el nombre correcto del tipo de negocio
+  const getBusinessTypeName = (tipoNegocio: string): string => {
+    if (!tipoNegocio) return 'negocio';
+
+    // Los valores ya vienen normalizados del backend (ferreteria, licoreria, minimarket)
+    const businessTypes: Record<string, string> = {
+      minimarket: 'minimarket',
+      ferreteria: 'ferretería',
+      licoreria: 'licorería',
+    };
+
+    const normalizedType = tipoNegocio.toLowerCase().trim();
+    return businessTypes[normalizedType] || 'negocio';
+  };
+
+  // Generar subtítulo dinámico
+  const getSubtitle = (): string => {
+    const businessType = getBusinessTypeName(config.tipoNegocio);
+    return `Administra el inventario de tu ${businessType}`;
+  };
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
@@ -72,8 +96,8 @@ function ProductManagement() {
   return (
     <div>
       <ProductsHeader
-        title='Gestion de productos'
-        subtitle='Administra el inventario de tu minimarket'
+        title='Gestion de inventario'
+        subtitle={getSubtitle()}
         buttonText='Agregar Producto'
         buttonVariant='primary'
         hasIcon={true}
@@ -111,7 +135,11 @@ function ProductManagement() {
         <div className='modal-overlay' onClick={handleCloseModal}>
           <div className='modal-container' onClick={(e) => e.stopPropagation()}>
             <div className='modal-header'>
-              <h2 className='modal-title'>Agregar Nuevo Producto - Licoreria</h2>
+              <h2 className='modal-title'>
+                Agregar Nuevo Producto -{' '}
+                {getBusinessTypeName(config.tipoNegocio).charAt(0).toUpperCase() +
+                  getBusinessTypeName(config.tipoNegocio).slice(1)}
+              </h2>
               <button className='modal-close' onClick={handleCloseModal}>
                 ×
               </button>

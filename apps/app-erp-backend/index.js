@@ -7,6 +7,12 @@ const taskRoutes = require('./routes/task.routes');
 const inventoryRoutes = require('./routes/inventories.routes');
 const catalogRoutes = require('./routes/catalog.routes');
 const reportsRoutes = require('./routes/reports.routes');
+const clientsRoutes = require('./routes/clients.routes');
+const categoriesRoutes = require('./routes/categories.routes');
+const quotesRoutes = require('./routes/quotes.routes');
+const salesRoutes = require('./routes/sales.routes');
+const inventoryMovementsRoutes = require('./routes/inventory-movements.routes');
+const uploadRoutes = require('./routes/upload.routes');
 
 const app = express();
 
@@ -26,6 +32,14 @@ app.use('/api/reports', reportsRoutes);
 app.use(taskRoutes);
 app.use('/api', inventoryRoutes);
 app.use('/api', catalogRoutes);
+app.use('/api/clients', clientsRoutes);
+app.use('/api/client-categories', categoriesRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/quotes', quotesRoutes);
+const orderRoutes = require('./routes/order.routes');
+app.use('/api', orderRoutes);
+app.use('/api/inventory', inventoryMovementsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 app.use((err, req, res, next) => {
   return res.json({

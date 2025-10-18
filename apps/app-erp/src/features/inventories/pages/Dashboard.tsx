@@ -1,186 +1,273 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductsHeader from '../components/ProductsHeader';
 import SummaryCardsRow from '../components/ui/SummaryCardsRow';
 import StatusListCard from '../components/ui/StatusListCard';
 import CriticalStockModal from '../components/ui/CriticalStockModal';
+import {
+  inventoryMovementsService,
+  type MovimientoInventario,
+  type ProductoCritico,
+} from '../services/inventoryMovementsService';
+import { useUser } from '../../users/hooks/useContextBase';
+import { useCompanyConfig } from '../../../contexts/CompanyConfigContext';
 import './Dashboard.css';
 
 interface DashboardProps {
   businessType?: 'ferreteria' | 'minimarket' | 'licoreria';
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ businessType = 'minimarket' }) => {
-  const [showAllMovements, setShowAllMovements] = useState(false);
+const Dashboard: React.FC<DashboardProps> = () => {
+  const { user } = useUser();
+  const { config } = useCompanyConfig();
   const [showCriticalStockModal, setShowCriticalStockModal] = useState(false);
+  const [showAllMovements, setShowAllMovements] = useState(false);
+  const [showAllCriticalProducts, setShowAllCriticalProducts] = useState(false);
+  const [recentMovements, setRecentMovements] = useState<MovimientoInventario[]>([]);
+  const [criticalProductsData, setCriticalProductsData] = useState<ProductoCritico[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const getMovementsByBusinessType = () => {
-    const baseMovements = {
-      ferreteria: [
-        { product: 'Martillo Stanley 16oz', category: 'Herramientas' },
-        { product: 'Tornillos autorroscantes 1"', category: 'Ferretería' },
-        { product: 'Pintura Viniltex Blanco 1Gal', category: 'Pinturas' },
-        { product: 'Cable eléctrico #12 AWG', category: 'Eléctricos' },
-        { product: 'Tubo PVC 4" x 6m', category: 'Plomería' },
-        { product: 'Cemento Portland 50kg', category: 'Construcción' },
-        { product: 'Lija para madera #120', category: 'Abrasivos' },
-        { product: 'Candado Master Lock 40mm', category: 'Seguridad' },
-        { product: 'Manguera jardín 1/2" x 15m', category: 'Jardín' },
-        { product: 'Bombillo LED 9W E27', category: 'Eléctricos' },
-        { product: 'Silicona transparente 300ml', category: 'Adhesivos' },
-        { product: 'Destornillador Phillips #2', category: 'Herramientas' },
-        { product: 'Cinta aislante 3M', category: 'Eléctricos' },
-        { product: 'Rodillo pintura 9"', category: 'Pinturas' },
-        { product: 'Llave stillson 10"', category: 'Herramientas' },
-      ],
-      minimarket: [
-        { product: 'Leche Alquería 1L', category: 'Lácteos' },
-        { product: 'Pan Bimbo tajado 500g', category: 'Panadería' },
-        { product: 'Arroz Diana 500g', category: 'Granos' },
-        { product: 'Aceite Girasol Premier 1L', category: 'Aceites' },
-        { product: 'Gaseosa Coca-Cola 1.5L', category: 'Bebidas' },
-        { product: 'Huevos AA x30 unidades', category: 'Proteínas' },
-        { product: 'Jabón Protex 120g', category: 'Aseo' },
-        { product: 'Pasta Doria 500g', category: 'Granos' },
-        { product: 'Atún Van Camps 170g', category: 'Enlatados' },
-        { product: 'Papel higiénico Scott 4 rollos', category: 'Aseo' },
-        { product: 'Detergente Ariel 500g', category: 'Limpieza' },
-        { product: 'Yogurt Alpina 1L', category: 'Lácteos' },
-        { product: 'Galletas Noel Saltín 500g', category: 'Snacks' },
-        { product: 'Salchicha Zenú 500g', category: 'Embutidos' },
-        { product: 'Shampoo Head & Shoulders 400ml', category: 'Cuidado personal' },
-      ],
-      licoreria: [
-        { product: 'Aguardiente Antioqueño 750ml', category: 'Licores nacionales' },
-        { product: 'Ron Medellín Añejo 750ml', category: 'Rones' },
-        { product: 'Cerveza Águila 330ml x6', category: 'Cervezas' },
-        { product: "Whisky Buchanan's 12 años 750ml", category: 'Whiskys' },
-        { product: 'Vodka Smirnoff 750ml', category: 'Vodkas' },
-        { product: 'Vino Gato Negro Cabernet 750ml', category: 'Vinos' },
-        { product: 'Cerveza Corona 355ml x12', category: 'Cervezas' },
-        { product: 'Tequila José Cuervo 750ml', category: 'Tequilas' },
-        { product: 'Brandy Tres Esquinas 750ml', category: 'Brandys' },
-        { product: 'Cerveza Poker 330ml x30', category: 'Cervezas' },
-        { product: 'Champagne Chandon 750ml', category: 'Espumosos' },
-        { product: 'Licor Baileys 750ml', category: 'Cremas' },
-        { product: 'Cerveza Heineken 330ml x6', category: 'Cervezas' },
-        { product: 'Gin Bombay 750ml', category: 'Ginebras' },
-        { product: 'Pisco Tres Esquinas 750ml', category: 'Piscos' },
-      ],
+  // Función para obtener el nombre correcto del tipo de negocio
+  const getBusinessTypeName = (tipoNegocio: string): string => {
+    if (!tipoNegocio) return 'negocio';
+
+    // Los valores ya vienen normalizados del backend (ferreteria, licoreria, minimarket)
+    const businessTypes: Record<string, string> = {
+      minimarket: 'minimarket',
+      ferreteria: 'ferretería',
+      licoreria: 'licorería',
     };
 
-    return baseMovements[businessType];
+    const normalizedType = tipoNegocio.toLowerCase().trim();
+    return businessTypes[normalizedType] || 'negocio';
   };
 
-  const getCriticalProductsByBusinessType = () => {
-    const criticalProducts = {
-      ferreteria: [
-        { product: 'Tornillos autorroscantes 1/2"', stock: 45, min: 100 },
-        { product: 'Pintura Viniltex Blanco 1Gal', stock: 3, min: 15 },
-        { product: 'Cable eléctrico #14 AWG', stock: 12, min: 25 },
-        { product: 'Cemento Portland 50kg', stock: 8, min: 20 },
-        { product: 'Bombillo LED 12W E27', stock: 15, min: 30 },
-        { product: 'Tubo PVC 2" x 6m', stock: 5, min: 12 },
-        { product: 'Lija para metal #80', stock: 25, min: 50 },
-      ],
-      minimarket: [
-        { product: 'Leche Alquería 1L', stock: 8, min: 25 },
-        { product: 'Pan Bimbo tajado 500g', stock: 12, min: 30 },
-        { product: 'Arroz Diana 1kg', stock: 15, min: 40 },
-        { product: 'Aceite Girasol Premier 1L', stock: 6, min: 20 },
-        { product: 'Huevos AA x30 unidades', stock: 4, min: 15 },
-        { product: 'Detergente Ariel 1kg', stock: 9, min: 25 },
-        { product: 'Papel higiénico Scott 12 rollos', stock: 18, min: 35 },
-      ],
-      licoreria: [
-        { product: 'Cerveza Águila 330ml x6', stock: 15, min: 50 },
-        { product: 'Aguardiente Antioqueño 750ml', stock: 8, min: 25 },
-        { product: 'Ron Medellín Añejo 750ml', stock: 5, min: 15 },
-        { product: 'Cerveza Poker 330ml x30', stock: 3, min: 10 },
-        { product: "Whisky Buchanan's 12 años 750ml", stock: 2, min: 8 },
-        { product: 'Vino Gato Negro Merlot 750ml', stock: 12, min: 30 },
-        { product: 'Cerveza Corona 355ml x12', stock: 7, min: 20 },
-      ],
+  // Generar subtítulo dinámico
+  const getDashboardSubtitle = (): string => {
+    const businessTypeName = getBusinessTypeName(config.tipoNegocio);
+    return `Resumen general de tu ${businessTypeName}`;
+  };
+
+  // Cargar datos reales de la base de datos
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (!user?.empresa_id) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Cargar movimientos recientes y productos críticos en paralelo
+        const [movementsResponse, criticalResponse] = await Promise.all([
+          inventoryMovementsService.getRecentMovements(user.empresa_id, 15),
+          inventoryMovementsService.getCriticalProducts(user.empresa_id),
+        ]);
+
+        // Asegurar que siempre tenemos arrays válidos
+        setRecentMovements(Array.isArray(movementsResponse) ? movementsResponse : []);
+        setCriticalProductsData(Array.isArray(criticalResponse) ? criticalResponse : []);
+      } catch (error) {
+        console.error('Error cargando datos del dashboard:', error);
+        setError('Error al cargar los datos del dashboard. Usando datos por defecto.');
+        // Asegurar que tenemos arrays vacíos en caso de error
+        setRecentMovements([]);
+        setCriticalProductsData([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    return criticalProducts[businessType];
-  };
+    loadDashboardData();
+  }, [user?.empresa_id]);
 
-  const products = getMovementsByBusinessType();
-  const criticalProductsData = getCriticalProductsByBusinessType();
+  // Convertir movimientos de BD al formato esperado por StatusListCard
+  const allMovements = recentMovements.map((movement) => {
+    // Determinar si es entrada o salida basado en el tipo de operación
+    const isEntrada =
+      movement.tipo_operacion === 'entrada' ||
+      movement.tipo_movimiento?.toLowerCase().includes('entrada') ||
+      movement.tipo_movimiento?.toLowerCase().includes('ingreso');
 
-  const allMovements = products.map((item, index) => ({
-    id: index + 1,
-    title: index % 2 === 0 ? `Entrada de ${item.product}` : `Salida de ${item.product}`,
-    time: [
-      '08:00 AM',
-      '09:15 AM',
-      '10:30 AM',
-      '11:45 AM',
-      '01:20 PM',
-      '02:30 PM',
-      '03:45 PM',
-      '04:15 PM',
-      '05:00 PM',
-      '06:30 PM',
-      '07:45 PM',
-      '08:20 PM',
-      '09:10 PM',
-      '10:05 PM',
-      '11:30 PM',
-    ][index],
-    tag: {
-      label: index % 2 === 0 ? 'Entrada' : 'Salida',
-      type: index % 2 === 0 ? ('entrada' as const) : ('salida' as const),
-    },
-    value: [50, 20, 30, 15, 40, 25, 60, 35, 45, 10, 55, 18, 70, 22, 65][index] || 30,
-  }));
+    const fecha = new Date(movement.fecha_movimiento);
+    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+    });
+    const horaFormateada = fecha.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    // Formatear el título con más información
+    const tipoMovimiento = movement.tipo_movimiento || (isEntrada ? 'Entrada' : 'Salida');
+    const entidadInfo = movement.entidad_tipo ? ` - ${movement.entidad_tipo}` : '';
+
+    return {
+      id: movement.movimiento_id,
+      title: `${tipoMovimiento}: ${movement.nombre_producto}`,
+      subtitle: `${fechaFormateada} ${horaFormateada}${entidadInfo}`,
+      time: horaFormateada,
+      tag: {
+        label: isEntrada ? 'Entrada' : 'Salida',
+        type: isEntrada ? ('entrada' as const) : ('salida' as const),
+      },
+      value: movement.cantidad,
+      hasIcon: true,
+    };
+  });
 
   const displayedMovements = showAllMovements ? allMovements : allMovements.slice(0, 7);
 
-  const criticalProducts = criticalProductsData.map((item, index) => ({
-    id: index + 1,
-    title: item.product,
-    subtitle: `Stock: ${item.stock} | Mínimo: ${item.min}`,
-    tag: {
-      label: item.stock <= item.min * 0.3 ? 'Crítico' : 'Bajo',
-      type: item.stock <= item.min * 0.3 ? ('critico' as const) : ('bajo' as const),
-    },
-    hasIcon: true,
-  }));
+  // Convertir productos críticos de BD al formato esperado por StatusListCard
+  const criticalProducts = criticalProductsData
+    .sort((a, b) => {
+      // Ordenar por stock: productos con menos stock primero
+      return a.stock - b.stock;
+    })
+    .map((product) => {
+      const stockActual = product.stock || 0;
+
+      // Determinar nivel de criticidad basado solo en stock actual
+      let tagLabel = 'Normal';
+      let tagType: 'critico' | 'bajo' = 'bajo';
+
+      if (stockActual === 0) {
+        tagLabel = 'Agotado';
+        tagType = 'critico';
+      } else if (stockActual <= 5) {
+        tagLabel = 'Crítico';
+        tagType = 'critico';
+      } else if (stockActual <= 15) {
+        tagLabel = 'Bajo';
+        tagType = 'bajo';
+      }
+
+      // Calcular días estimados de stock (asumiendo consumo promedio de 1-2 unidades por día)
+      const consumoDiarioPromedio = 1.5;
+      const diasEstimados = stockActual > 0 ? Math.floor(stockActual / consumoDiarioPromedio) : 0;
+
+      // Formatear información del stock simplificada
+      const stockInfo = `${stockActual} unidades disponibles`;
+
+      const tiempoEstimado =
+        diasEstimados > 0 ? `~${diasEstimados} días de stock` : 'Stock agotado';
+
+      // Mostrar categoría si está disponible
+      const categoriaInfo =
+        product.categoria && product.categoria !== 'Sin categoría' ? ` • ${product.categoria}` : '';
+
+      return {
+        id: product.producto_id,
+        title: product.nombre_producto,
+        subtitle: `${stockInfo} • ${tiempoEstimado}${categoriaInfo}`,
+        tag: {
+          label: tagLabel,
+          type: tagType,
+        },
+        value: stockActual,
+        hasIcon: true,
+      };
+    });
+
+  const displayedCriticalProducts = showAllCriticalProducts
+    ? criticalProducts
+    : criticalProducts.slice(0, 5);
+
+  if (loading) {
+    return (
+      <div className='dashboard'>
+        <ProductsHeader title='Dashboard de Inventario' subtitle='Cargando datos...' />
+        <div style={{ padding: '2rem', textAlign: 'center' }}>
+          Cargando información del dashboard...
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='dashboard'>
-      <ProductsHeader
-        title='Dashboard de Inventario'
-        subtitle={`Resumen general de tu ${businessType === 'ferreteria' ? 'ferretería' : businessType === 'licoreria' ? 'licorería' : 'minimarket'}`}
-        buttonText='Generar reporte'
-        buttonVariant='primary'
-        hasIcon={false}
-      />
+      <ProductsHeader title='Dashboard de Inventario' subtitle={getDashboardSubtitle()} />
+      {error && (
+        <div
+          style={{
+            padding: '1rem',
+            margin: '1rem 0',
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffeaa7',
+            borderRadius: '4px',
+            color: '#856404',
+          }}
+        >
+          <strong>Aviso:</strong> {error}
+        </div>
+      )}
       <SummaryCardsRow />
       <div className='dashboard-row'>
         <StatusListCard
           title='Movimientos Recientes'
-          items={displayedMovements}
-          buttonLabel={showAllMovements ? 'Ver menos' : 'Ver todos los movimientos'}
+          items={
+            displayedMovements.length > 0
+              ? displayedMovements
+              : [
+                  {
+                    id: 'empty',
+                    title: 'No hay movimientos registrados',
+                    subtitle: 'Los movimientos de inventario aparecerán aquí',
+                    tag: { label: 'Sin datos', type: 'bajo' as const },
+                  },
+                ]
+          }
+          buttonLabel={
+            allMovements.length > 7
+              ? showAllMovements
+                ? 'Ver menos'
+                : `Ver todos (${allMovements.length})`
+              : undefined
+          }
           buttonVariant='secondary'
           buttonClassName='status-list-card__button--blue-border'
-          onButtonClick={() => setShowAllMovements(!showAllMovements)}
+          onButtonClick={
+            allMovements.length > 7 ? () => setShowAllMovements(!showAllMovements) : undefined
+          }
         />
         <StatusListCard
-          title='Productos Críticos'
-          items={criticalProducts}
-          buttonLabel='Gestionar stock critico'
-          buttonVariant='warning'
-          buttonClassName='status-list-card__button--text-primary'
-          onButtonClick={() => setShowCriticalStockModal(true)}
+          title={`Productos Críticos${criticalProducts.length > 0 ? ` (${criticalProducts.length})` : ''}`}
+          items={
+            displayedCriticalProducts.length > 0
+              ? displayedCriticalProducts
+              : [
+                  {
+                    id: 'empty-critical',
+                    title: 'No hay productos críticos',
+                    subtitle: 'Todos los productos tienen stock suficiente',
+                    tag: { label: 'Stock OK', type: 'bajo' as const },
+                  },
+                ]
+          }
+          buttonLabel={
+            criticalProducts.length > 5
+              ? showAllCriticalProducts
+                ? 'Ver menos'
+                : `Ver todos (${criticalProducts.length})`
+              : undefined
+          }
+          buttonVariant='secondary'
+          buttonClassName='status-list-card__button--blue-border'
+          onButtonClick={
+            criticalProducts.length > 5
+              ? () => setShowAllCriticalProducts(!showAllCriticalProducts)
+              : undefined
+          }
         />
       </div>
 
       <CriticalStockModal
         isOpen={showCriticalStockModal}
         onClose={() => setShowCriticalStockModal(false)}
-        businessType={businessType}
+        businessType={
+          getBusinessTypeName(config.tipoNegocio) as 'ferreteria' | 'minimarket' | 'licoreria'
+        }
       />
     </div>
   );

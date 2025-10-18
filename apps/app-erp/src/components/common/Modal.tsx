@@ -7,7 +7,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
-  message: string;
+  message?: string;
   modalType?: 'info' | 'success' | 'warning' | 'error';
   showCloseButton?: boolean;
   confirmButtonText?: string;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SearchProducts from './SearchProducts';
 import ProductList, { type Product } from './ProductList';
 import SalesCart from './SalesCart';
@@ -11,17 +11,36 @@ interface CartItem {
   quantity: number;
 }
 
+const CART_STORAGE_KEY = 'sales_cart_items';
+
 function PointOfSale() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '2',
-      name: 'Arroz Paisana 1kg',
-      price: 12.0,
-      quantity: 1,
-    },
-  ]);
   const [showCart, setShowCart] = useState(false);
+
+  // Cargar carrito desde localStorage al iniciar
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    try {
+      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        console.log('📦 Carrito restaurado desde localStorage:', parsed);
+        return parsed;
+      }
+    } catch (error) {
+      console.error('Error al cargar carrito desde localStorage:', error);
+    }
+    return [];
+  });
+
+  // Guardar carrito en localStorage cada vez que cambia
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      console.log('💾 Carrito guardado en localStorage:', cartItems);
+    } catch (error) {
+      console.error('Error al guardar carrito en localStorage:', error);
+    }
+  }, [cartItems]);
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -29,17 +48,17 @@ function PointOfSale() {
 
   const handleAddToCart = (product: Product, quantity: number) => {
     setCartItems((currentItems) => {
-      const existingItem = currentItems.find((item) => item.id === product.id);
+      const existingItem = currentItems.find((item) => item.id === String(product.id));
 
       if (existingItem) {
         return currentItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item.id === String(product.id) ? { ...item, quantity: item.quantity + quantity } : item
         );
       } else {
         return [
           ...currentItems,
           {
-            id: product.id,
+            id: String(product.id),
             name: product.name,
             price: product.price,
             quantity: quantity,
@@ -60,10 +79,11 @@ function PointOfSale() {
   };
 
   const handleProcessSale = (saleData: any) => {
-    console.log('Procesando venta:', saleData);
+    console.log('✅ Venta procesada:', saleData);
+    // Limpiar carrito después de venta exitosa
     setCartItems([]);
+    localStorage.removeItem(CART_STORAGE_KEY);
     setShowCart(false);
-    alert('¡Venta procesada exitosamente!');
   };
 
   const handleCancelSale = () => {

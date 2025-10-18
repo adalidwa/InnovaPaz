@@ -11,7 +11,7 @@ export interface OrderCardProps {
     quotationNumber: string;
     items: number;
     total: number;
-    status: 'Pendiente' | 'En Proceso' | 'Completada';
+    status: 'Pendiente' | 'En Proceso' | 'Completado';
   };
   onViewDetail?: (id: string) => void;
 }
@@ -22,7 +22,7 @@ function OrderCard({ order, onViewDetail }: OrderCardProps) {
   const statusColors = {
     Pendiente: { bg: 'var(--var-100)', fg: 'var(--var-800)' },
     'En Proceso': { bg: 'var(--sec-100)', fg: 'var(--sec-800)' },
-    Completada: { bg: 'var(--acc-100)', fg: 'var(--acc-800)' },
+    Completado: { bg: 'var(--acc-100)', fg: 'var(--acc-800)' },
   } as const;
 
   const colors = statusColors[status];
