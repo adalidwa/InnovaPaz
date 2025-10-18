@@ -81,45 +81,89 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   // Convertir movimientos de BD al formato esperado por StatusListCard
   const allMovements = recentMovements.map((movement) => {
+    // Determinar si es entrada o salida basado en el tipo de operación
     const isEntrada =
-      movement.tipo_movimiento.toLowerCase().includes('entrada') ||
-      movement.tipo_movimiento.toLowerCase().includes('ingreso');
+      movement.tipo_operacion === 'entrada' ||
+      movement.tipo_movimiento?.toLowerCase().includes('entrada') ||
+      movement.tipo_movimiento?.toLowerCase().includes('ingreso');
+
     const fecha = new Date(movement.fecha_movimiento);
+    const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+    });
+    const horaFormateada = fecha.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    // Formatear el título con más información
+    const tipoMovimiento = movement.tipo_movimiento || (isEntrada ? 'Entrada' : 'Salida');
+    const entidadInfo = movement.entidad_tipo ? ` - ${movement.entidad_tipo}` : '';
 
     return {
       id: movement.movimiento_id,
-      title: `${isEntrada ? 'Entrada' : 'Salida'} de ${movement.nombre_producto}`,
-      time: fecha.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      }),
+      title: `${tipoMovimiento}: ${movement.nombre_producto}`,
+      subtitle: `${fechaFormateada} ${horaFormateada}${entidadInfo}`,
+      time: horaFormateada,
       tag: {
         label: isEntrada ? 'Entrada' : 'Salida',
         type: isEntrada ? ('entrada' as const) : ('salida' as const),
       },
       value: movement.cantidad,
+      hasIcon: true,
     };
   });
 
   const displayedMovements = showAllMovements ? allMovements : allMovements.slice(0, 7);
 
   // Convertir productos críticos de BD al formato esperado por StatusListCard
-  const criticalProducts = criticalProductsData.map((product) => {
-    const stockPercentage = product.stock_minimo > 0 ? product.stock / product.stock_minimo : 0;
-    const isCritical = stockPercentage <= 0.3;
+  const criticalProducts = criticalProductsData
+    .sort((a, b) => {
+      // Ordenar por criticidad: stock agotado primero, luego por porcentaje de stock
+      const stockPercentageA = a.stock_minimo > 0 ? a.stock / a.stock_minimo : a.stock / 10;
+      const stockPercentageB = b.stock_minimo > 0 ? b.stock / b.stock_minimo : b.stock / 10;
+      return stockPercentageA - stockPercentageB;
+    })
+    .map((product) => {
+      const stockMinimo = product.stock_minimo || 0;
+      const stockActual = product.stock || 0;
+      const stockPercentage = stockMinimo > 0 ? stockActual / stockMinimo : 0;
 
-    return {
-      id: product.producto_id,
-      title: product.nombre_producto,
-      subtitle: `Stock: ${product.stock} | Mínimo: ${product.stock_minimo || 'No definido'}`,
-      tag: {
-        label: isCritical ? 'Crítico' : 'Bajo',
-        type: isCritical ? ('critico' as const) : ('bajo' as const),
-      },
-      hasIcon: true,
-    };
-  });
+      // Determinar nivel de criticidad
+      const isCritical = stockPercentage <= 0.1 || stockActual === 0; // Crítico si está al 10% o menos del mínimo
+      const isLow = stockPercentage > 0.1 && stockPercentage <= 0.5; // Bajo si está entre 10% y 50%
+
+      // Calcular días estimados de stock (asumiendo consumo diario promedio)
+      const diasEstimados =
+        stockActual > 0 ? Math.floor(stockActual / Math.max(1, stockMinimo * 0.1)) : 0;
+
+      // Formatear información del stock
+      const stockInfo =
+        stockMinimo > 0
+          ? `${stockActual}/${stockMinimo} unidades`
+          : `${stockActual} unidades (sin mínimo definido)`;
+
+      const tiempoEstimado =
+        diasEstimados > 0 ? `~${diasEstimados} días de stock` : 'Stock agotado';
+
+      // Mostrar categoría si está disponible
+      const categoriaInfo =
+        product.categoria && product.categoria !== 'Sin categoría' ? ` • ${product.categoria}` : '';
+
+      return {
+        id: product.producto_id,
+        title: product.nombre_producto,
+        subtitle: `${stockInfo} • ${tiempoEstimado}${categoriaInfo}`,
+        tag: {
+          label: isCritical ? 'Crítico' : isLow ? 'Bajo' : 'Normal',
+          type: isCritical ? ('critico' as const) : ('bajo' as const),
+        },
+        value: stockActual,
+        hasIcon: true,
+      };
+    });
 
   if (loading) {
     return (
@@ -153,19 +197,57 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div className='dashboard-row'>
         <StatusListCard
           title='Movimientos Recientes'
-          items={displayedMovements}
-          buttonLabel={showAllMovements ? 'Ver menos' : 'Ver todos los movimientos'}
+          items={
+            displayedMovements.length > 0
+              ? displayedMovements
+              : [
+                  {
+                    id: 'empty',
+                    title: 'No hay movimientos registrados',
+                    subtitle: 'Los movimientos de inventario aparecerán aquí',
+                    tag: { label: 'Sin datos', type: 'bajo' as const },
+                  },
+                ]
+          }
+          buttonLabel={
+            allMovements.length > 7
+              ? showAllMovements
+                ? 'Ver menos'
+                : `Ver todos (${allMovements.length})`
+              : undefined
+          }
           buttonVariant='secondary'
           buttonClassName='status-list-card__button--blue-border'
-          onButtonClick={() => setShowAllMovements(!showAllMovements)}
+          onButtonClick={
+            allMovements.length > 7 ? () => setShowAllMovements(!showAllMovements) : undefined
+          }
         />
         <StatusListCard
-          title='Productos Críticos'
-          items={criticalProducts}
-          buttonLabel='Gestionar stock critico'
+          title={`Productos Críticos${criticalProducts.length > 0 ? ` (${criticalProducts.length})` : ''}`}
+          items={
+            criticalProducts.length > 0
+              ? criticalProducts.slice(0, 5) // Mostrar máximo 5 productos críticos
+              : [
+                  {
+                    id: 'empty-critical',
+                    title: 'No hay productos críticos',
+                    subtitle: 'Todos los productos tienen stock suficiente',
+                    tag: { label: 'Stock OK', type: 'bajo' as const },
+                  },
+                ]
+          }
+          buttonLabel={
+            criticalProducts.length > 0
+              ? criticalProducts.length > 5
+                ? `Ver todos (${criticalProducts.length})`
+                : 'Gestionar stock crítico'
+              : undefined
+          }
           buttonVariant='warning'
           buttonClassName='status-list-card__button--text-primary'
-          onButtonClick={() => setShowCriticalStockModal(true)}
+          onButtonClick={
+            criticalProducts.length > 0 ? () => setShowCriticalStockModal(true) : undefined
+          }
         />
       </div>
 

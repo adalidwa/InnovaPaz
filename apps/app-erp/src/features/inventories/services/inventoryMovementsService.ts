@@ -6,10 +6,12 @@ export interface MovimientoInventario {
   movimiento_id: number;
   nombre_producto: string;
   tipo_movimiento: string;
+  tipo_operacion?: string;
   cantidad: number;
   fecha_movimiento: string;
   motivo?: string;
   entidad_tipo?: string;
+  entidad_id?: number;
 }
 
 export interface ProductoCritico {
@@ -76,8 +78,14 @@ export const inventoryMovementsService = {
   // Obtener métricas del dashboard
   async getDashboardMetrics(empresaId: string): Promise<MetricasDashboard | null> {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/dashboard/${empresaId}/metrics`);
-      if (!res.ok) throw new Error('Error al obtener métricas');
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/${empresaId}/metrics`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
       const data = await res.json();
       return data.metricas || null;
     } catch (err) {
