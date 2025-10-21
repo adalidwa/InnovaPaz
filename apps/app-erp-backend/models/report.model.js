@@ -264,15 +264,13 @@ class Report {
         u.email,
         u.estado,
         u.fecha_creacion,
-        COALESCE(r.nombre_rol, rp.nombre_rol) as rol_nombre,
+        r.nombre_rol as rol_nombre,
         CASE 
           WHEN u.rol_id IS NOT NULL THEN 'personalizado'
-          WHEN u.plantilla_rol_id IS NOT NULL THEN 'plantilla'
           ELSE 'sin_rol'
         END as tipo_rol
       FROM usuarios u
       LEFT JOIN roles r ON u.rol_id = r.rol_id
-      LEFT JOIN roles_plantilla rp ON u.plantilla_rol_id = rp.plantilla_id
       WHERE u.empresa_id = $1
     `;
     const params = [empresaId];
@@ -288,12 +286,6 @@ class Report {
       paramCount++;
       query += ` AND u.rol_id = $${paramCount}`;
       params.push(filtros.rol_id);
-    }
-
-    if (filtros.plantilla_rol_id) {
-      paramCount++;
-      query += ` AND u.plantilla_rol_id = $${paramCount}`;
-      params.push(filtros.plantilla_rol_id);
     }
 
     if (filtros.fecha_desde) {
@@ -520,28 +512,9 @@ class Report {
       [empresaId]
     );
 
-    // Roles de plantilla usados
-    const plantillasUsadas = await pool.query(
-      `SELECT 
-        rp.plantilla_id,
-        rp.nombre_rol,
-        rp.descripcion,
-        COUNT(u.uid) as usuarios_asignados
-      FROM roles_plantilla rp
-      LEFT JOIN usuarios u ON u.plantilla_rol_id = rp.plantilla_id AND u.empresa_id = $1
-      WHERE EXISTS (
-        SELECT 1 FROM usuarios WHERE plantilla_rol_id = rp.plantilla_id AND empresa_id = $1
-      )
-      GROUP BY rp.plantilla_id
-      ORDER BY usuarios_asignados DESC`,
-      [empresaId]
-    );
-
     return {
       roles_personalizados: rolesPersonalizados.rows,
-      plantillas_usadas: plantillasUsadas.rows,
       total_roles_personalizados: rolesPersonalizados.rows.length,
-      total_plantillas_usadas: plantillasUsadas.rows.length,
     };
   }
 

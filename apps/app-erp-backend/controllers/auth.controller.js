@@ -178,29 +178,21 @@ async function registerUser(req, res) {
         uid: firebaseUser.uid,
         empresa_id,
         rol_id,
-        plantilla_rol_id: null, // Explícitamente NULL cuando hay rol_id
         nombre_completo,
         email,
         estado: 'activo',
       });
     } else {
-      // Usuario sin empresa - usar plantilla_rol_id para satisfacer constraint
-      const insertResult = await pool.query(
-        `INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-         RETURNING *`,
-        [
-          firebaseUser.uid,
-          null, // sin empresa
-          null, // sin rol específico
-          1, // plantilla_rol_id = 1 (satisface constraint)
-          nombre_completo,
-          email,
-          'activo',
-          JSON.stringify({}),
-        ]
-      );
-      nuevoUsuario = insertResult.rows[0];
+      // Usuario sin empresa - solo crear en Firebase, no en PostgreSQL
+      // Según nueva lógica: exploradores solo en Firebase
+      nuevoUsuario = {
+        uid: firebaseUser.uid,
+        nombre_completo,
+        email,
+        empresa_id: null,
+        rol_id: null,
+        estado: 'activo',
+      };
     }
 
     res.status(201).json({
@@ -464,29 +456,21 @@ async function googleAuth(req, res) {
           uid,
           empresa_id,
           rol_id,
-          plantilla_rol_id: null, // Explícitamente NULL cuando hay rol_id
           nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
           email,
           estado: 'activo',
         });
       } else {
-        // Usuario sin empresa - usar plantilla_rol_id para satisfacer constraint
-        const insertResult = await pool.query(
-          `INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-           RETURNING *`,
-          [
-            uid,
-            null, // sin empresa
-            null, // sin rol específico
-            1, // plantilla_rol_id = 1 (satisface constraint)
-            firebaseUserInfo.displayName || 'Usuario Google',
-            email,
-            'activo',
-            JSON.stringify({}),
-          ]
-        );
-        nuevoUsuario = insertResult.rows[0];
+        // Usuario sin empresa - solo crear en Firebase, no en PostgreSQL
+        // Según nueva lógica: exploradores solo en Firebase
+        nuevoUsuario = {
+          uid,
+          nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
+          email,
+          empresa_id: null,
+          rol_id: null,
+          estado: 'activo',
+        };
       }
 
       usuario = nuevoUsuario;
@@ -616,7 +600,6 @@ async function getMe(req, res) {
         nombre_completo: usuarioCompleto.nombre_completo,
         email: usuarioCompleto.email,
         rol_id: usuarioCompleto.rol_id,
-        plantilla_rol_id: usuarioCompleto.plantilla_rol_id,
         rol: usuarioCompleto.nombre_rol || 'Sin rol', // Nombre del rol (plantilla o personalizado)
         tipo_rol: usuarioCompleto.tipo_rol, // 'plantilla', 'personalizado' o 'sin_rol'
         permisos: usuarioCompleto.permisos, // Permisos del rol

@@ -248,7 +248,6 @@ const getReporteUsuarios = async (req, res, next) => {
     const filtros = {
       estado: req.query.estado,
       rol_id: req.query.rol_id,
-      plantilla_rol_id: req.query.plantilla_rol_id,
       fecha_desde: req.query.fecha_desde,
       fecha_hasta: req.query.fecha_hasta,
     };

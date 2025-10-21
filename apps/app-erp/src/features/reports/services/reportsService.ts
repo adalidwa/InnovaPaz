@@ -253,7 +253,6 @@ class ReportsService {
     filters?: {
       estado?: string;
       rol_id?: number;
-      plantilla_rol_id?: number;
       fecha_desde?: string;
       fecha_hasta?: string;
     }
@@ -265,8 +264,6 @@ class ReportsService {
     if (filters) {
       if (filters.estado) params.append('estado', filters.estado);
       if (filters.rol_id) params.append('rol_id', String(filters.rol_id));
-      if (filters.plantilla_rol_id)
-        params.append('plantilla_rol_id', String(filters.plantilla_rol_id));
       if (filters.fecha_desde) params.append('fecha_desde', filters.fecha_desde);
       if (filters.fecha_hasta) params.append('fecha_hasta', filters.fecha_hasta);
     }
