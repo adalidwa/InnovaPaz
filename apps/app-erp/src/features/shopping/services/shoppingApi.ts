@@ -125,6 +125,11 @@ export const providersApi = {
     });
     if (!response.ok) throw new Error('Error deleting provider');
   },
+  getHistory: async (providerId: number): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/providers/${providerId}/history`);
+    if (!response.ok) throw new Error('Error fetching provider history');
+    return response.json();
+  },
 };
 
 // ========== PRODUCTS API ==========

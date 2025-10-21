@@ -544,21 +544,17 @@ export const useHistory = () => {
     const loadHistory = async () => {
       setLoading(true);
       try {
-        const orders = await purchaseOrdersApi.getAll();
-        // Filtrar órdenes del proveedor seleccionado y mapear a HistoryItem
-        const providerOrders = orders
-          .filter((order) => order.supplier_id === selectedProviderId)
-          .map((order) => ({
-            id: order.id,
-            date: order.date,
-            type: 'order' as const,
-            description: `Orden ${order.order_number} - ${order.total_items} items`,
-            amount: parseFloat(order.total_amount.toString()),
-            status:
-              order.status === 'pending' || order.status === 'Pendiente'
-                ? ('pending' as const)
-                : ('completed' as const),
-          }));
+        const orders = await providersApi.getHistory(selectedProviderId).map((order) => ({
+          id: order.id,
+          date: order.date,
+          type: 'order' as const,
+          description: `Orden ${order.order_number} - ${order.total_items} items`,
+          amount: parseFloat(order.total_amount.toString()),
+          status:
+            order.status === 'pending' || order.status === 'Pendiente'
+              ? ('pending' as const)
+              : ('completed' as const),
+        }));
         setHistoryData(providerOrders);
       } catch (error) {
         console.error('Error loading provider history:', error);

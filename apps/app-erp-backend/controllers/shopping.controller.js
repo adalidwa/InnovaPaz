@@ -515,6 +515,40 @@ const deleteContract = async (req, res) => {
   }
 };
 
+// Endpoint optimizado para obtener historial de un proveedor
+const getProviderHistory = async (req, res) => {
+  try {
+    const { providerId } = req.params;
+
+    if (!providerId) {
+      return res.status(400).json({ error: 'Provider ID is required' });
+    }
+
+    // Obtener órdenes del proveedor
+    const ordersResult = await pool.query(
+      'SELECT * FROM purchase_orders WHERE supplier_id = $1 ORDER BY date DESC, id DESC',
+      [providerId]
+    );
+
+    const orders = ordersResult.rows;
+
+    // Agregar items a cada orden
+    for (let order of orders) {
+      const itemsResult = await pool.query(
+        'SELECT * FROM purchase_order_items WHERE purchase_order_id = $1',
+        [order.id]
+      );
+      order.items = itemsResult.rows;
+    }
+
+    const result = { rows: orders };
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching provider history:', error);
+    res.status(500).json({ error: 'Error fetching provider history' });
+  }
+};
+
 module.exports = {
   // Providers
   getProviders,
@@ -523,6 +557,7 @@ module.exports = {
   updateProvider,
   deleteProvider,
 
+  getProviderHistory,
   // Products
   getProducts,
   getProductById,

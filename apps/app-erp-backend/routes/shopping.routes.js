@@ -5,6 +5,9 @@ const shoppingController = require('../controllers/shopping.controller');
 // ========== PROVIDERS ROUTES ==========
 router.get('/providers', shoppingController.getProviders);
 router.get('/providers/:id', shoppingController.getProviderById);
+router.get('/providers/:providerId/history', shoppingController.getProviderHistory);
+router.get('/providers/:providerId/history', shoppingController.getProviderHistory);
+router.get('/providers/:providerId/history', shoppingController.getProviderHistory);
 router.post('/providers', shoppingController.createProvider);
 router.put('/providers/:id', shoppingController.updateProvider);
 router.delete('/providers/:id', shoppingController.deleteProvider);
