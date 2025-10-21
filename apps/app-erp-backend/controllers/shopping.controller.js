@@ -604,3 +604,163 @@ module.exports = {
   updateContract,
   deleteContract,
 };
+
+// ========== QUOTES ==========
+const getQuotes = async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        q.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', qi.id,
+              'supplier_id', qi.supplier_id,
+              'supplier_name', qi.supplier_name,
+              'price', qi.price,
+              'is_best', qi.is_best,
+              'notes', qi.notes
+            ) ORDER BY qi.price ASC
+          ) FILTER (WHERE qi.id IS NOT NULL),
+          '[]'
+        ) as quotes
+      FROM quotes q
+      LEFT JOIN quote_items qi ON q.id = qi.quote_id
+      GROUP BY q.id
+      ORDER BY q.date DESC, q.id DESC
+    `;
+
+    const result = await pool.query(query);
+
+    // Calcular savings para cada cotización
+    const quotesWithSavings = result.rows.map((q) => {
+      const prices = q.quotes.map((item) => parseFloat(item.price));
+      const bestPrice = Math.min(...prices);
+      const worstPrice = Math.max(...prices);
+      const savings = worstPrice - bestPrice;
+
+      return {
+        ...q,
+        savings: savings.toFixed(2),
+      };
+    });
+
+    res.json(quotesWithSavings);
+  } catch (error) {
+    console.error('Error fetching quotes:', error);
+    res.status(500).json({ error: 'Error fetching quotes' });
+  }
+};
+
+const getHistoricalPrices = async (req, res) => {
+  try {
+    const { product_id } = req.query;
+
+    let query = 'SELECT * FROM historical_prices';
+    const params = [];
+
+    if (product_id) {
+      query += ' WHERE product_id = $1';
+      params.push(product_id);
+    }
+
+    query += ' ORDER BY date DESC, id DESC LIMIT 50';
+
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching historical prices:', error);
+    res.status(500).json({ error: 'Error fetching historical prices' });
+  }
+};
+
+const createQuote = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { product_id, product_name, date, quotes } = req.body;
+
+    // Crear cotización
+    const quoteResult = await client.query(
+      `INSERT INTO quotes (product_id, product_name, date, status)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [product_id, product_name, date, 'pending']
+    );
+
+    const quoteId = quoteResult.rows[0].id;
+
+    // Agregar items de cotización
+    for (const item of quotes) {
+      await client.query(
+        `INSERT INTO quote_items (quote_id, supplier_id, supplier_name, price, is_best, notes)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          quoteId,
+          item.supplier_id,
+          item.supplier_name,
+          item.price,
+          item.is_best || false,
+          item.notes || '',
+        ]
+      );
+
+      // Agregar al historial de precios
+      await client.query(
+        `INSERT INTO historical_prices (product_id, product_name, date, price, supplier_id, supplier_name)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [product_id, product_name, date, item.price, item.supplier_id, item.supplier_name]
+      );
+    }
+
+    await client.query('COMMIT');
+    res.json(quoteResult.rows[0]);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error creating quote:', error);
+    res.status(500).json({ error: 'Error creating quote' });
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = {
+  // Providers
+  getProviders,
+  getProviderById,
+  getProviderHistory,
+  createProvider,
+  updateProvider,
+  deleteProvider,
+
+  // Products
+  getProducts,
+  getProductById,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+
+  // Purchase Orders
+  getPurchaseOrders,
+  getPurchaseOrderById,
+  createPurchaseOrder,
+  updatePurchaseOrder,
+  deletePurchaseOrder,
+
+  // Receptions
+  getReceptions,
+  createReception,
+
+  // Contracts
+  getContracts,
+  getContractById,
+  createContract,
+  updateContract,
+  deleteContract,
+
+  // Quotes
+  getQuotes,
+  getHistoricalPrices,
+  createQuote,
+};

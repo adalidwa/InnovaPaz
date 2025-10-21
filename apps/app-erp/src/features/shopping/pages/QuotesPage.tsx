@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useQuotes } from '../hooks/hooks';
 import { IoSearch, IoAdd, IoClose, IoDocumentText, IoCheckmark, IoWarning } from 'react-icons/io5';
 
 // Imports locales
@@ -52,106 +53,18 @@ interface NewQuoteForm {
 }
 
 // Datos de ejemplo mejorados
-const initialQuotesData: QuoteComparison[] = [
-  {
-    id: 1,
-    productName: 'Coca Cola 2L',
-    date: '2025-09-20',
-    quotes: [
-      {
-        provider: 'Embotelladora Boliviana',
-        price: 12.5,
-        isBest: true,
-        notes: 'Precio con descuento por volumen',
-      },
-      { provider: 'Distribuidor ABC', price: 13.0, isBest: false, notes: 'Precio regular' },
-    ],
-    savings: 0.5,
-  },
-  {
-    id: 2,
-    productName: 'Aceite Fino 1L',
-    date: '2025-09-22',
-    quotes: [
-      {
-        provider: 'Distribuidora Central',
-        price: 15.2,
-        isBest: false,
-        notes: 'Incluye transporte',
-      },
-      { provider: 'Proveedor XYZ', price: 14.8, isBest: true, notes: 'Mejor oferta del mes' },
-    ],
-    savings: 0.4,
-  },
-  {
-    id: 3,
-    productName: 'Arroz Carolina 1kg',
-    date: '2025-09-18',
-    quotes: [
-      {
-        provider: 'Industrias Carolina',
-        price: 8.5,
-        isBest: true,
-        notes: 'Precio directo de fábrica',
-      },
-      {
-        provider: 'Mayorista del Norte',
-        price: 9.2,
-        isBest: false,
-        notes: 'Precio con margen distribuidor',
-      },
-    ],
-    savings: 0.7,
-  },
-];
-
-const initialHistoricalData: HistoricalPrice[] = [
-  {
-    id: 1,
-    product: 'Coca Cola 2L',
-    provider: 'Embotelladora Boliviana',
-    previousPrice: 12.0,
-    currentPrice: 12.5,
-    variation: '+4.2%',
-    variationType: 'positive',
-    date: '15/09/2025',
-  },
-  {
-    id: 2,
-    product: 'Aceite Fino 1L',
-    provider: 'Distribuidora Central',
-    previousPrice: 16.0,
-    currentPrice: 15.2,
-    variation: '-5.0%',
-    variationType: 'negative',
-    date: '10/09/2025',
-  },
-  {
-    id: 3,
-    product: 'Arroz Carolina 1kg',
-    provider: 'Industrias Carolina',
-    previousPrice: 9.0,
-    currentPrice: 8.5,
-    variation: '-5.6%',
-    variationType: 'negative',
-    date: '08/09/2025',
-  },
-  {
-    id: 4,
-    product: 'Leche PIL 1L',
-    provider: 'PIL Andina S.A.',
-    previousPrice: 7.5,
-    currentPrice: 8.0,
-    variation: '+6.7%',
-    variationType: 'positive',
-    date: '05/09/2025',
-  },
-];
+// Datos cargados desde la base de datos via useQuotes
 
 const QuotesPage: React.FC = () => {
   // Estados principales
-  const [quotesData, setQuotesData] = useState<QuoteComparison[]>(initialQuotesData);
-  const [historicalData, setHistoricalData] = useState<HistoricalPrice[]>(initialHistoricalData);
+  // Hook para manejar cotizaciones desde BD
+  const {
+    quotesData: quotesFromDB,
+    historicalData: historicalFromDB,
+    loading: quotesLoading,
+  } = useQuotes();
+  const [quotesData, setQuotesData] = useState<QuoteComparison[]>([]);
+  const [historicalData, setHistoricalData] = useState<HistoricalPrice[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
   // Estados de modales

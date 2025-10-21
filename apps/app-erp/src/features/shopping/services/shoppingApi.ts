@@ -279,3 +279,31 @@ export const contractsApi = {
     if (!response.ok) throw new Error('Error deleting contract');
   },
 };
+
+// ========== QUOTES API ==========
+export const quotesApi = {
+  getAll: async (): Promise<any[]> => {
+    const response = await fetch(`${API_BASE_URL}/quotes`);
+    if (!response.ok) throw new Error('Error fetching quotes');
+    return response.json();
+  },
+
+  getHistoricalPrices: async (productId?: number): Promise<any[]> => {
+    const url = productId
+      ? `${API_BASE_URL}/historical-prices?product_id=${productId}`
+      : `${API_BASE_URL}/historical-prices`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Error fetching historical prices');
+    return response.json();
+  },
+
+  create: async (quote: any): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/quotes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quote),
+    });
+    if (!response.ok) throw new Error('Error creating quote');
+    return response.json();
+  },
+};

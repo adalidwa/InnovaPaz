@@ -37,4 +37,14 @@ router.post('/contracts', shoppingController.createContract);
 router.put('/contracts/:id', shoppingController.updateContract);
 router.delete('/contracts/:id', shoppingController.deleteContract);
 
+// ========== QUOTES ==========
+router.get('/quotes', shoppingController.getQuotes);
+router.get('/historical-prices', shoppingController.getHistoricalPrices);
+router.post('/quotes', shoppingController.createQuote);
+
+// ========== QUOTES ==========
+router.get('/quotes', shoppingController.getQuotes);
+router.get('/historical-prices', shoppingController.getHistoricalPrices);
+router.post('/quotes', shoppingController.createQuote);
+
 module.exports = router;

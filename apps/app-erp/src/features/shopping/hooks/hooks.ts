@@ -5,6 +5,7 @@ import {
   purchaseOrdersApi,
   receptionsApi,
   contractsApi,
+  quotesApi,
 } from '../services/shoppingApi';
 
 // Tipos
@@ -1847,5 +1848,76 @@ export const useReportModals = () => {
     closeAnalysisModal,
     openEvaluationModal,
     closeEvaluationModal,
+  };
+};
+
+// ========== QUOTES HOOK ==========
+export const useQuotes = () => {
+  const [quotesData, setQuotesData] = useState<any[]>([]);
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [quotes, historical] = await Promise.all([
+          quotesApi.getAll(),
+          quotesApi.getHistoricalPrices(),
+        ]);
+
+        // Transformar datos al formato que espera QuotesPage
+        const transformedQuotes = quotes.map((q) => ({
+          id: q.id,
+          productName: q.product_name,
+          date: q.date,
+          quotes: q.quotes.map((item: any) => ({
+            provider: item.supplier_name,
+            price: parseFloat(item.price),
+            isBest: item.is_best,
+            notes: item.notes || '',
+          })),
+          savings: parseFloat(q.savings),
+        }));
+
+        setQuotesData(transformedQuotes);
+        setHistoricalData(historical);
+      } catch (error) {
+        console.error('Error loading quotes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const createQuote = async (quoteData: any) => {
+    try {
+      await quotesApi.create(quoteData);
+      // Recargar datos
+      const quotes = await quotesApi.getAll();
+      const transformedQuotes = quotes.map((q) => ({
+        id: q.id,
+        productName: q.product_name,
+        date: q.date,
+        quotes: q.quotes.map((item: any) => ({
+          provider: item.supplier_name,
+          price: parseFloat(item.price),
+          isBest: item.is_best,
+          notes: item.notes || '',
+        })),
+        savings: parseFloat(q.savings),
+      }));
+      setQuotesData(transformedQuotes);
+    } catch (error) {
+      console.error('Error creating quote:', error);
+      throw error;
+    }
+  };
+
+  return {
+    quotesData,
+    historicalData,
+    loading,
+    createQuote,
   };
 };
