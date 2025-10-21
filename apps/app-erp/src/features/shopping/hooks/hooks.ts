@@ -526,18 +526,47 @@ export const useShoppingModules = () => {
   };
 };
 
-// Hook para tabla de historial - mantener como antes (datos ficticios)
+// Hook para tabla de historial
 export const useHistory = () => {
   const [selectedProviderId, setSelectedProviderId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Historial ficticio por ahora
-  const getProviderHistory = (_providerId: number): HistoryItem[] => {
-    return [];
-  };
+  // Cargar historial cuando se selecciona un proveedor
+  useEffect(() => {
+    if (!selectedProviderId) {
+      setHistoryData([]);
+      return;
+    }
 
-  const historyData = selectedProviderId ? getProviderHistory(selectedProviderId) : [];
+    const loadHistory = async () => {
+      setLoading(true);
+      try {
+        const orders = await purchaseOrdersApi.getAll();
+        // Filtrar órdenes del proveedor seleccionado y mapear a HistoryItem
+        const providerOrders = orders
+          .filter((order) => order.supplier_id === selectedProviderId)
+          .map((order) => ({
+            id: order.id,
+            date: order.date,
+            type: 'order' as const,
+            description: `Orden ${order.order_number} - ${order.total_items} items`,
+            amount: parseFloat(order.total_amount.toString()),
+            status: order.status === 'pending' ? ('pending' as const) : ('completed' as const),
+          }));
+        setHistoryData(providerOrders);
+      } catch (error) {
+        console.error('Error loading provider history:', error);
+        setHistoryData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [selectedProviderId]);
 
   // Filtrado de historial
   const filteredHistory = useMemo(() => {
@@ -620,6 +649,7 @@ export const useHistory = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     getTotalAmount,
     getStatusColor,
     getTypeIcon,
