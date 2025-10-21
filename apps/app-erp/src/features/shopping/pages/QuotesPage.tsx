@@ -11,6 +11,16 @@ import TitleDescription from '../../../components/common/TitleDescription';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 
+// Helper para formatear fechas
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('es-BO', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
 const PAGE_INFO = {
   title: 'Análisis de Precios y Cotizaciones',
   description: 'Compara precios entre proveedores para mejores decisiones',
@@ -221,7 +231,7 @@ const QuotesPage: React.FC = () => {
         'Precio Anterior': `Bs. ${item.previousPrice.toFixed(2)}`,
         'Precio Actual': `Bs. ${item.currentPrice.toFixed(2)}`,
         Variación: item.variation,
-        Fecha: item.date,
+        Fecha: formatDate(item.date),
       }));
 
       exportXlsx('historico-precios', {
@@ -314,7 +324,7 @@ const QuotesPage: React.FC = () => {
                 <div key={quote.id} className='comparison-item'>
                   <div className='comparison-header'>
                     <h3 className='product-name'>{quote.productName}</h3>
-                    <div className='comparison-date'>Fecha: {quote.date}</div>
+                    <div className='comparison-date'>Fecha: {formatDate(quote.date)}</div>
                   </div>
 
                   <div className='providers-comparison'>
@@ -389,7 +399,7 @@ const QuotesPage: React.FC = () => {
                       {item.variation}
                     </span>
                   </td>
-                  <td>{item.date}</td>
+                  <td>{formatDate(item.date)}</td>
                 </tr>
               ))}
             </tbody>

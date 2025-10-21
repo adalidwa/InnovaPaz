@@ -1857,6 +1857,16 @@ export const useQuotes = () => {
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Helper para formatear fechas
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-BO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -1869,7 +1879,7 @@ export const useQuotes = () => {
         const transformedQuotes = quotes.map((q) => ({
           id: q.id,
           productName: q.product_name,
-          date: q.date,
+          date: formatDate(q.date),
           quotes: q.quotes.map((item: any) => ({
             provider: item.supplier_name,
             price: parseFloat(item.price),
@@ -1899,7 +1909,7 @@ export const useQuotes = () => {
                 ).toFixed(1) + '%'
               : '+5.0%', // Simular variación
           variationType: 'positive' as const,
-          date: h.date,
+          date: formatDate(h.date),
         }));
 
         setQuotesData(transformedQuotes);
