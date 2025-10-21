@@ -554,7 +554,10 @@ export const useHistory = () => {
             type: 'order' as const,
             description: `Orden ${order.order_number} - ${order.total_items} items`,
             amount: parseFloat(order.total_amount.toString()),
-            status: order.status === 'pending' ? ('pending' as const) : ('completed' as const),
+            status:
+              order.status === 'pending' || order.status === 'Pendiente'
+                ? ('pending' as const)
+                : ('completed' as const),
           }));
         setHistoryData(providerOrders);
       } catch (error) {
