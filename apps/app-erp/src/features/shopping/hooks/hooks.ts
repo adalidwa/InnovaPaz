@@ -544,7 +544,8 @@ export const useHistory = () => {
     const loadHistory = async () => {
       setLoading(true);
       try {
-        const orders = await providersApi.getHistory(selectedProviderId).map((order) => ({
+        const ordersData = await providersApi.getHistory(selectedProviderId);
+        const providerOrders = ordersData.map((order) => ({
           id: order.id,
           date: order.date,
           type: 'order' as const,
