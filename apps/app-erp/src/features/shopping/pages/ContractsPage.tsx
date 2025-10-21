@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { contractsApi, providersApi } from '../services/shoppingApi';
 import '../../../assets/styles/theme.css';
 import './ContractsPage.css';
 import TitleDescription from '../../../components/common/TitleDescription';
@@ -16,7 +18,6 @@ import {
   IoRefresh,
   IoDocument,
 } from 'react-icons/io5';
-import dbData from '../data/db.json';
 
 const pageInfo = {
   title: 'Gestión de Contratos y Acuerdos',
@@ -57,14 +58,8 @@ interface NewContractForm {
 
 function ContractsPage() {
   // Estados principales
-  const [contracts, setContracts] = useState<Contract[]>(
-    (dbData.contracts as any[]).map((contract: any) => ({
-      ...contract,
-      status: contract.status as Contract['status'],
-      type: contract.type as Contract['type'],
-    }))
-  );
   const [showNewContractModal, setShowNewContractModal] = useState(false);
+  const [contracts, setContracts] = useState<Contract[]>([]);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -85,11 +80,45 @@ function ContractsPage() {
   });
 
   // Opciones para selects
-  const providerOptions = dbData.providers.map((provider) => ({
-    value: provider.id.toString(),
-    label: provider.title,
-  }));
 
+  const [providerOptions, setProviderOptions] = useState<{ value: string; label: string }[]>([]);
+
+  // Cargar datos desde la API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [contractsData, providersData] = await Promise.all([
+          contractsApi.getAll(),
+          providersApi.getAll(),
+        ]);
+
+        const mappedContracts: Contract[] = contractsData.map((c: any) => ({
+          id: c.id,
+          title: c.contract_number,
+          description: c.type,
+          providerId: c.provider_id,
+          providerName: c.provider_name,
+          startDate: c.start_date,
+          endDate: c.end_date,
+          status: c.status,
+          type: c.type,
+          terms: typeof c.terms === 'string' ? JSON.parse(c.terms) : c.terms || {},
+          documentPath: c.document_path || '',
+          renewalAlert: c.renewal_alert,
+          createdDate: c.start_date,
+          daysUntilExpiry: Math.ceil(
+            (new Date(c.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+          ),
+        }));
+
+        setContracts(mappedContracts);
+        setProviderOptions(providersData.map((p) => ({ value: p.id.toString(), label: p.title })));
+      } catch (error) {
+        console.error('Error loading contracts:', error);
+      }
+    };
+    loadData();
+  }, []);
   const contractTypeOptions = [
     { value: 'supply', label: 'Acuerdo de Suministro' },
     { value: 'fixed_price', label: 'Precios Fijos' },
@@ -196,7 +225,7 @@ function ContractsPage() {
 
     // Simular creación de contrato
     setTimeout(() => {
-      const provider = dbData.providers.find((p) => p.id.toString() === contractForm.providerId);
+      const provider = providerOptions.find((p) => p.value === contractForm.providerId);
       const startDate = new Date(contractForm.startDate);
       const endDate = new Date(contractForm.endDate);
       const daysUntilExpiry = Math.ceil(
@@ -205,10 +234,10 @@ function ContractsPage() {
 
       const newContract: Contract = {
         id: Math.max(...contracts.map((c) => c.id)) + 1,
-        title: `Contrato ${getTypeLabel(contractForm.type)} - ${provider?.title}`,
+        title: `Contrato ${getTypeLabel(contractForm.type)} - ${provider?.label}`,
         description: `Acuerdo ${getTypeLabel(contractForm.type).toLowerCase()}`,
         providerId: parseInt(contractForm.providerId),
-        providerName: provider?.title || '',
+        providerName: provider?.label || '',
         startDate: contractForm.startDate,
         endDate: contractForm.endDate,
         status: daysUntilExpiry > 0 ? 'active' : 'expired',

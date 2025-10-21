@@ -13,6 +13,7 @@ const quotesRoutes = require('./routes/quotes.routes');
 const salesRoutes = require('./routes/sales.routes');
 const inventoryMovementsRoutes = require('./routes/inventory-movements.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const shoppingRoutes = require('./routes/shopping.routes');
 
 const app = express();
 
@@ -40,6 +41,7 @@ const orderRoutes = require('./routes/order.routes');
 app.use('/api', orderRoutes);
 app.use('/api/inventory', inventoryMovementsRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/shopping', shoppingRoutes);
 
 app.use((err, req, res, next) => {
   return res.json({
