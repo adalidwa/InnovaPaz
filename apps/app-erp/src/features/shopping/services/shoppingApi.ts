@@ -218,8 +218,11 @@ export const purchaseOrdersApi = {
 
 // ========== RECEPTIONS API ==========
 export const receptionsApi = {
-  getAll: async (): Promise<Reception[]> => {
-    const response = await fetch(`${API_BASE_URL}/receptions`);
+  getAll: async (supplierId?: number): Promise<Reception[]> => {
+    const url = supplierId
+      ? `${API_BASE_URL}/receptions?supplier_id=${supplierId}`
+      : `${API_BASE_URL}/receptions`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error('Error fetching receptions');
     return response.json();
   },

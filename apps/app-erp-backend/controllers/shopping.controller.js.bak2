@@ -316,39 +316,18 @@ const deletePurchaseOrder = async (req, res) => {
 // ========== RECEPTIONS ==========
 const getReceptions = async (req, res) => {
   try {
-    const { supplier_id } = req.query;
+    const receptionsResult = await pool.query('SELECT * FROM receptions ORDER BY id DESC');
+    const receptions = receptionsResult.rows;
 
-    let query = `
-      SELECT 
-        r.*,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', ri.id,
-              'product_id', ri.product_id,
-              'product_name', ri.product_name,
-              'expected_quantity', ri.expected_quantity,
-              'received_quantity', ri.received_quantity,
-              'difference', ri.difference,
-              'unit_price', ri.unit_price
-            )
-          ) FILTER (WHERE ri.id IS NOT NULL),
-          '[]'
-        ) as items
-      FROM receptions r
-      LEFT JOIN reception_items ri ON r.id = ri.reception_id
-    `;
-
-    const params = [];
-    if (supplier_id) {
-      query += ' WHERE r.supplier_id = $1';
-      params.push(supplier_id);
+    for (let reception of receptions) {
+      const itemsResult = await pool.query(
+        'SELECT * FROM reception_items WHERE reception_id = $1',
+        [reception.id]
+      );
+      reception.items = itemsResult.rows;
     }
 
-    query += ' GROUP BY r.id ORDER BY r.date DESC, r.id DESC';
-
-    const result = await pool.query(query, params);
-    res.json(result.rows);
+    res.json(receptions);
   } catch (error) {
     console.error('Error fetching receptions:', error);
     res.status(500).json({ error: 'Error fetching receptions' });

@@ -1178,21 +1178,30 @@ export const useReceptions = () => {
   const [returns, setReturns] = useState<Return[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
 
+  // Solo cargar recepciones cuando se selecciona un proveedor
   useEffect(() => {
+    if (!selectedSupplierId) {
+      setReceptions([]);
+      return;
+    }
+
     const loadData = async () => {
+      setLoading(true);
       try {
-        const receptionsData = await receptionsApi.getAll();
+        // Usar filtro del backend para traer solo las recepciones del proveedor
+        const receptionsData = await receptionsApi.getAll(selectedSupplierId);
 
         const mappedReceptions: Reception[] = receptionsData.map((r) => ({
           id: r.id,
-          purchaseOrderId: 0, // TODO
+          purchaseOrderId: 0,
           orderNumber: r.order_number || '',
           supplierId: r.supplier_id || 0,
           supplierName: r.supplier_name || '',
           date: r.date,
-          items: r.items.map((item) => ({
+          items: (r.items || []).map((item: any) => ({
             productId: item.product_id,
             productName: item.product_name,
             quantity: item.received_quantity,
@@ -1210,7 +1219,7 @@ export const useReceptions = () => {
       }
     };
     loadData();
-  }, []);
+  }, [selectedSupplierId]);
 
   const getPurchaseOrderOptions = () => {
     return [{ value: '', label: 'Seleccionar orden...' }];
@@ -1263,11 +1272,20 @@ export const useReceptions = () => {
   };
 
   const getMovementHistory = (): any[] => {
-    return [];
+    return receptions.map((r) => ({
+      id: r.id,
+      date: r.date,
+      type: 'reception',
+      orderNumber: r.orderNumber,
+      supplierName: r.supplierName,
+      status: r.status,
+      items: r.items,
+    }));
   };
 
   const getMovementDetails = (movementId: string) => {
-    return null;
+    const id = parseInt(movementId);
+    return receptions.find((r) => r.id === id) || null;
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -1279,12 +1297,18 @@ export const useReceptions = () => {
     setCurrentPage(page);
   };
 
+  const selectSupplier = (supplierId: number | null) => {
+    setSelectedSupplierId(supplierId);
+  };
+
   return {
     receptions,
     returns,
     searchTerm,
     currentPage,
     loading,
+    selectedSupplierId,
+    selectSupplier,
     getPurchaseOrderOptions,
     getProductOptions,
     getSupplierOptions,
