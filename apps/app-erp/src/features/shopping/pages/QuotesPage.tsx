@@ -61,7 +61,7 @@ const QuotesPage: React.FC = () => {
   const {
     quotesData: quotesFromDB,
     historicalData: historicalFromDB,
-    loading: quotesLoading,
+    // loading: quotesLoading,
   } = useQuotes();
   const [quotesData, setQuotesData] = useState<QuoteComparison[]>([]);
   const [historicalData, setHistoricalData] = useState<HistoricalPrice[]>([]);
