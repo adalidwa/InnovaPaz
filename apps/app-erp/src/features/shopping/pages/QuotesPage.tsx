@@ -53,18 +53,18 @@ interface NewQuoteForm {
 }
 
 // Datos de ejemplo mejorados
-// Datos cargados desde la base de datos via useQuotes
 
 const QuotesPage: React.FC = () => {
   // Estados principales
   // Hook para manejar cotizaciones desde BD
   const {
-    quotesData: quotesFromDB,
-    historicalData: historicalFromDB,
+    quotesData,
+    historicalData,
+    createQuote,
     // loading: quotesLoading,
   } = useQuotes();
-  const [quotesData, setQuotesData] = useState<QuoteComparison[]>([]);
-  const [historicalData, setHistoricalData] = useState<HistoricalPrice[]>([]);
+  // quotesData viene directamente del hook
+  // historicalData viene directamente del hook
   const [searchTerm, setSearchTerm] = useState('');
 
   // Estados de modales
@@ -180,7 +180,8 @@ const QuotesPage: React.FC = () => {
         savings: 0,
       };
 
-      setQuotesData((prev) => [newQuote, ...prev]);
+      // TODO: Implementar createQuote con los datos de newQuote
+      // await createQuote(newQuoteData);
       closeNewQuoteModal();
       showNotification('success', 'Cotización agregada exitosamente');
       setIsLoading(false);
