@@ -204,8 +204,13 @@ const getPurchaseOrders = async (req, res) => {
         [order.id]
       );
       order.items = itemsResult.rows;
+      console.log(`🔍 Order ${order.id} has ${itemsResult.rows.length} items:`, itemsResult.rows);
     }
 
+    console.log(
+      `📦 Returning ${orders.length} orders. First order items:`,
+      orders[0]?.items?.length || 0
+    );
     res.json(orders);
   } catch (error) {
     console.error('Error fetching purchase orders:', error);
@@ -227,6 +232,7 @@ const getPurchaseOrderById = async (req, res) => {
       [id]
     );
     order.items = itemsResult.rows;
+    console.log(`🔍 Order ${order.id} has ${itemsResult.rows.length} items:`, itemsResult.rows);
 
     res.json(order);
   } catch (error) {
@@ -270,6 +276,7 @@ const createPurchaseOrder = async (req, res) => {
       [order.id]
     );
     order.items = itemsResult.rows;
+    console.log(`🔍 Order ${order.id} has ${itemsResult.rows.length} items:`, itemsResult.rows);
 
     res.status(201).json(order);
   } catch (error) {
@@ -560,6 +567,7 @@ const getProviderHistory = async (req, res) => {
         [order.id]
       );
       order.items = itemsResult.rows;
+      console.log(`🔍 Order ${order.id} has ${itemsResult.rows.length} items:`, itemsResult.rows);
     }
 
     const result = { rows: orders };
