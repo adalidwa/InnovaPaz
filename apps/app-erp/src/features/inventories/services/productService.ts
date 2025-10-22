@@ -1,6 +1,6 @@
 import type { Product, CreateProductRequest, ProductResponse } from '../types/inventory';
 
-const API_BASE_URL = 'http://localhost:4000'; // Cambia esto por la URL de tu backend
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'; // Ahora usa variables de entorno
 
 class ProductService {
   private async fetchWithErrorHandling(url: string, options?: RequestInit): Promise<any> {

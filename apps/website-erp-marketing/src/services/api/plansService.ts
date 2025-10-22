@@ -15,12 +15,15 @@ export interface Plan {
 
 export async function getPlans(): Promise<Plan[]> {
   try {
-    const response = await fetch('http://localhost:4000/api/plans', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/plans`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Error al obtener planes');
@@ -35,12 +38,15 @@ export async function getPlans(): Promise<Plan[]> {
 
 export async function getPlanById(planId: number): Promise<Plan | null> {
   try {
-    const response = await fetch(`http://localhost:4000/api/plans/${planId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/plans/${planId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Error al obtener plan');

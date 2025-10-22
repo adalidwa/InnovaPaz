@@ -8,12 +8,15 @@ export interface BusinessType {
 
 export async function getBusinessTypes(): Promise<BusinessType[]> {
   try {
-    const response = await fetch('http://localhost:4000/api/companies/types', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/companies/types`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Error al obtener tipos de empresa');
@@ -28,12 +31,15 @@ export async function getBusinessTypes(): Promise<BusinessType[]> {
 
 export async function getBusinessTypeById(typeId: number): Promise<BusinessType | null> {
   try {
-    const response = await fetch(`http://localhost:4000/api/companies/types/${typeId}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/companies/types/${typeId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error('Error al obtener tipo de empresa');

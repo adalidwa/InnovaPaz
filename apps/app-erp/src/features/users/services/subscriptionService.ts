@@ -12,7 +12,7 @@
  */
 
 // API base para subscriptions - apunta al backend en puerto 4000
-const API_BASE = 'http://localhost:4000/api/subscriptions';
+const API_BASE = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/subscriptions`;
 
 export interface SubscriptionInfo {
   plan: {

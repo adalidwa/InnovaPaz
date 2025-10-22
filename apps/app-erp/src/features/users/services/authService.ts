@@ -62,8 +62,8 @@ export const checkActiveSession = async (): Promise<any> => {
 };
 
 export const redirectToMarketing = (path: string) => {
-  // Solo usar localhost ya que no hay dominio de producción aún
-  const baseUrl = 'http://localhost:5174'; // Puerto del website-erp-marketing
+  // Usar variable de entorno para la URL del website marketing
+  const baseUrl = import.meta.env.VITE_MARKETING_URL || 'http://localhost:5174';
 
   window.location.href = `${baseUrl}${path}`;
 };

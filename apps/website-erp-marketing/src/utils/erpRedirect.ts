@@ -17,5 +17,5 @@ export const goToERP = () => {
   setERPRedirectFlag();
   // Si ya está logueado, la redirección será automática por UserContext
   // Si no está logueado, irá al login y luego al ERP
-  window.location.href = 'http://localhost:5175';
+  window.location.href = import.meta.env.VITE_ERP_URL || 'http://localhost:5175';
 };

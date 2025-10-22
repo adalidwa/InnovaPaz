@@ -2,8 +2,17 @@
  * Configuración centralizada para las URLs del API
  */
 
-// URL base del backend
-export const API_BASE_URL = 'http://localhost:4000';
+// URL base del backend desde variables de entorno
+const getApiBaseUrl = (): string => {
+  // Usar VITE_API_URL si está definida, sino usar VITE_BACKEND_API_URL sin el /api, sino localhost
+  return (
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_BACKEND_API_URL?.replace('/api', '') ||
+    'http://localhost:4000'
+  );
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 // URLs específicas de endpoints
 export const API_ENDPOINTS = {

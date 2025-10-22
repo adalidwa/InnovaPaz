@@ -73,7 +73,7 @@ const invoiceCols: TableColumn<Invoice>[] = [
 ];
 
 const handleManage = () => {
-  const marketingUrl = 'http://localhost:5174/#pricing';
+  const marketingUrl = `${import.meta.env.VITE_MARKETING_URL || 'http://localhost:5174'}/#pricing`;
 
   window.open(marketingUrl, '_blank', 'noopener,noreferrer');
 

@@ -1,6 +1,6 @@
 // Configuración para upload de imágenes a través del backend
 
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 // Configuraciones de transformación
 export const CLOUDINARY_CONFIG = {

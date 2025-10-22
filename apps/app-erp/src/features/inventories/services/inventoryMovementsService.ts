@@ -1,6 +1,6 @@
 // Servicio para obtener movimientos de inventario y productos críticos
 
-const API_BASE_URL = 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export interface MovimientoInventario {
   movimiento_id: number;

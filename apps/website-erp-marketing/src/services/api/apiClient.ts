@@ -1,6 +1,6 @@
 import { auth } from '../../configs/firebaseConfig';
 
-const API_BASE_URL = 'http://localhost:4000'; // URL de tu backend sin /api
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'; // URL de tu backend sin /api
 
 // Función para obtener el token JWT de tu backend usando el token de Firebase
 const getBackendToken = async (): Promise<string | null> => {

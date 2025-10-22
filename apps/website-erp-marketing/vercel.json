@@ -1,14 +1,12 @@
 {
-  "version": 2,
+  "framework": "vite",
   "buildCommand": "pnpm run build",
+  "outputDirectory": "dist",
   "installCommand": "pnpm install",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ]
+  "env": {
+    "VITE_API_URL": "https://TU-BACKEND-REAL.vercel.app",
+    "VITE_ERP_URL": "https://TU-APP-ERP.vercel.app",
+    "VITE_MARKETING_URL": "https://TU-MARKETING.vercel.app",
+    "VITE_APP_ENV": "production"
+  }
 }

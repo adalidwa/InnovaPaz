@@ -1,22 +1,12 @@
 // Configuración de URLs de las aplicaciones
 export const APP_URLS = {
-  // URLs para desarrollo local - CORREGIDAS
-  ERP_APP_URL:
-    process.env.NODE_ENV === 'production'
-      ? 'https://app-erp.innovapaz.com'
-      : 'http://localhost:5175', // ✅ CORREGIDO: ERP en puerto 5175
-
-  MARKETING_APP_URL:
-    process.env.NODE_ENV === 'production'
-      ? 'https://marketing.innovapaz.com'
-      : 'http://localhost:5174', // ✅ CORREGIDO: Marketing en puerto 5174
+  // URLs usando variables de entorno
+  ERP_APP_URL: import.meta.env.VITE_ERP_URL || 'http://localhost:5175',
+  MARKETING_APP_URL: import.meta.env.VITE_MARKETING_URL || 'http://localhost:5174',
 };
 
-// Nuevo: Base API backend (centralizado)
-export const BACKEND_API_URL =
-  process.env.NODE_ENV === 'production'
-    ? 'https://api.innovapaz.com' // ajustar a tu dominio real
-    : 'http://localhost:4000';
+// Base API backend (centralizado)
+export const BACKEND_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 // Rutas específicas para redirección
 export const ERP_ROUTES = {

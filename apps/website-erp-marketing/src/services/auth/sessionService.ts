@@ -20,13 +20,16 @@ export async function loginWithBackend(email: string, password: string) {
   const firebaseResult = await login(email, password);
 
   // 2. Intercambiar token con tu backend
-  const response = await fetch('http://localhost:4000/api/auth/login-firebase', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ idToken: firebaseResult.idToken }),
-  });
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/login-firebase`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idToken: firebaseResult.idToken }),
+    }
+  );
 
   if (!response.ok) {
     throw new Error('Usuario no encontrado en la base de datos');
@@ -52,13 +55,16 @@ export async function registerWithBackend(userData: {
     plan_id: number;
   };
 }) {
-  const response = await fetch('http://localhost:4000/api/auth/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/register`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json();

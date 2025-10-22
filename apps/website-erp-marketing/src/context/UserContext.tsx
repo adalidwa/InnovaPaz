@@ -37,13 +37,16 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const fetchBackendUserData = async (firebaseUser: any) => {
     try {
       const idToken = await firebaseUser.getIdToken();
-      const response = await fetch('http://localhost:4000/api/auth/login-firebase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ idToken }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/auth/login-firebase`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ idToken }),
+        }
+      );
 
       if (response.ok) {
         const backendData = await response.json();
