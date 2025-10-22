@@ -37,9 +37,7 @@ function ReceptionsPage() {
   // Hook principal para recepciones con nueva funcionalidad
   const {
     getReturnReasonOptions,
-
     getMovementHistory,
-
     getMovementDetails,
     handleSearchChange,
     handlePageChange,
@@ -276,55 +274,80 @@ function ReceptionsPage() {
           <div className='section-header'>
             <h3>Registrar Recepción</h3>
           </div>
-          <div className='form-grid'>
-            <Select
-              label='Orden de Compra'
-              value={receptionForm.purchaseOrderId}
-              onChange={handleReceptionInputChange('purchaseOrderId')}
-              options={getPurchaseOrderOptionsLocal()}
-            />
-            <Input
-              label='Fecha de Recepción'
-              type='date'
-              value={receptionForm.receptionDate}
-              onChange={handleReceptionInputChange('receptionDate')}
-            />
-            <Select
-              label='Producto'
-              value={receptionForm.productId}
-              onChange={handleReceptionInputChange('productId')}
-              options={getProductOptionsLocal()}
-            />
-            <Input
-              label='Cantidad'
-              type='number'
-              value={receptionForm.quantity}
-              onChange={handleReceptionInputChange('quantity')}
-              min='1'
-            />
-            <Input
-              label='Número de Lote'
-              value={receptionForm.lotNumber}
-              onChange={handleReceptionInputChange('lotNumber')}
-            />
-            <Input
-              label='Fecha de Vencimiento'
-              type='date'
-              value={receptionForm.expiryDate}
-              onChange={handleReceptionInputChange('expiryDate')}
-            />
-          </div>
-          <div className='form-actions'>
-            <Button
-              variant='primary'
-              icon={<IoDownload />}
-              onClick={() => {
-                setPendingAction('reception');
-                setShowConfirmModal(true);
-              }}
-            >
-              Registrar Recepción
-            </Button>
+          <div className='section-form'>
+            <div className='form-row'>
+              <div className='form-field'>
+                <Select
+                  label='Orden de Compra'
+                  value={receptionForm.purchaseOrderId}
+                  onChange={handleReceptionInputChange('purchaseOrderId')}
+                  options={getPurchaseOrderOptionsLocal()}
+                  className='form-input'
+                />
+              </div>
+              <div className='form-field'>
+                <Input
+                  label='Fecha de Recepción'
+                  type='date'
+                  value={receptionForm.receptionDate}
+                  onChange={handleReceptionInputChange('receptionDate')}
+                  className='form-input'
+                />
+              </div>
+            </div>
+            <div className='form-row'>
+              <div className='form-field'>
+                <Select
+                  label='Producto'
+                  value={receptionForm.productId}
+                  onChange={handleReceptionInputChange('productId')}
+                  options={getProductOptionsLocal()}
+                  className='form-input'
+                />
+              </div>
+              <div className='form-field'>
+                <Input
+                  label='Cantidad'
+                  type='number'
+                  value={receptionForm.quantity}
+                  onChange={handleReceptionInputChange('quantity')}
+                  min='1'
+                  className='form-input'
+                />
+              </div>
+            </div>
+            <div className='form-row'>
+              <div className='form-field'>
+                <Input
+                  label='Número de Lote'
+                  value={receptionForm.lotNumber}
+                  onChange={handleReceptionInputChange('lotNumber')}
+                  className='form-input'
+                />
+              </div>
+              <div className='form-field'>
+                <Input
+                  label='Fecha de Vencimiento'
+                  type='date'
+                  value={receptionForm.expiryDate}
+                  onChange={handleReceptionInputChange('expiryDate')}
+                  className='form-input'
+                />
+              </div>
+            </div>
+            <div className='form-actions'>
+              <Button
+                variant='primary'
+                icon={<IoDownload />}
+                onClick={() => {
+                  setPendingAction('reception');
+                  setShowConfirmModal(true);
+                }}
+                className='action-button'
+              >
+                Registrar Recepción
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -333,50 +356,70 @@ function ReceptionsPage() {
           <div className='section-header'>
             <h3>Registrar Devolución</h3>
           </div>
-          <div className='form-grid'>
-            <Select
-              label='Producto'
-              value={returnForm.productId}
-              onChange={handleReturnInputChange('productId')}
-              options={getProductOptionsLocal()}
-            />
-            <Select
-              label='Proveedor'
-              value={returnForm.supplierId}
-              onChange={handleReturnInputChange('supplierId')}
-              options={getSupplierOptionsLocal()}
-            />
-            <Input
-              label='Cantidad'
-              type='number'
-              value={returnForm.quantity}
-              onChange={handleReturnInputChange('quantity')}
-              min='1'
-            />
-            <Select
-              label='Motivo de Devolución'
-              value={returnForm.reason}
-              onChange={handleReturnInputChange('reason')}
-              options={getReturnReasonOptions()}
-            />
-          </div>
-          <Input
-            label='Observaciones'
-            value={returnForm.observations}
-            onChange={handleReturnInputChange('observations')}
-            placeholder='Observaciones adicionales...'
-          />
-          <div className='form-actions'>
-            <Button
-              variant='secondary'
-              icon={<IoReturnDownBack />}
-              onClick={() => {
-                setPendingAction('return');
-                setShowConfirmModal(true);
-              }}
-            >
-              Registrar Devolución
-            </Button>
+          <div className='section-form'>
+            <div className='form-row'>
+              <div className='form-field'>
+                <Select
+                  label='Producto'
+                  value={returnForm.productId}
+                  onChange={handleReturnInputChange('productId')}
+                  options={getProductOptionsLocal()}
+                  className='form-input'
+                />
+              </div>
+              <div className='form-field'>
+                <Select
+                  label='Proveedor'
+                  value={returnForm.supplierId}
+                  onChange={handleReturnInputChange('supplierId')}
+                  options={getSupplierOptionsLocal()}
+                  className='form-input'
+                />
+              </div>
+            </div>
+            <div className='form-row'>
+              <div className='form-field'>
+                <Input
+                  label='Cantidad'
+                  type='number'
+                  value={returnForm.quantity}
+                  onChange={handleReturnInputChange('quantity')}
+                  min='1'
+                  className='form-input'
+                />
+              </div>
+              <div className='form-field'>
+                <Select
+                  label='Motivo de Devolución'
+                  value={returnForm.reason}
+                  onChange={handleReturnInputChange('reason')}
+                  options={getReturnReasonOptions()}
+                  className='form-input'
+                />
+              </div>
+            </div>
+            <div className='form-field full-width'>
+              <Input
+                label='Observaciones'
+                value={returnForm.observations}
+                onChange={handleReturnInputChange('observations')}
+                placeholder='Observaciones adicionales...'
+                className='form-textarea'
+              />
+            </div>
+            <div className='form-actions'>
+              <Button
+                variant='secondary'
+                icon={<IoReturnDownBack />}
+                onClick={() => {
+                  setPendingAction('return');
+                  setShowConfirmModal(true);
+                }}
+                className='action-button'
+              >
+                Registrar Devolución
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -389,7 +432,7 @@ function ReceptionsPage() {
                 placeholder='Buscar en el historial...'
                 value={searchTerm}
                 onChange={handleSearchChange}
-                icon={<IoSearch color='var(--pri-500)' />}
+                leftIcon={<IoSearch color='var(--pri-500)' />}
                 className='search-input'
               />
             </div>
