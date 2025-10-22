@@ -1,0 +1,273 @@
+.table-container {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.table-title {
+  font: var(--font-20);
+  font-weight: 600;
+  color: var(--pri-800);
+  margin: 0;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--pri-100);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pri-200) var(--pri-50);
+}
+
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: var(--pri-50);
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--pri-200);
+  border-radius: 3px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--font-14);
+}
+
+.table-header {
+  background: var(--bg-100);
+}
+
+.table-header-cell {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--pri-700);
+  border-bottom: 2px solid var(--pri-100);
+  white-space: nowrap;
+}
+
+.table-header-cell:first-child {
+  padding-left: 24px;
+}
+
+.table-header-cell:last-child {
+  padding-right: 24px;
+}
+
+.table-actions-header {
+  text-align: center;
+  min-width: 120px;
+}
+
+.table-body {
+  background: var(--white);
+}
+
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background: var(--bg-50);
+}
+
+.table-row:nth-child(even) {
+  background: var(--bg-25, #fefefe);
+}
+
+.table-row:nth-child(even):hover {
+  background: var(--bg-50);
+}
+
+.table-cell {
+  padding: 16px 20px;
+  color: var(--pri-600);
+  border-bottom: 1px solid var(--pri-100);
+  vertical-align: middle;
+}
+
+.table-cell:first-child {
+  padding-left: 24px;
+  font-weight: 500;
+  color: var(--pri-700);
+}
+
+.table-cell:last-child {
+  padding-right: 24px;
+}
+
+.table-actions {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table-action-primary {
+  background: var(--pri-100);
+  color: var(--pri-700);
+}
+
+.table-action-primary:hover {
+  background: var(--pri-200);
+  color: var(--pri-800);
+}
+
+.table-action-secondary {
+  background: var(--pri-50);
+  color: var(--pri-600);
+}
+
+.table-action-secondary:hover {
+  background: var(--pri-200);
+  color: var(--pri-800);
+}
+
+.table-action-success {
+  background: var(--var-100);
+  color: var(--var-700);
+}
+
+.table-action-success:hover {
+  background: var(--var-200);
+  color: var(--var-900);
+}
+
+.table-action-warning {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.table-action-warning:hover {
+  background: #fde68a;
+  color: #92400e;
+}
+
+.table-action-danger {
+  background: var(--acc-100);
+  color: var(--acc-700);
+}
+
+.table-action-danger:hover {
+  background: var(--acc-200);
+  color: var(--acc-900);
+}
+
+.table-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--pri-500);
+  font-style: italic;
+}
+
+.table-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--pri-600);
+  font: var(--font-16);
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font: var(--font-13);
+  font-weight: 500;
+  text-align: center;
+  display: inline-block;
+  min-width: 80px;
+}
+
+.status-pendiente {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-recibido {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-rechazado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-proceso {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+/* Order Number Styling */
+.order-number {
+  font-weight: 600;
+  color: var(--pri-800);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-container {
+    margin: 16px 0;
+    border-radius: 8px;
+  }
+
+  .table-title {
+    padding: 16px 20px 12px;
+    font: var(--font-16);
+  }
+
+  .table-header-cell,
+  .table-cell {
+    padding: 12px 16px;
+  }
+
+  .table-header-cell:first-child,
+  .table-cell:first-child {
+    padding-left: 20px;
+  }
+
+  .table-header-cell:last-child,
+  .table-cell:last-child {
+    padding-right: 20px;
+  }
+
+  .table-action-btn {
+    padding: 5px 12px;
+    font: var(--font-10);
+    min-width: 36px;
+    font-size: 12px;
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 480px) {
+  .table-wrapper {
+    overflow-x: scroll;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  .table-actions {
+    min-width: 100px;
+  }
+}
+
+.table-action-button {
+  margin: 0 2px;
+  min-width: 60px;
+}
+
+.table-action-button:first-child {
+  margin-left: 0;
+}
+
+.table-action-button:last-child {
+  margin-right: 0;
+}

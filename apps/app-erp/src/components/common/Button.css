@@ -1,0 +1,278 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font, 'Inter', sans-serif);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition-smooth, all 0.3s ease);
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:focus {
+  box-shadow: 0 0 0 3px rgba(74, 208, 201, 0.2);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Variantes */
+
+.btn-primary {
+  background-color: var(--pri-600);
+  color: var(--white);
+  border: 1px solid var(--pri-600);
+}
+
+.btn-primary:hover {
+  background-color: var(--sec-600);
+  border-color: var(--sec-600);
+}
+
+.btn-primary:active {
+  background-color: var(--pri-700);
+}
+
+.btn-secondary {
+  background-color: var(--pri-100);
+  color: var(--pri-800);
+  border: 1px solid var(--pri-200);
+}
+
+.btn-secondary:hover {
+  background-color: var(--pri-200);
+  border-color: var(--pri-300);
+}
+
+.btn-warning {
+  background-color: var(--var-600);
+  color: var(--white);
+  border: 1px solid var(--var-600);
+}
+
+.btn-warning:hover {
+  background-color: var(--var-500);
+  border-color: var(--var-500);
+}
+
+.btn-success {
+  background-color: var(--sec-600);
+  color: var(--white);
+  border: 1px solid var(--sec-600);
+}
+
+.btn-success:hover {
+  background-color: var(--sec-500);
+  border-color: var(--sec-500);
+}
+
+.btn-accent {
+  background-color: var(--acc-600);
+  color: var(--white);
+  border: 1px solid var(--acc-600);
+}
+
+.btn-accent:hover {
+  background-color: var(--acc-500);
+  border-color: var(--acc-500);
+}
+
+.btn-outline {
+  background-color: var(--transparent, transparent);
+  color: var(--sec-700);
+  border: 1px solid var(--sec-700);
+}
+
+.btn-outline:hover {
+  background-color: var(--sec-700);
+  color: var(--white);
+}
+
+.btn-ghost {
+  background-color: var(--transparent, transparent);
+  color: var(--pri-600);
+  border: none;
+}
+
+.btn-ghost:hover {
+  background-color: var(--pri-100);
+  color: var(--pri-800);
+}
+
+.btn-ghost:active {
+  background-color: var(--pri-200);
+}
+
+/* Tamaños */
+.btn-small {
+  padding: 6px 12px;
+  font-size: var(--font-13, 13px);
+  min-height: 32px;
+}
+
+.btn-medium {
+  padding: 8px 16px;
+  font-size: var(--font-14, 14px);
+  min-height: 40px;
+}
+
+.btn-large {
+  padding: 12px 24px;
+  font-size: var(--font-16, 16px);
+  min-height: 48px;
+}
+
+/* Bordes */
+.btn-rounded-none {
+  border-radius: 0;
+}
+
+.btn-rounded-sm {
+  border-radius: 4px;
+}
+
+.btn-rounded-md {
+  border-radius: 6px;
+}
+
+.btn-rounded-lg {
+  border-radius: 8px;
+}
+
+.btn-rounded-full {
+  border-radius: 50px;
+}
+
+/* Ancho completo */
+.btn-full-width {
+  width: 100%;
+}
+
+/* Estados de carga */
+.btn-loading {
+  position: relative;
+  color: var(--transparent) !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--white);
+  border-top: 2px solid var(--transparent);
+  border-radius: 50%;
+  animation: btn-spin 1s linear infinite;
+}
+
+.btn-outline.btn-loading::after {
+  border-color: var(--sec-700);
+  border-top-color: var(--transparent);
+}
+
+@keyframes btn-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Iconos */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-icon-left {
+  margin-right: 8px;
+}
+
+.btn-icon-right {
+  margin-left: 8px;
+}
+
+/* Efectos especiales */
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-primary:active {
+  background-color: var(--sec-800);
+}
+
+.btn-secondary:active {
+  background-color: var(--pri-300);
+}
+
+.btn-warning:active {
+  background-color: var(--var-700);
+}
+
+.btn-success:active {
+  background-color: var(--sec-700);
+}
+
+.btn-accent:active {
+  background-color: var(--acc-700);
+}
+
+.btn-outline:active {
+  background-color: var(--sec-800);
+}
+
+/* Table Action Button Variants - White background with colored text */
+.btn-table-primary {
+  background-color: var(--white);
+  color: var(--pri-700);
+  border: 1px solid var(--pri-200);
+}
+
+.btn-table-primary:hover {
+  background-color: var(--pri-50);
+  color: var(--pri-800);
+  border-color: var(--pri-300);
+}
+
+.btn-table-danger {
+  background-color: var(--white);
+  color: var(--acc-700);
+  border: 1px solid var(--acc-200);
+}
+
+.btn-table-danger:hover {
+  background-color: var(--acc-50);
+  color: var(--acc-800);
+  border-color: var(--acc-300);
+}
+
+.btn-table-success {
+  background-color: var(--white);
+  color: var(--sec-700);
+  border: 1px solid var(--sec-200);
+}
+
+.btn-table-success:hover {
+  background-color: var(--sec-50);
+  color: var(--sec-800);
+  border-color: var(--sec-300);
+}
+
+.btn-table-secondary {
+  background-color: var(--white);
+  color: var(--pri-600);
+  border: 1px solid var(--pri-200);
+}
+
+.btn-table-secondary:hover {
+  background-color: var(--pri-50);
+  color: var(--pri-700);
+  border-color: var(--pri-300);
+}

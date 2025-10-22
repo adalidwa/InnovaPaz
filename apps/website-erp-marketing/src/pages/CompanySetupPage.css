@@ -1,0 +1,243 @@
+.company-setup-bg {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  background: linear-gradient(180deg, var(--acc-500) 0%, var(--var-500) 40%, var(--acc-100) 100%);
+  font-family: var(--font);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.2);
+  background-blend-mode: overlay;
+}
+
+.company-setup-illustration {
+  width: 100%;
+  padding: 1rem 1rem 0 1rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.company-setup-illustration-img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  margin-top: -50px;
+  display: block;
+}
+
+.company-setup-bg .logo,
+.company-setup-badge {
+  position: relative;
+  z-index: 5;
+  margin-top: 15px;
+}
+
+.company-setup-box {
+  width: 100%;
+  background: var(--pri-900);
+  color: var(--pri-100);
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0px;
+  left: 0;
+  gap: 25px;
+  border-radius: 38px 38px 0 0;
+  padding: 2rem 2.1rem;
+  z-index: 3;
+  animation: slideUpAuto 0.7s cubic-bezier(0.77, 0, 0.18, 1) both;
+  max-height: 100vh;
+  box-sizing: border-box;
+}
+
+.company-setup-box .custom-button {
+  max-height: 50px;
+  font-size: 16px;
+}
+
+.company-setup-box .google-button {
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+}
+
+.company-setup-title {
+  font-size: 29px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0;
+}
+
+.company-setup-subtitle {
+  font-size: 16px;
+  text-align: center;
+  margin: 0;
+  color: var(--pri-400);
+  margin-bottom: 1rem;
+}
+
+.company-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 21px;
+}
+
+.company-setup-form .custom-input-container label {
+  position: absolute;
+  background-color: var(--pri-900);
+  margin-top: -12px;
+  padding: 2px;
+  margin-left: 8px;
+}
+
+.custom-select-container label {
+  position: absolute;
+  margin-top: -12px;
+  padding: 2px;
+  margin-left: 8px;
+  background-color: var(--pri-900);
+  font-family: var(--font-16);
+  color: var(--pri-100);
+}
+
+@media (min-width: 768px) {
+  .company-setup-bg {
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+
+  .company-setup-box {
+    position: relative;
+    border-radius: 35px;
+    width: 90%;
+    margin-top: 25px;
+    max-width: 430px;
+    max-height: 800px;
+    padding: 2rem 2.6rem;
+    gap: 12px;
+    animation: fadeInCenter 0.7s cubic-bezier(0.77, 0, 0.18, 1) both;
+    z-index: 3;
+  }
+
+  .company-setup-form {
+    gap: 15px;
+  }
+
+  .company-setup-illustration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+  }
+
+  .company-setup-illustration-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    display: block;
+  }
+}
+
+@media (min-width: 1024px) {
+  .company-setup-bg {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 0 4rem;
+  }
+
+  .company-setup-illustration {
+    position: relative;
+    flex: 1;
+    max-width: 550px;
+    padding: 0;
+    animation: slideLeft 0.8s cubic-bezier(0.77, 0, 0.18, 1) both;
+  }
+
+  .company-setup-illustration-img {
+    border-radius: 35px;
+    margin-top: 0;
+  }
+
+  .company-setup-badge {
+    position: absolute;
+    top: 0;
+    margin: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+  }
+
+  .register-bg .logo__text {
+    font-size: 29px;
+  }
+
+  .company-setup-box {
+    position: relative;
+    flex: 1;
+    border-radius: 35px;
+    animation: slideRight 0.8s cubic-bezier(0.77, 0, 0.18, 1) both;
+    bottom: auto;
+    left: auto;
+    max-width: 430px;
+    max-height: 690px;
+    gap: 20px;
+  }
+
+  .company-setup-form {
+    gap: 20px;
+  }
+
+  .company-setup-title {
+    text-align: center;
+  }
+}
+
+@keyframes slideUpAuto {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInCenter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

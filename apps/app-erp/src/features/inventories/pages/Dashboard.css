@@ -1,0 +1,13 @@
+.dashboard-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 20px;
+}
+
+@media (min-width: 1025px) {
+  .dashboard-row {
+    flex-wrap: nowrap;
+  }
+}

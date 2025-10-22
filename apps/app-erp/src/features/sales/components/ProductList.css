@@ -1,0 +1,266 @@
+/* Mobile-first styles for ProductList */
+.product-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px 0;
+  width: 100%;
+  grid-auto-rows: auto; /* Allow rows to size naturally */
+}
+
+/* Small Mobile (480px+) - Accommodate wider cards with buttons */
+@media (min-width: 480px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Increased from 200px */
+    gap: 16px;
+  }
+}
+
+/* Tablet styles - 768px and up - Account for horizontal button layout */
+@media (min-width: 768px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* Increased from 220px */
+    gap: 20px;
+    padding: 20px 0;
+  }
+}
+
+/* Desktop styles - 1024px and up - Larger buttons need more space */
+@media (min-width: 1024px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); /* Increased from 250px */
+    gap: 24px;
+    padding: 24px 0;
+  }
+}
+
+/* Large desktop styles - 1200px and up - Maximum button comfort */
+@media (min-width: 1200px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* Increased from 280px */
+    gap: 28px;
+  }
+}
+
+/* Ensure maximum 3 columns on very large screens to prevent cards from being too wide */
+@media (min-width: 1600px) {
+  .product-list {
+    grid-template-columns: repeat(3, 1fr); /* Changed from 4 to 3 columns */
+    max-width: 1200px; /* Reduced from 1400px */
+    margin: 0 auto;
+  }
+}
+
+/* For ultra-wide screens, limit to 4 columns maximum */
+@media (min-width: 2000px) {
+  .product-list {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+}
+
+/* Empty state */
+.product-list__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 16px;
+  text-align: center;
+  grid-column: 1 / -1;
+}
+
+.product-list__empty-icon {
+  margin-bottom: 16px;
+  opacity: 0.4;
+  color: var(--pri-500);
+}
+
+.product-list__empty-text {
+  font: var(--font-18);
+  font-weight: 600;
+  color: var(--pri-700);
+  margin: 0 0 8px 0;
+}
+
+.product-list__empty-suggestion {
+  font: var(--font-14);
+  color: var(--pri-600);
+  margin: 0;
+}
+
+/* Tablet empty state */
+@media (min-width: 768px) {
+  .product-list__empty {
+    padding: 80px 24px;
+  }
+
+  .product-list__empty-text {
+    font: var(--font-20);
+  }
+
+  .product-list__empty-suggestion {
+    font: var(--font-16);
+  }
+}
+
+/* Desktop empty state */
+@media (min-width: 1024px) {
+  .product-list__empty {
+    padding: 100px 32px;
+  }
+
+  .product-list__empty-icon {
+    margin-bottom: 24px;
+  }
+
+  .product-list__empty-text {
+    font: var(--font-25);
+    margin-bottom: 12px;
+  }
+
+  .product-list__empty-suggestion {
+    font: var(--font-18);
+  }
+}
+
+/* Animations */
+.product-list {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Ensure ProductCards fill the grid cells properly and accommodate button width */
+.product-list .product-card-sales {
+  width: 100%;
+  height: auto;
+  min-height: auto;
+  align-self: stretch;
+  justify-self: stretch;
+  /* Allow cards to grow to accommodate button content */
+  min-width: 0; /* Allow shrinking if needed, but respect grid minmax */
+}
+
+/* Grid item alignment improvements */
+.product-list {
+  align-items: start;
+  justify-items: stretch; /* Ensure cards stretch to fill grid cells */
+}
+
+/* Ensure no overflow issues */
+.product-list {
+  overflow: visible;
+}
+
+/* Better responsive behavior for very small cards */
+@media (max-width: 479px) {
+  .product-list {
+    gap: 12px;
+    padding: 12px 0;
+  }
+}
+
+/* Improved grid behavior for different screen sizes */
+@media (min-width: 320px) and (max-width: 479px) {
+  .product-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small mobile range - single column but accommodate button width */
+@media (min-width: 480px) and (max-width: 767px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+/* Medium mobile range - account for larger buttons */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+/* Desktop range - horizontal button layout needs more width */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* Large desktop - comfortable button spacing */
+@media (min-width: 1200px) and (max-width: 1599px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Auto-sizing improvement for better responsiveness */
+.product-list {
+  grid-template-rows: auto;
+}
+
+/* Grid container should accommodate growing cards */
+.product-list {
+  container-type: inline-size; /* For future container queries */
+}
+
+/* Ensure grid respects card content width */
+@media (min-width: 480px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(220px, min-content), 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(260px, min-content), 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(290px, min-content), 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fit, minmax(max(320px, min-content), 1fr));
+  }
+}
+
+/* Special handling for quantity input state */
+.product-list .product-card-sales:has(.product-card-sales__quantity-section) {
+  min-width: fit-content; /* Allow natural width when quantity section is active */
+}
+
+/* Ensure proper spacing in different scenarios */
+.product-list {
+  gap: clamp(12px, 2vw, 28px); /* Responsive gap */
+}
+
+/* Responsive padding */
+.product-list {
+  padding: clamp(12px, 3vw, 24px) 0;
+}
+
+/* Grid debugging (uncomment for development) */
+/*
+.product-list {
+  border: 2px dashed red;
+  background: rgba(255, 0, 0, 0.1);
+}
+.product-list .product-card-sales {
+  border: 2px dashed blue;
+}
+*/

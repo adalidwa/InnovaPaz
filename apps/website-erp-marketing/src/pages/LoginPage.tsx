@@ -6,57 +6,101 @@ import illustrationPicture from '../assets/icons/illustrationPicture.svg';
 import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './LoginPage.css';
-import { useNavigate } from 'react-router-dom';
-import { signInWithGoogle } from '../services/auth/firebaseAuthService';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../configs/firebaseConfig';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { loginWithBackend } from '../services/auth/sessionService';
+import { signInWithGoogleBackend } from '../services/auth/googleAuthService';
+import { useUser } from '../context/UserContext';
+import { redirectToERP } from '../configs/appConfig';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const planSeleccionado = searchParams.get('plan');
+  useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { user, error } = await signInWithGoogle();
-      if (user) {
-        // Usuario logueado con Google
-        navigate('/');
-      } else {
-        setError('Error al iniciar sesión con Google');
-        console.error(error);
-      }
-    } catch (err) {
-      setError('Error inesperado. Inténtalo más tarde.');
-      console.error(err);
-    }
-    setLoading(false);
-  };
-
+  // Función para manejar el login usando Firebase + Backend
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      // Usuario logueado
-      navigate('/');
-    } catch (err: any) {
-      if (err.code === 'auth/user-not-found') {
-        setError('No existe una cuenta con ese correo.');
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Contraseña incorrecta.');
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Correo inválido.');
+      const result = await loginWithBackend(email.trim().toLowerCase(), password);
+      if (result && result.userData) {
+        console.log('Usuario logueado desde PostgreSQL:', result.userData);
+
+        // Si viene de un plan y no tiene empresa, ir a company-setup
+        if (planSeleccionado && !result.userData.empresa_id) {
+          console.log('🏢 Usuario desde plan sin empresa, redirigiendo a company-setup');
+          navigate(`/company-setup?plan=${planSeleccionado}`);
+        }
+        // Si viene de un plan y ya tiene empresa, ir al ERP
+        else if (planSeleccionado && result.userData.empresa_id) {
+          console.log('✅ Usuario desde plan con empresa, redirigiendo al ERP');
+          redirectToERP();
+        }
+        // Si NO viene de un plan (header/exploración), quedarse en homepage
+        else if (!planSeleccionado) {
+          console.log('🏠 Usuario desde header, manteniéndose en website para explorar');
+          navigate('/'); // Quedarse en homepage independientemente si tiene empresa o no
+        }
       } else {
-        setError('Error al iniciar sesión. ' + (err.message || 'Inténtalo de nuevo.'));
+        setError('Credenciales no válidas.');
       }
-      console.error(err);
+    } catch (err: any) {
+      setError(err?.message || 'Error inesperado al iniciar sesión. Inténtalo más tarde.');
     }
+
+    setLoading(false);
+  };
+
+  // Login con Google usando el nuevo servicio
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await signInWithGoogleBackend();
+
+      if (!result.success) {
+        setError(result.error || 'Error al iniciar sesión con Google');
+        setLoading(false);
+        return;
+      }
+
+      // Guardar token en localStorage para mantener sesión
+      if (result.token) {
+        localStorage.setItem('authToken', result.token);
+      }
+
+      console.log('Usuario logueado con Google:', result.usuario);
+
+      // Si viene de un plan y necesita configurar empresa
+      if (planSeleccionado && result.needsCompanySetup) {
+        console.log(
+          '🏢 Usuario desde plan necesita configurar empresa, redirigiendo a company-setup'
+        );
+        navigate(`/company-setup?plan=${planSeleccionado}`);
+      }
+      // Si viene de un plan y ya no necesita configurar empresa
+      else if (planSeleccionado && !result.needsCompanySetup) {
+        console.log('✅ Usuario desde plan completo, redirigiendo al ERP');
+        redirectToERP();
+      }
+      // Si NO viene de un plan (header/exploración)
+      else if (!planSeleccionado) {
+        console.log('🏠 Usuario desde header, manteniéndose en website para explorar');
+        navigate('/'); // Quedarse en homepage independientemente si tiene empresa o no
+      }
+    } catch (error: any) {
+      console.error('Error en Google login:', error);
+      setError(error.message || 'Error inesperado. Inténtalo más tarde.');
+    }
+
     setLoading(false);
   };
 

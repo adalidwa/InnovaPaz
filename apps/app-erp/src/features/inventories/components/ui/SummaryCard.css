@@ -1,0 +1,87 @@
+.summary-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 270px;
+  font-family: var(--font);
+  box-sizing: border-box;
+}
+
+@media (max-width: 1366px) {
+  .summary-card {
+    width: 19rem;
+  }
+}
+
+@media (max-width: 1280px) {
+  .summary-card {
+    width: 18.5rem;
+  }
+}
+
+@media (max-width: 1152px) {
+  .summary-card {
+    width: 18rem;
+  }
+}
+
+@media (max-width: 1025px) {
+  .summary-card {
+    width: 18rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .summary-card {
+    width: 15rem;
+  }
+}
+
+.summary-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-card__title {
+  font: var(--font-14);
+  color: var(--pri-500);
+  margin: 0;
+}
+
+.summary-card__value {
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 600;
+  color: var(--pri-900);
+  margin: 0;
+}
+
+.summary-card__percentage {
+  font: var(--font-14);
+  font-weight: 500;
+  margin: 0;
+}
+
+.summary-card__percentage--positive {
+  color: var(--sec-700);
+}
+
+.summary-card__percentage--negative {
+  color: var(--acc-700);
+}
+
+.summary-card__icon {
+  background: var(--sec-100);
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  color: var(--sec-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

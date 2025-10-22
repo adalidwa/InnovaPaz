@@ -1,0 +1,98 @@
+.business-type-select {
+  width: 100%;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 2px solid var(--bg-900);
+  font-size: 16px;
+  font-family: var(--font);
+  transition: all 0.3s ease;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  padding-right: 36px;
+  cursor: pointer;
+  height: 60px;
+  box-sizing: border-box;
+}
+
+/* Tema claro */
+.business-type-select.light {
+  background-color: transparent;
+  color: var(--pri-900);
+  background-image: url("data:image/svg+xml;charset=UTF-8,<svg width='16' height='16' fill='%23403d58' xmlns='http://www.w3.org/2000/svg'><path d='M4 6l4 4 4-4'/></svg>");
+}
+
+.business-type-select.light option {
+  background-color: var(--pri-100);
+  color: var(--pri-900);
+}
+
+.business-type-select.light option[disabled] {
+  color: var(--pri-500);
+}
+
+/* Tema oscuro */
+.business-type-select.dark {
+  background-color: transparent;
+  color: var(--pri-900);
+  background-image: url("data:image/svg+xml;charset=UTF-8,<svg width='16' height='16' fill='%23403d58' xmlns='http://www.w3.org/2000/svg'><path d='M4 6l4 4 4-4'/></svg>");
+}
+
+.business-type-select.dark option {
+  background-color: var(--pri-800);
+  color: var(--pri-100);
+}
+
+.business-type-select.dark option[disabled] {
+  color: var(--pri-400);
+}
+
+/* Estados disabled */
+.business-type-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Tamaños que coinciden con Input */
+.business-type-select.small {
+  height: 36px;
+  padding: 0 10px;
+  padding-right: 32px;
+  font-size: 13px;
+}
+
+.business-type-select.medium {
+  height: 60px;
+  padding: 0 14px;
+  padding-right: 36px;
+  font-size: 16px;
+}
+
+.business-type-select.large {
+  height: 52px;
+  padding: 0 14px;
+  padding-right: 40px;
+  font-size: 20px;
+}
+
+/* Responsive que coincide con Input */
+@media (max-width: 768px) {
+  .business-type-select {
+    height: 40px;
+    padding: 0 10px;
+    padding-right: 32px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .business-type-select {
+    height: 50px;
+    padding: 0 14px;
+    padding-right: 38px;
+    font-size: 18px;
+  }
+}

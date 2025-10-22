@@ -1,0 +1,115 @@
+.stats-card {
+  background: var(--white);
+  border: 2px solid var(--pri-100);
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+}
+
+.stats-card:hover {
+  border-color: var(--pri-200);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.stats-card__header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--pri-100);
+}
+
+.stats-card__title {
+  margin: 0;
+  font: var(--font-14);
+  font-weight: 800;
+  color: var(--pri-900);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-card__title-icon {
+  font-size: 18px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+}
+
+.stats-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stats-card__item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--pri-50);
+}
+
+.stats-card__item:last-child {
+  border-bottom: none;
+}
+
+.stats-card__item:hover {
+  background: var(--pri-100);
+}
+
+.stats-card__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-card__icon--success {
+  color: #28a745;
+}
+
+.stats-card__icon--danger {
+  color: #dc3545;
+}
+
+.stats-card__icon--warning {
+  color: #ffc107;
+}
+
+.stats-card__icon--info {
+  color: #17a2b8;
+}
+
+.stats-card__icon--primary {
+  color: #007bff;
+}
+
+.stats-card__label {
+  flex: 1;
+  font: var(--font-14);
+  font-weight: 500;
+  color: var(--pri-700);
+}
+
+.stats-card__value {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--pri-900);
+  min-width: 45px;
+  text-align: right;
+  letter-spacing: -0.3px;
+}

@@ -52,6 +52,10 @@
     "typescript-eslint": "^8.42.0"
   },
   "dependencies": {
-    "react-icons": "^5.5.0"
+    "firebase": "12.2.1",
+    "prop-types": "^15.8.1",
+    "react-easy-crop": "^5.5.3",
+    "react-icons": "^5.5.0",
+    "xlsx": "^0.18.5"
   }
 }

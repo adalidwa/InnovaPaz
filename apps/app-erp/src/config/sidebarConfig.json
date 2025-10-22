@@ -1,0 +1,37 @@
+[
+  {
+    "value": "dashboard",
+    "label": "Dashboard",
+    "iconName": "FaThLarge"
+  },
+  {
+    "value": "productos",
+    "label": "Inventarios",
+    "iconName": "FaBox"
+  },
+  {
+    "value": "movimientos",
+    "label": "Movimientos",
+    "iconName": "FaShoppingCart"
+  },
+  {
+    "value": "reportes",
+    "label": "Reportes",
+    "iconName": "FaChartLine"
+  },
+  {
+    "value": "alertas",
+    "label": "Alertas",
+    "iconName": "FaExclamationTriangle"
+  },
+  {
+    "value": "documentos",
+    "label": "Documentos",
+    "iconName": "FaFileAlt"
+  },
+  {
+    "value": "configuracion",
+    "label": "Configuración",
+    "iconName": "FaCog"
+  }
+]

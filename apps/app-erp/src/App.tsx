@@ -1,30 +1,64 @@
-import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
 import './App.css';
+import AppRoutes from './routes/AppRoutes';
+import Layout from './components/layout/Layout';
+import { getSidebarConfig } from './config/sidebarConfigs';
+import { useLocation } from 'react-router-dom';
+import { CompanyConfigProvider } from './contexts/CompanyConfigContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import { useMemo } from 'react';
+import { useUser } from './features/users/hooks/useContextBase';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const location = useLocation();
+  const { user, loading } = useUser();
+  const empresaId = user?.empresa_id || '';
+
+  const isLoginRoute = useMemo(() => location.pathname === '/login', [location.pathname]);
+
+  const currentModule = 'dashboard';
+  const sidebarConfig = getSidebarConfig(currentModule);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: '100vh',
+          fontSize: '18px',
+        }}
+      >
+        Cargando...
+      </div>
+    );
+  }
+
+  if (isLoginRoute) {
+    return (
+      <ThemeProvider>
+        <AppRoutes />
+      </ThemeProvider>
+    );
+  }
+
+  if (!empresaId) {
+    window.location.href = '/login';
+    return null;
+  }
 
   return (
-    <>
-      <div>
-        <a href='https://vite.dev' target='_blank'>
-          <img src={viteLogo} className='logo' alt='Vite logo' />
-        </a>
-        <a href='https://react.dev' target='_blank'>
-          <img src={reactLogo} className='logo react' alt='React logo' />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className='card'>
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className='read-the-docs'>Click on the Vite and React logos to learn more</p>
-    </>
+    <ThemeProvider>
+      <CompanyConfigProvider empresaId={empresaId}>
+        <Layout
+          sidebarTitle={sidebarConfig.title}
+          sidebarTitleIcon={sidebarConfig.titleIcon}
+          sidebarMenuItems={sidebarConfig.menuItems}
+        >
+          <AppRoutes />
+        </Layout>
+      </CompanyConfigProvider>
+    </ThemeProvider>
   );
 }
 

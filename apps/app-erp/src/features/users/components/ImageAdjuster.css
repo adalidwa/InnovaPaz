@@ -1,0 +1,78 @@
+.image-adjuster-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  font-family: var(--font);
+}
+
+.image-adjuster-cropper {
+  position: relative;
+  width: 400px;
+  height: 220px;
+  background: var(--bg-100);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px var(--pri-100, rgba(36, 34, 49, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-adjuster-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.image-adjuster-actions {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+}
+
+.image-adjuster-actions button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--sec-700);
+  color: var(--white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-family: var(--font);
+}
+
+.image-adjuster-actions button:hover {
+  background: var(--sec-800);
+}
+
+.image-adjuster-controls label {
+  font-size: 14px;
+  color: var(--pri-900);
+  margin-bottom: 0.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font);
+}
+
+@media (max-width: 744px) {
+  .image-adjuster-cropper {
+    width: 260px;
+    height: 140px;
+  }
+}
+
+@media (max-width: 412px) {
+  .image-adjuster-cropper {
+    width: 180px;
+    height: 90px;
+  }
+}

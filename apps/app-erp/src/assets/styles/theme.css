@@ -1,0 +1,206 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Montserrat:wght@100;200;300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700;800&family=Dancing+Script:wght@400;500;600;700&family=Oswald:wght@200;300;400;500;600;700&display=swap');
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: var(--content-bg) !important;
+  color: var(--content-text) !important;
+  font-family: var(--font);
+  font-size: var(--base-font-size);
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    font-size 0.3s ease;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
+}
+
+:root {
+  --font-montserrat: 'Montserrat', sans-serif;
+  --font-open-sans: 'Open Sans', sans-serif;
+  --font-dancing-script: 'Dancing Script', cursive;
+  --font-oswald: 'Oswald', sans-serif;
+  /* ========================================
+    TIPOGRAFÍAS DISPONIBLES
+    (Manipulables desde la interfaz)
+  ======================================== */
+  --font-inter: 'Inter', sans-serif;
+  --font-roboto: 'Roboto', sans-serif;
+  --font-lato: 'Lato', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  /* Fuente principal seleccionada */
+  --font: var(--font-inter);
+
+  /* Tamaño de fuente base personalizable */
+  --base-font-size: 16px;
+  /* ========================================
+     VARIABLES DE TEMA PERSONALIZABLES
+     (Manipulables desde la interfaz)
+  ======================================== */
+
+  /* Header Section */
+  --header-bg: var(--white);
+  --header-text: var(--pri-800);
+
+  /* Sidebar Section */
+  --sidebar-bg: var(--pri-800);
+  --sidebar-text: var(--white);
+
+  /* Content Section */
+  --content-bg: var(--bg-100);
+  --content-text: var(--pri-900);
+
+  /* ========================================
+     VARIABLES GENERALES DEL SISTEMA
+     (Aplicables a todo el proyecto)
+  ======================================== */
+
+  /* Primary Colors - Sistema */
+  --pri-900: #242231;
+  --pri-800: #322f44;
+  --pri-700: #39364e;
+  --pri-600: #403d58;
+  --pri-500: #8d89ad;
+  --pri-400: #a3a0bd;
+  --pri-300: #bab8ce;
+  --pri-200: #d1d0de;
+  --pri-100: #f0f0f5;
+
+  /* Secondary Colors - Sistema */
+  --sec-900: #2ca8a1;
+  --sec-800: #33c3bc;
+  --sec-700: #4ad0c9;
+  --sec-600: #66d7d1;
+  --sec-500: #aae9e5;
+  --sec-400: #bbedeb;
+  --sec-300: #ccf2f0;
+  --sec-200: #ddf6f5;
+  --sec-100: #eafaf9;
+
+  /* Accent Colors - Sistema */
+  --acc-900: #b72903;
+  --acc-800: #dc3204;
+  --acc-700: #fb3d0a;
+  --acc-600: #fb5a2e;
+  --acc-500: #fc7753;
+  --acc-400: #fdb39f;
+  --acc-300: #fec3b3;
+  --acc-200: #fed2c6;
+  --acc-100: #fee1d9;
+  --acc-50: #ffebe5;
+
+  /* Background Colors - Sistema */
+  --bg-900: #a18b67;
+  --bg-800: #b5a488;
+  --bg-700: #cabda9;
+  --bg-600: #ded6c9;
+  --bg-500: #f2efea;
+  --bg-400: #f8f6f3;
+  --bg-300: #f9f8f6;
+  --bg-200: #fbfaf8;
+  --bg-100: #fcfbfa;
+  --bg-50: #fefdfd;
+
+  /* Variable Colors - Sistema */
+  --var-900: #928c24;
+  --var-800: #b0a82c;
+  --var-700: #ccc433;
+  --var-600: #d4cd51;
+  --var-500: #dbd56e;
+  --var-400: #ebe8ae;
+  --var-300: #efecbf;
+  --var-200: #f3f1cf;
+  --var-100: #f7f6df;
+  --var-50: #faf9eb;
+
+  /* Font Presets - General */
+  --font-61: calc(var(--base-font-size) * 3.8) / 1.1 var(--font);
+  --font-49: calc(var(--base-font-size) * 3.1) / 1.1 var(--font);
+  --font-39: calc(var(--base-font-size) * 2.4) / 1.1 var(--font);
+  --font-31: calc(var(--base-font-size) * 1.9) / 1.1 var(--font);
+  --font-25: calc(var(--base-font-size) * 1.6) / 1.1 var(--font);
+  --font-20: calc(var(--base-font-size) * 1.25) / 1.1 var(--font);
+  --font-16: var(--base-font-size) / 1.1 var(--font);
+  --font-14: calc(var(--base-font-size) * 0.875) / 1.1 var(--font);
+  --font-13: calc(var(--base-font-size) * 0.8) / 1.1 var(--font);
+  --font-10: calc(var(--base-font-size) * 0.625) / 1.1 var(--font);
+
+  /* Basic Colors - General */
+  --black: #000;
+  --white: #fff;
+  --transparent: transparent;
+
+  /* ========================================
+     VARIABLES ESPECÍFICAS LANDING PAGE
+     (Solo para página institucional)
+  ======================================== */
+
+  /* Landing - Hero Section */
+  --hero-bg: linear-gradient(135deg, var(--pri-800) 0%, var(--pri-600) 100%);
+  --hero-overlay: rgba(36, 34, 49, 0.8);
+  --hero-text: var(--white);
+  --hero-subtitle: var(--pri-100);
+
+  /* Landing - Sections Background */
+  --section-bg-primary: var(--bg-50);
+  --section-bg-alternate: var(--white);
+  --section-bg-dark: var(--pri-900);
+
+  /* Landing - Cards */
+  --card-bg: var(--white);
+  --card-shadow: 0 4px 20px rgba(36, 34, 49, 0.1);
+  --card-hover-shadow: 0 8px 30px rgba(36, 34, 49, 0.15);
+  --card-border: var(--pri-100);
+
+  /* Landing - CTA Buttons */
+  --cta-primary-bg: var(--sec-700);
+  --cta-primary-hover: var(--sec-600);
+  --cta-primary-text: var(--white);
+  --cta-secondary-bg: var(--transparent);
+  --cta-secondary-border: var(--sec-700);
+  --cta-secondary-text: var(--sec-700);
+  --cta-secondary-hover-bg: var(--sec-700);
+  --cta-secondary-hover-text: var(--white);
+
+  /* Landing - Text Colors */
+  --landing-heading: var(--pri-900);
+  --landing-subheading: var(--pri-700);
+  --landing-body: var(--pri-600);
+  --landing-muted: var(--pri-500);
+
+  /* Landing - Organigrama */
+  --org-card-bg: var(--white);
+  --org-card-shadow: var(--card-shadow);
+  --org-name: var(--pri-800);
+  --org-position: var(--sec-700);
+  --org-department: var(--pri-500);
+
+  /* Landing - Contact Section */
+  --contact-bg: var(--pri-900);
+  --contact-text: var(--white);
+  --contact-accent: var(--sec-400);
+  --contact-form-bg: var(--white);
+  --contact-input-border: var(--pri-200);
+  --contact-input-focus: var(--sec-600);
+
+  /* Landing - Spacing */
+  --section-padding: 80px 0;
+  --container-max-width: 1200px;
+  --container-padding: 0 20px;
+
+  /* Landing - Animations */
+  --transition-smooth: all 0.3s ease;
+  --transition-fast: all 0.2s ease;
+  --animation-duration: 0.6s;
+
+  /* Landing - Responsive Breakpoints */
+  --breakpoint-mobile: 768px;
+  --breakpoint-tablet: 1024px;
+  --breakpoint-desktop: 1200px;
+}
