@@ -13,6 +13,21 @@
       "destination": "/index.html"
     }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "unsafe-none"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "unsafe-none"
+        }
+      ]
+    }
+  ],
   "env": {
     "VITE_API_URL": "https://innovapaz-app-erp-backend.vercel.app",
     "VITE_BACKEND_API_URL": "https://innovapaz-app-erp-backend.vercel.app/api",

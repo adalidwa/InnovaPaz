@@ -13,6 +13,16 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "FIREBASE_PROJECT_ID": "innovapaz-auth",
+    "FIREBASE_PRIVATE_KEY_ID": "@firebase-private-key-id",
+    "FIREBASE_PRIVATE_KEY": "@firebase-private-key",
+    "FIREBASE_CLIENT_EMAIL": "@firebase-client-email",
+    "FIREBASE_CLIENT_ID": "@firebase-client-id",
+    "FIREBASE_AUTH_URI": "https://accounts.google.com/o/oauth2/auth",
+    "FIREBASE_TOKEN_URI": "https://oauth2.googleapis.com/token",
+    "REMOVEBG_API_KEY_0": "@removebg-api-key-0",
+    "REMOVEBG_API_KEY_1": "@removebg-api-key-1",
+    "REMOVEBG_API_KEY_2": "@removebg-api-key-2"
   }
 }
