@@ -1174,6 +1174,7 @@ export interface ReturnReason {
 }
 
 // Hook para recepciones
+
 export const useReceptions = () => {
   const [receptions, setReceptions] = useState<Reception[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
@@ -1181,21 +1182,19 @@ export const useReceptions = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
+  const [allMovements, setAllMovements] = useState<any[]>([]);
 
-  // Solo cargar recepciones cuando se selecciona un proveedor
+  const HISTORY_ITEMS_PER_PAGE = 10;
+
+  // Cargar todos los movimientos al inicializar (sin depender de proveedor seleccionado)
   useEffect(() => {
-    if (!selectedSupplierId) {
-      setReceptions([]);
-      return;
-    }
-
-    const loadData = async () => {
+    const loadAllMovements = async () => {
       setLoading(true);
       try {
-        // Usar filtro del backend para traer solo las recepciones del proveedor
-        const receptionsData = await receptionsApi.getAll(selectedSupplierId);
+        // Cargar todas las recepciones sin filtro de proveedor
+        const allReceptionsData = await receptionsApi.getAll();
 
-        const mappedReceptions: Reception[] = receptionsData.map((r) => ({
+        const mappedReceptions: Reception[] = allReceptionsData.map((r) => ({
           id: r.id,
           purchaseOrderId: 0,
           orderNumber: r.order_number || '',
@@ -1213,13 +1212,47 @@ export const useReceptions = () => {
         }));
 
         setReceptions(mappedReceptions);
+
+        // Crear lista combinada de movimientos con íconos y formato
+        const formattedMovements = mappedReceptions.map((r) => ({
+          id: `reception-${r.id}`,
+          date: formatDate(r.date),
+          type: 'reception',
+          icon: '📦',
+          title: `Recepción - Orden ${r.orderNumber}`,
+          description: `${r.supplierName} - ${r.items?.length || 0} productos`,
+          orderNumber: r.orderNumber,
+          supplierName: r.supplierName,
+          status: r.status,
+          items: r.items,
+          originalId: r.id,
+        }));
+
+        setAllMovements(formattedMovements);
       } catch (error) {
-        console.error('Error loading receptions:', error);
+        console.error('Error loading all movements:', error);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+    loadAllMovements();
+  }, []);
+
+  // También cargar recepciones específicas cuando se selecciona un proveedor (para formularios)
+  useEffect(() => {
+    if (!selectedSupplierId) {
+      return;
+    }
+
+    const loadSupplierData = async () => {
+      try {
+        const receptionsData = await receptionsApi.getAll(selectedSupplierId);
+        // Este useEffect es solo para formularios, no afecta la historia general
+      } catch (error) {
+        console.error('Error loading supplier receptions:', error);
+      }
+    };
+    loadSupplierData();
   }, [selectedSupplierId]);
 
   const getPurchaseOrderOptions = () => {
@@ -1272,26 +1305,50 @@ export const useReceptions = () => {
     // TODO: implement
   };
 
-  const getMovementHistory = (): any[] => {
-    return receptions.map((r) => ({
-      id: r.id,
-      date: r.date,
-      type: 'reception',
-      orderNumber: r.orderNumber,
-      supplierName: r.supplierName,
-      status: r.status,
-      items: r.items,
-    }));
+  // Función mejorada para obtener historial con búsqueda y paginación
+  const getMovementHistory = () => {
+    let filteredMovements = allMovements;
+
+    // Filtrar por término de búsqueda
+    if (searchTerm) {
+      filteredMovements = allMovements.filter(
+        (movement) =>
+          movement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          movement.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          movement.supplierName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          movement.orderNumber.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Aplicar paginación
+    const totalItems = filteredMovements.length;
+    const totalPages = Math.ceil(totalItems / HISTORY_ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * HISTORY_ITEMS_PER_PAGE;
+    const paginatedMovements = filteredMovements.slice(
+      startIndex,
+      startIndex + HISTORY_ITEMS_PER_PAGE
+    );
+
+    return {
+      movements: paginatedMovements,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage: HISTORY_ITEMS_PER_PAGE,
+      },
+    };
   };
 
   const getMovementDetails = (movementId: string) => {
-    const id = parseInt(movementId);
+    // Extraer el ID real del movimiento
+    const id = parseInt(movementId.replace('reception-', ''));
     return receptions.find((r) => r.id === id) || null;
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handlePageChange = (page: number): void => {
