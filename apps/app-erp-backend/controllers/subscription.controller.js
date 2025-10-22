@@ -15,7 +15,7 @@ async function getSubscriptionInfoTest(req, res) {
 
     const [subscriptionInfo, usageInfo] = await Promise.all([
       SubscriptionService.getSubscriptionInfo(empresaId),
-      getUsageInfo(empresaId),
+      SubscriptionService.getUsageInfo(empresaId),
     ]);
 
     console.log('✅ TEST - Información obtenida:', { subscriptionInfo, usageInfo });
@@ -47,7 +47,7 @@ async function getSubscriptionInfo(req, res) {
 
     const [subscriptionInfo, usageInfo] = await Promise.all([
       SubscriptionService.getSubscriptionInfo(empresaId),
-      getUsageInfo(empresaId),
+      SubscriptionService.getUsageInfo(empresaId),
     ]);
 
     console.log('✅ Información obtenida:', { subscriptionInfo, usageInfo });

@@ -4,16 +4,14 @@ import { FaBell } from 'react-icons/fa';
 import { IoPersonOutline, IoLogOutOutline, IoChevronDownOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../features/users/hooks/useContextBase';
+import { useCompanyConfig } from '../../contexts/CompanyConfigContext';
 
-interface HeaderProps {
-  subtitle?: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
+const Header: React.FC = () => {
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useUser();
+  const { config } = useCompanyConfig();
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -59,10 +57,26 @@ const Header: React.FC<HeaderProps> = ({ subtitle = 'Sistema' }) => {
     setShowUserDropdown(!showUserDropdown);
   };
 
+  // Obtener label del tipo de negocio igual que en CompanyGeneralSection pero solo usando config.tipoNegocio
+  const businessTypeLabel = React.useMemo(() => {
+    switch (config?.tipoNegocio) {
+      case 'ferreteria':
+        return 'Ferretería';
+      case 'licoreria':
+        return 'Licorería';
+      case 'minimarket':
+        return 'Minimarket';
+      default:
+        return config?.tipoNegocio || null;
+    }
+  }, [config?.tipoNegocio]);
+
   return (
     <header className='header'>
       <div className='header__left'>
-        <span className='header__subtitle header__subtitle--big'>{subtitle}</span>
+        {businessTypeLabel && (
+          <span className='header__business-type-badge'>{businessTypeLabel}</span>
+        )}
       </div>
 
       <div className='header__right'>

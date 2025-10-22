@@ -10,6 +10,7 @@ import {
   FiClock,
   FiUsers,
   FiPackage,
+  FiFileText,
 } from 'react-icons/fi';
 import './CompanyBillingSection.css';
 import { useSubscription } from '../hooks/useSubscription';
@@ -122,6 +123,20 @@ function UsageBar({
   );
 }
 
+function FeatureItem({ label, enabled }: { label: string; enabled: boolean }) {
+  // Solo mostrar características habilitadas
+  if (!enabled) return null;
+
+  return (
+    <div className='feature-item'>
+      <div className='feature-icon feature-icon--enabled'>
+        <FiFileText size={14} />
+      </div>
+      <span className='feature-label feature-label--enabled'>{label}</span>
+    </div>
+  );
+}
+
 function CompanyBillingSection() {
   // Usar hooks personalizados
   const {
@@ -154,6 +169,8 @@ function CompanyBillingSection() {
     if (!subscription || !subscription.plan || !subscription.suscripcion) return null;
 
     console.log('🔍 Frontend - Datos de subscription recibidos:', subscription);
+    console.log('🏢 Frontend - Empresa info:', subscription.empresa);
+    console.log('🏢 Frontend - Tipo empresa:', subscription.empresa?.tipo_empresa_nombre);
 
     const planLimites = subscription.plan?.limites || {};
     const estadoSuscripcion = subscription.suscripcion?.estado;
@@ -186,6 +203,12 @@ function CompanyBillingSection() {
         percentage: stats?.roles?.percentage ?? 0,
         color: statsHelpers.getUsageColor(stats?.roles?.percentage ?? 0),
       },
+      transacciones: {
+        used: stats?.transacciones?.used ?? 0,
+        total: subHelpers.getLimiteDisplay(planLimites.transacciones) ?? 250,
+        percentage: stats?.transacciones?.percentage ?? 0,
+        color: statsHelpers.getUsageColor(stats?.transacciones?.percentage ?? 0),
+      },
 
       // Información temporal
       proximoCobro: subHelpers.formatProximoCobro(
@@ -199,7 +222,16 @@ function CompanyBillingSection() {
       estadoClass: subHelpers.getEstadoClass(estadoSuscripcion),
 
       // Features del plan
-      features: planLimites.features || {},
+      features: {
+        exportacion: planLimites.exportacion || false,
+        reportes_estandar: planLimites.reportes_estandar || false,
+        reportes_avanzados: planLimites.reportes_avanzados || false,
+        soporte_prioritario: planLimites.soporte_prioritario || false,
+        soporte_dedicado_chat: planLimites.soporte_dedicado_chat || false,
+        dashboard_reportes_basicos: planLimites.dashboard_reportes_basicos || false,
+        soporte_email: planLimites.soporte_email || false,
+        ...planLimites.features,
+      },
       diasPrueba: planLimites.dias_prueba || 0,
     };
   }, [subscription, subHelpers, stats, statsHelpers]);
@@ -300,11 +332,60 @@ function CompanyBillingSection() {
                 icon={<FiCreditCard size={16} />}
                 unlimited={planInfo?.roles?.total === 999}
               />
+              <UsageBar
+                label='Transacciones'
+                used={planInfo?.transacciones?.used || 0}
+                total={planInfo?.transacciones?.total || 0}
+                color={planInfo?.transacciones?.color || 'var(--orange-500,#f97316)'}
+                icon={<FiExternalLink size={16} />}
+                unlimited={planInfo?.transacciones?.total === 999}
+              />
+            </div>
+
+            <div className='plan-features-block'>
+              <h4 className='plan-features-title'>Características incluidas</h4>
+              <div className='plan-features-grid'>
+                <FeatureItem
+                  label='Exportación'
+                  enabled={planInfo?.features?.exportacion || false}
+                />
+                <FeatureItem
+                  label='Reportes estándar'
+                  enabled={planInfo?.features?.reportes_estandar || false}
+                />
+                <FeatureItem
+                  label='Reportes avanzados'
+                  enabled={planInfo?.features?.reportes_avanzados || false}
+                />
+                <FeatureItem
+                  label='Soporte prioritario'
+                  enabled={!!planInfo?.features?.soporte_prioritario}
+                />
+                <FeatureItem
+                  label='Chat dedicado'
+                  enabled={planInfo?.features?.soporte_dedicado_chat || false}
+                />
+                <FeatureItem
+                  label='Dashboard básico'
+                  enabled={planInfo?.features?.dashboard_reportes_basicos || false}
+                />
+              </div>
             </div>
 
             <div className='plan-next-charge'>
-              <span className='plan-next-label'>Próximo cobro</span>
-              <span className='plan-next-date'>{planInfo?.proximoCobro || '-'}</span>
+              <div className='plan-next-info'>
+                <FiClock size={16} className='plan-next-icon' />
+                <div className='plan-next-content'>
+                  <span className='plan-next-label'>
+                    {planInfo?.enPrueba ? 'Periodo de prueba termina' : 'Próximo cobro'}
+                  </span>
+                  <span className='plan-next-date'>
+                    {planInfo?.enPrueba
+                      ? `En ${planInfo?.diasRestantes || 0} días`
+                      : planInfo?.proximoCobro || '-'}
+                  </span>
+                </div>
+              </div>
             </div>
           </>
         )}

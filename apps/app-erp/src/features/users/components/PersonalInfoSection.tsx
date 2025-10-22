@@ -18,6 +18,8 @@ function PersonalInfoSection() {
   const [userId, setUserId] = useState('');
 
   const [showModal, setShowModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const { updateAvatar } = useUser();
@@ -87,10 +89,12 @@ function PersonalInfoSection() {
         setShowModal(true);
         setIsEditing(false);
       } else {
-        alert('No se pudo actualizar la información personal');
+        setErrorMessage('No se pudo actualizar la información personal');
+        setShowErrorModal(true);
       }
     } catch {
-      alert('Error de red al actualizar información');
+      setErrorMessage('Error de red al actualizar información');
+      setShowErrorModal(true);
     }
   };
 
@@ -195,6 +199,15 @@ function PersonalInfoSection() {
         message='Tu información personal ha sido actualizada exitosamente.'
         modalType='success'
         confirmButtonText='Aceptar'
+      />
+
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title='Error'
+        message={errorMessage}
+        modalType='error'
+        confirmButtonText='Entendido'
       />
     </div>
   );

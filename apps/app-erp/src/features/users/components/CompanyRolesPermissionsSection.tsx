@@ -44,6 +44,13 @@ function CompanyRolesPermissionsSection() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [plantillasOpen, setPlantillasOpen] = useState(false);
   const [confirmPlantillaOpen, setConfirmPlantillaOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [warningMessage, setWarningMessage] = useState('');
+
   const [editingRole, setEditingRole] = useState<Rol | null>(null);
   const [formName, setFormName] = useState('');
   const [formPerms, setFormPerms] = useState<string[]>([]);
@@ -73,7 +80,8 @@ function CompanyRolesPermissionsSection() {
       setPlantillasOpen(true);
     } catch (error) {
       console.error('Error al cargar plantillas:', error);
-      alert('Error al cargar roles predeterminados');
+      setErrorMessage('Error al cargar roles predeterminados');
+      setShowErrorModal(true);
     }
   };
 
@@ -86,7 +94,8 @@ function CompanyRolesPermissionsSection() {
 
   const openEdit = (role: Rol) => {
     if (role.es_predeterminado) {
-      alert('No puedes editar roles predeterminados del sistema');
+      setWarningMessage('No puedes editar roles predeterminados del sistema');
+      setShowWarningModal(true);
       return;
     }
     setEditingRole(role);
@@ -161,7 +170,8 @@ function CompanyRolesPermissionsSection() {
       if (editingRole) {
         // Actualizar rol existente
         await updateRol(editingRole.rol_id, formName.trim(), formPerms, token);
-        alert('Rol actualizado exitosamente');
+        setSuccessMessage('Rol actualizado exitosamente');
+        setShowSuccessModal(true);
       } else {
         // Crear nuevo rol personalizado - permisos como array
         const descripcion = 'Rol personalizado creado por el usuario';
@@ -170,7 +180,8 @@ function CompanyRolesPermissionsSection() {
         if (created) {
           setRoles((prev) => [created, ...prev]);
         }
-        alert('Rol personalizado creado exitosamente');
+        setSuccessMessage('Rol personalizado creado exitosamente');
+        setShowSuccessModal(true);
       }
 
       // Recargar datos
@@ -191,7 +202,8 @@ function CompanyRolesPermissionsSection() {
       resetForm();
     } catch (error: any) {
       console.error('Error al guardar rol:', error);
-      alert(error.message || 'Error al guardar el rol');
+      setErrorMessage(error.message || 'Error al guardar el rol');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -218,9 +230,11 @@ function CompanyRolesPermissionsSection() {
       setConfirmPlantillaOpen(false);
       setSelectedPlantilla(null);
       setFormName('');
-      alert('Rol predeterminado agregado exitosamente');
+      setSuccessMessage('Rol predeterminado agregado exitosamente');
+      setShowSuccessModal(true);
     } catch (error: any) {
-      alert(error.message || 'Error al agregar rol predeterminado');
+      setErrorMessage(error.message || 'Error al agregar rol predeterminado');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -228,7 +242,8 @@ function CompanyRolesPermissionsSection() {
 
   const confirmDelete = (role: Rol) => {
     if (role.es_predeterminado) {
-      alert('No puedes eliminar roles predeterminados del sistema');
+      setWarningMessage('No puedes eliminar roles predeterminados del sistema');
+      setShowWarningModal(true);
       return;
     }
     setDeletingRole(role);
@@ -256,7 +271,8 @@ function CompanyRolesPermissionsSection() {
       setDeleteOpen(false);
       setDeletingRole(null);
     } catch (error: any) {
-      alert(error.message || 'Error al eliminar el rol');
+      setErrorMessage(error.message || 'Error al eliminar el rol');
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
     }
@@ -583,6 +599,34 @@ function CompanyRolesPermissionsSection() {
           </div>
         </div>
       </Modal>
+
+      {/* Modales para mensajes */}
+      <Modal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title='Éxito'
+        message={successMessage}
+        modalType='success'
+        confirmButtonText='Aceptar'
+      />
+
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title='Error'
+        message={errorMessage}
+        modalType='error'
+        confirmButtonText='Entendido'
+      />
+
+      <Modal
+        isOpen={showWarningModal}
+        onClose={() => setShowWarningModal(false)}
+        title='Aviso'
+        message={warningMessage}
+        modalType='warning'
+        confirmButtonText='Entendido'
+      />
     </div>
   );
 }

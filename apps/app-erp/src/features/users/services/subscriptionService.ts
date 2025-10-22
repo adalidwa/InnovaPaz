@@ -22,8 +22,16 @@ export interface SubscriptionInfo {
       miembros: number | null;
       roles: number | null;
       productos: number | null;
+      transacciones: number | null;
       modulos?: string[];
       dias_prueba?: number;
+      exportacion?: boolean;
+      reportes_estandar?: boolean;
+      reportes_avanzados?: boolean;
+      soporte_prioritario?: string | boolean;
+      soporte_dedicado_chat?: boolean;
+      dashboard_reportes_basicos?: boolean;
+      soporte_email?: string | boolean;
       features?: {
         reportes_avanzados?: boolean;
         exportacion?: boolean;
@@ -140,15 +148,27 @@ export const getSubscriptionInfo = async (): Promise<SubscriptionInfo> => {
 
       const testData = await testResponse.json();
       console.log('✅ Datos de testing obtenidos:', testData);
+      console.log('🔍 testData.subscription:', testData.subscription);
+      console.log('🔍 testData.usage:', testData.usage);
+      console.log('🔍 testData.usage?.plan?.precio:', testData.usage?.plan?.precio);
 
-      // Adaptar la estructura de datos del endpoint de testing
-      return {
+      // Retornar los datos correctamente estructurados
+      const result = {
         ...testData.subscription,
         usage: testData.usage,
       };
+
+      console.log('📤 Resultado final a retornar:', result);
+      console.log('📤 result.plan?.precio:', result.plan?.precio);
+      console.log('📤 result.usage?.plan?.precio:', result.usage?.plan?.precio);
+
+      return result;
     }
 
     const data = await response.json();
+    console.log('✅ Datos reales obtenidos:', data);
+
+    // Para el endpoint real que ahora devuelve subscription y usage
     return {
       ...data.subscription,
       usage: data.usage,
