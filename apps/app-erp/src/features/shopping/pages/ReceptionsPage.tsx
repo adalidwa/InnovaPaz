@@ -153,7 +153,7 @@ function ReceptionsPage() {
   // Handler para ver detalles del movimiento
   const handleViewDetail = (movementId: string) => {
     const details = getMovementDetails(movementId);
-    setSelectedMovement({ id: movementId, ...details });
+    setSelectedMovement({ ...details, movementId: movementId });
     setShowDetailModal(true);
   };
 
@@ -181,7 +181,7 @@ function ReceptionsPage() {
   const renderDetailModal = () => {
     if (!selectedMovement) return null;
 
-    const isReception = selectedMovement.id.startsWith('reception-');
+    const isReception = selectedMovement.movementId?.startsWith('reception-') || false;
 
     return (
       <Modal
