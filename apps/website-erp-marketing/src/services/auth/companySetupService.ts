@@ -21,13 +21,21 @@ export async function completeCompanySetup(data: CompleteCompanySetupData) {
 
     const idToken = await user.getIdToken();
 
+    // Preparar los datos incluyendo el firebase_uid y email
+    const requestData = {
+      firebase_uid: user.uid,
+      user_email: user.email,
+      user_name: user.displayName || 'Usuario',
+      ...data,
+    };
+
     const response = await fetch(buildApiUrl('/api/users/complete-company-setup'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(requestData),
     });
 
     if (!response.ok) {

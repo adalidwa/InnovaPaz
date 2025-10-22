@@ -8,7 +8,7 @@ import Logo from '../components/ui/Logo';
 import GoogleButton from '../components/common/GoogleButton';
 import './RegisterPage.css';
 import { signInWithGoogleBackend } from '../services/auth/googleAuthService';
-import { registerWithBackend } from '../services/auth/sessionService';
+import { registerWithBackend, login } from '../services/auth/sessionService';
 import { getPlanId, getBusinessTypeId, businessTypeToSlug } from '../services/auth/companyService';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../configs/firebaseConfig';
@@ -199,6 +199,20 @@ const RegisterPage: React.FC = () => {
         const result = await registerWithBackend(registrationData);
 
         if (result.usuario) {
+          // Guardar token y usuario en localStorage
+          if (result.token) {
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('user', JSON.stringify(result.usuario));
+          }
+
+          // IMPORTANTE: Hacer login en Firebase Auth del cliente para que el UserContext lo detecte
+          try {
+            await login(email.trim().toLowerCase(), password);
+            console.log('✅ Login en Firebase Auth exitoso después del registro');
+          } catch (loginError) {
+            console.error('⚠️ Error al hacer login después del registro:', loginError);
+          }
+
           setSuccess('¡Empresa y cuenta creadas exitosamente!');
           setTimeout(() => {
             // Redirigir al dashboard del ERP
@@ -218,6 +232,20 @@ const RegisterPage: React.FC = () => {
         const result = await registerWithBackend(registrationData);
 
         if (result.usuario) {
+          // Guardar token y usuario en localStorage
+          if (result.token) {
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('user', JSON.stringify(result.usuario));
+          }
+
+          // IMPORTANTE: Hacer login en Firebase Auth del cliente para que el UserContext lo detecte
+          try {
+            await login(email.trim().toLowerCase(), password);
+            console.log('✅ Login en Firebase Auth exitoso después del registro');
+          } catch (loginError) {
+            console.error('⚠️ Error al hacer login después del registro:', loginError);
+          }
+
           setSuccess('¡Cuenta creada exitosamente! Puedes seguir explorando.');
           setTimeout(() => navigate('/'), 1500); // Ir al homepage para explorar
         } else {
