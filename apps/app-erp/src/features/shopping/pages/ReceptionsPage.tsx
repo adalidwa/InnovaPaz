@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../../assets/styles/theme.css';
 import './ReceptionsPage.css';
 import TitleDescription from '../../../components/common/TitleDescription';
@@ -7,7 +7,8 @@ import Select from '../../../components/common/Select';
 import Button from '../../../components/common/Button';
 import Modal from '../../../components/common/Modal';
 import { IoDownload, IoReturnDownBack, IoClose } from 'react-icons/io5';
-import { useReceptions, type Reception, type Return } from '../hooks/hooks';
+import { useReceptions, type Reception, type Return, type Provider } from '../hooks/hooks';
+import { providersApi, purchaseOrdersApi, productsApi } from '../services/shoppingApi';
 
 const pageInfo = {
   title: 'Control de Recepciones y Devoluciones',
@@ -41,6 +42,7 @@ function ReceptionsPage() {
     addReception,
     addReturn,
     getMovementHistory,
+    selectSupplier,
     getMovementDetails,
     formatDate,
   } = useReceptions();
@@ -68,6 +70,62 @@ function ReceptionsPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedMovement, setSelectedMovement] = useState<any>(null);
   const [pendingAction, setPendingAction] = useState<'reception' | 'return' | null>(null);
+
+  // Estados para datos de la API
+  const [providers, setProviders] = useState<any[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedProviderId, setSelectedProviderId] = useState<string>('');
+
+  // Cargar datos de la API al inicializar
+  useEffect(() => {
+    const loadInitialData = async () => {
+      try {
+        const [providersData, ordersData, productsData] = await Promise.all([
+          providersApi.getAll(),
+          purchaseOrdersApi.getAll(),
+          productsApi.getAll(),
+        ]);
+        setProviders(providersData);
+        setPurchaseOrders(ordersData);
+        setProducts(productsData);
+      } catch (error) {
+        console.error('Error loading initial data:', error);
+      }
+    };
+    loadInitialData();
+  }, []);
+
+  // Funciones locales para obtener opciones reales
+  const getSupplierOptionsLocal = () => {
+    return [
+      { value: '', label: 'Seleccionar proveedor...' },
+      ...providers.map((provider) => ({
+        value: provider.id.toString(),
+        label: provider.title,
+      })),
+    ];
+  };
+
+  const getPurchaseOrderOptionsLocal = () => {
+    return [
+      { value: '', label: 'Seleccionar orden...' },
+      ...purchaseOrders.map((order) => ({
+        value: order.id.toString(),
+        label: `${order.order_number} - ${order.supplier_name}`,
+      })),
+    ];
+  };
+
+  const getProductOptionsLocal = () => {
+    return [
+      { value: '', label: 'Buscar producto...' },
+      ...products.map((product) => ({
+        value: product.id.toString(),
+        label: product.name,
+      })),
+    ];
+  };
 
   // Obtener historial de movimientos
   const movementHistory = getMovementHistory();
@@ -314,6 +372,30 @@ function ReceptionsPage() {
       </div>
 
       <div className='receptions-content'>
+        {/* Selector Principal de Proveedor */}
+        <div
+          className='provider-selector-section'
+          style={{
+            marginBottom: '20px',
+            padding: '20px',
+            border: '1px solid #e5e5e5',
+            borderRadius: '8px',
+          }}
+        >
+          <h3 style={{ marginBottom: '15px', color: 'var(--pri-600)' }}>Seleccionar Proveedor</h3>
+          <Select
+            value={selectedProviderId}
+            onChange={(e) => {
+              setSelectedProviderId(e.target.value);
+              if (e.target.value) {
+                selectSupplier(parseInt(e.target.value));
+              }
+            }}
+            options={getSupplierOptionsLocal()}
+            className='form-input'
+            style={{ maxWidth: '300px' }}
+          />
+        </div>
         {/* Sección de Registrar Recepción */}
         <div className='receptions-section'>
           <div className='section-header'>
@@ -328,7 +410,7 @@ function ReceptionsPage() {
                 <Select
                   value={receptionForm.purchaseOrderId}
                   onChange={(e) => handleReceptionChange('purchaseOrderId', e.target.value)}
-                  options={getPurchaseOrderOptions()}
+                  options={getPurchaseOrderOptionsLocal()}
                   className='form-input'
                 />
               </div>
@@ -349,7 +431,7 @@ function ReceptionsPage() {
                 <Select
                   value={receptionForm.productId}
                   onChange={(e) => handleReceptionChange('productId', e.target.value)}
-                  options={getProductOptions()}
+                  options={getProductOptionsLocal()}
                   className='form-input'
                 />
               </div>
@@ -409,7 +491,7 @@ function ReceptionsPage() {
                 <Select
                   value={returnForm.productId}
                   onChange={(e) => handleReturnChange('productId', e.target.value)}
-                  options={getProductOptions()}
+                  options={getProductOptionsLocal()}
                   className='form-input'
                 />
               </div>
@@ -418,7 +500,7 @@ function ReceptionsPage() {
                 <Select
                   value={returnForm.supplierId}
                   onChange={(e) => handleReturnChange('supplierId', e.target.value)}
-                  options={getSupplierOptions()}
+                  options={getSupplierOptionsLocal()}
                   className='form-input'
                 />
               </div>
