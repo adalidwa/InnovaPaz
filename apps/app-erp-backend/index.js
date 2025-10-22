@@ -1,4 +1,6 @@
 const express = require('express');
+require('dotenv').config({ path: require('path').resolve(process.cwd(), '.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env') });
 const morgan = require('morgan');
 const cors = require('cors');
 const { setupCronJobs } = require('./services/cronService');
