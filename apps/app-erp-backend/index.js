@@ -19,7 +19,23 @@ const shoppingRoutes = require('./routes/shopping.routes');
 
 const app = express();
 
-app.use(cors());
+// Configuración de CORS más permisiva para producción
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://innovapaz-app-erp.vercel.app',
+    'https://tu-frontend.vercel.app',
+    /\.vercel\.app$/,
+    /localhost/,
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 
