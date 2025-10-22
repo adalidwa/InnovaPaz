@@ -24,8 +24,8 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://innovapaz-app-erp.vercel.app',
-    'https://tu-frontend.vercel.app',
+    'https://innovapaz-app-erp-alpha.vercel.app',
+    'https://innovapaz-website-erp-marketing.vercel.app',
     /\.vercel\.app$/,
     /localhost/,
   ],
