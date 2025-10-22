@@ -11,7 +11,6 @@ import {
   IoAdd,
   IoClose,
   IoDocumentText,
-  IoTime,
   IoWarning,
   IoCheckmark,
   IoCloudUpload,
@@ -226,7 +225,6 @@ function ContractsPage() {
     // Simular creación de contrato
     setTimeout(() => {
       const provider = providerOptions.find((p) => p.value === contractForm.providerId);
-      const startDate = new Date(contractForm.startDate);
       const endDate = new Date(contractForm.endDate);
       const daysUntilExpiry = Math.ceil(
         (endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)

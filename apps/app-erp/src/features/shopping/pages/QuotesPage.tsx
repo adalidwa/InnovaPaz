@@ -35,32 +35,6 @@ const PAGE_INFO = {
 };
 
 // Tipos para TypeScript
-interface Quote {
-  provider: string;
-  price: number;
-  isBest: boolean;
-  date?: string;
-  notes?: string;
-}
-
-interface QuoteComparison {
-  id: number;
-  productName: string;
-  date: string;
-  quotes: Quote[];
-  savings: number;
-}
-
-interface HistoricalPrice {
-  id: number;
-  product: string;
-  provider: string;
-  previousPrice: number;
-  currentPrice: number;
-  variation: string;
-  variationType: 'positive' | 'negative';
-  date: string;
-}
 
 interface NewQuoteForm {
   product: string;
@@ -78,7 +52,7 @@ const QuotesPage: React.FC = () => {
   const {
     quotesData,
     historicalData,
-    createQuote,
+
     // loading: quotesLoading,
   } = useQuotes();
   // quotesData viene directamente del hook
@@ -183,21 +157,6 @@ const QuotesPage: React.FC = () => {
 
     // Simular llamada a API
     setTimeout(() => {
-      const newQuote: QuoteComparison = {
-        id: Math.max(...quotesData.map((q) => q.id)) + 1,
-        productName: newQuoteForm.product.trim(),
-        date: newQuoteForm.date,
-        quotes: [
-          {
-            provider: newQuoteForm.provider.trim(),
-            price: parseFloat(newQuoteForm.price),
-            isBest: true,
-            notes: newQuoteForm.description.trim() || 'Sin notas adicionales',
-          },
-        ],
-        savings: 0,
-      };
-
       // TODO: Implementar createQuote con los datos de newQuote
       // await createQuote(newQuoteData);
       closeNewQuoteModal();
@@ -267,7 +226,7 @@ const QuotesPage: React.FC = () => {
     return quotesData.filter(
       (quote) =>
         quote.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        quote.quotes.some((q) => q.provider.toLowerCase().includes(searchTerm.toLowerCase()))
+        quote.quotes.some((q: any) => q.provider.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [quotesData, searchTerm]);
 
@@ -336,7 +295,7 @@ const QuotesPage: React.FC = () => {
                   </div>
 
                   <div className='providers-comparison'>
-                    {quote.quotes.map((providerQuote, index) => (
+                    {quote.quotes.map((providerQuote: any, index: number) => (
                       <div
                         key={index}
                         className={`provider-quote ${providerQuote.isBest ? 'best-price' : ''}`}

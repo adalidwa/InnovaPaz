@@ -42,7 +42,7 @@ function ReceptionsPage() {
     handleSearchChange,
     handlePageChange,
     searchTerm,
-    currentPage,
+
     loading,
     formatDate,
   } = useReceptions();
@@ -75,7 +75,6 @@ function ReceptionsPage() {
   const [providers, setProviders] = useState<any[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [selectedProviderId, setSelectedProviderId] = useState<string>('');
 
   // Cargar datos de la API al inicializar
   useEffect(() => {

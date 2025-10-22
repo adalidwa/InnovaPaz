@@ -1176,7 +1176,7 @@ export interface ReturnReason {
 // Hook para recepciones
 export const useReceptions = () => {
   const [receptions, setReceptions] = useState<any[]>([]);
-  const [returns, setReturns] = useState<any[]>([]);
+  const [returns] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);

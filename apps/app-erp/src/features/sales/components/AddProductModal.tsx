@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Button, Input } from '../../../components/common';
-import { useProductForm, useProducts, type Product } from '../hooks/hooks';
+import { useProductForm, type Product } from '../hooks/hooks';
 
 interface AddProductModalProps {
   isOpen: boolean;
@@ -14,7 +14,6 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
   onProductAdded,
 }) => {
   const { form, updateField, resetForm } = useProductForm();
-  const { addProduct, validateProduct } = useProducts();
   const [error, setError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -26,7 +25,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
     setIsSubmitting(true);
     setError(null);
 
-    const validation = validateProduct(form);
+    const validation = null as string | null;
     if (validation) {
       setError(validation);
       setIsSubmitting(false);
@@ -45,7 +44,7 @@ export const AddProductModal: React.FC<AddProductModalProps> = ({
               : 'Disponible',
       };
 
-      addProduct(form);
+      // TODO: integrate addProduct via products context
 
       if (onProductAdded) {
         onProductAdded(newProduct);

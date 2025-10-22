@@ -99,7 +99,7 @@ export const ClientModal: React.FC<ClientModalProps> = ({
 
     if (value === '' || value === 'undefined') {
       console.log('Estableciendo categoryId como undefined');
-      updateField('categoryId', undefined);
+      updateField('categoryId', 0);
     } else {
       const numValue = parseInt(value, 10);
       console.log('Estableciendo categoryId como:', numValue);
