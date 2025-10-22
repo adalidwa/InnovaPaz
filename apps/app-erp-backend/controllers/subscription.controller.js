@@ -260,6 +260,7 @@ async function getSubscriptionAlerts(req, res) {
 module.exports = {
   getSubscriptionInfo,
   getSubscriptionInfoTest,
+  getSubscriptionInfoTest,
   processPayment,
   renewSubscription,
   cancelSubscription,

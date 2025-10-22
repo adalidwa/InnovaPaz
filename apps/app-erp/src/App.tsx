@@ -17,7 +17,6 @@ function App() {
 
   const currentModule = 'dashboard';
   const sidebarConfig = getSidebarConfig(currentModule);
-  const subtitle = 'Ferretería';
 
   if (loading) {
     return (
@@ -52,7 +51,6 @@ function App() {
     <ThemeProvider>
       <CompanyConfigProvider empresaId={empresaId}>
         <Layout
-          subtitle={subtitle}
           sidebarTitle={sidebarConfig.title}
           sidebarTitleIcon={sidebarConfig.titleIcon}
           sidebarMenuItems={sidebarConfig.menuItems}

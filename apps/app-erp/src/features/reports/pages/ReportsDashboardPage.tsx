@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import SectionCard from '../components/SectionCard.tsx';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './ReportsDashboardPage.css';
-import MetricCard from '../components/MetricCard';
+import { BsFilePdfFill, BsFileEarmarkExcelFill } from 'react-icons/bs';
 import { StatsCard, type StatItem } from '../../../components/common';
 import { useReports } from '../hooks/useReports';
 import { useUser } from '../../users/hooks/useContextBase';
@@ -21,7 +19,8 @@ import {
   HiStar,
   HiSparkles,
 } from 'react-icons/hi';
-import { BsFilePdfFill, BsFileEarmarkExcelFill } from 'react-icons/bs';
+import MetricCard from '../components/MetricCard';
+import SectionCard from '../components/SectionCard';
 
 const ReportsDashboardPage: React.FC = () => {
   const { user, loading: userLoading } = useUser();

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Button, Input } from '../../../components/common';
 import { useClientForm, useClients } from '../hooks/hooks';
 import type { Client } from '../types';

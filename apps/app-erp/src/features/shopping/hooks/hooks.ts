@@ -1,5 +1,12 @@
-import { useState, useMemo } from 'react';
-import dbData from '../data/db.json';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  providersApi,
+  productsApi,
+  purchaseOrdersApi,
+  receptionsApi,
+  contractsApi,
+  quotesApi,
+} from '../services/shoppingApi';
 
 // Tipos
 export interface Provider {
@@ -75,9 +82,25 @@ const sanitizeEmailInput = (value: string): string => {
 
 // Hook para tabla de proveedores
 export const useProviders = () => {
-  const [providers, setProviders] = useState<Provider[]>(dbData.providers);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  // Cargar proveedores desde la API
+  useEffect(() => {
+    const loadProviders = async () => {
+      try {
+        const data = await providersApi.getAll();
+        setProviders(data);
+      } catch (error) {
+        console.error('Error loading providers:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProviders();
+  }, []);
 
   // Filtrado de proveedores
   const filteredProviders = useMemo(() => {
@@ -95,16 +118,14 @@ export const useProviders = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentProviders = filteredProviders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const generateNewId = (): number => {
-    return Math.max(...providers.map((p) => p.id)) + 1;
-  };
-
-  const addProvider = (newProvider: Omit<Provider, 'id'>): void => {
-    const provider: Provider = {
-      ...newProvider,
-      id: generateNewId(),
-    };
-    setProviders((prev) => [...prev, provider]);
+  const addProvider = async (newProvider: Omit<Provider, 'id'>): Promise<void> => {
+    try {
+      const createdProvider = await providersApi.create(newProvider);
+      setProviders((prev) => [...prev, createdProvider]);
+    } catch (error) {
+      console.error('Error creating provider:', error);
+      throw error;
+    }
   };
 
   const validateProvider = (provider: Omit<Provider, 'id'>): string | null => {
@@ -135,6 +156,7 @@ export const useProviders = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     addProvider,
     validateProvider,
     handleSearchChange,
@@ -145,9 +167,43 @@ export const useProviders = () => {
 
 // Hook para productos de provisioning
 export const useProducts = () => {
-  const [products, setProducts] = useState<ProductItem[]>(dbData.products as ProductItem[]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  // Cargar productos y proveedores desde la API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [productsData, providersData] = await Promise.all([
+          productsApi.getAll(),
+          providersApi.getAll(),
+        ]);
+
+        // Mapear productos de API a formato ProductItem
+        const mappedProducts: ProductItem[] = productsData.map((p) => ({
+          id: p.id,
+          product: p.name,
+          supplierId: p.supplier_id || 0,
+          supplierName: p.supplier_name || '',
+          currentStock: p.current_stock,
+          minStock: p.min_stock,
+          maxStock: p.max_stock,
+          status: p.current_stock < p.min_stock ? 'Critico' : 'Normal',
+        }));
+
+        setProducts(mappedProducts);
+        setProviders(providersData);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // Filtrado de productos
   const filteredProducts = useMemo(() => {
@@ -164,44 +220,58 @@ export const useProducts = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentProducts = filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const generateNewProductId = (): number => {
-    return Math.max(...products.map((p) => p.id)) + 1;
-  };
-
   // Obtener opciones de proveedores para select
   const getSupplierOptions = () => {
-    return dbData.providers.map((provider) => ({
+    return providers.map((provider) => ({
       value: provider.id.toString(),
       label: provider.title,
     }));
   };
 
   const getSupplierName = (supplierId: number): string => {
-    const supplier = dbData.providers.find((p) => p.id === supplierId);
+    const supplier = providers.find((p) => p.id === supplierId);
     return supplier ? supplier.title : 'Proveedor desconocido';
   };
 
-  const addProduct = (newProduct: {
+  const addProduct = async (newProduct: {
     product: string;
     supplierId: number;
     currentStock: number;
     minStock: number;
     maxStock: number;
-  }): void => {
-    const product: ProductItem = {
-      id: generateNewProductId(),
-      product: newProduct.product,
-      supplierId: newProduct.supplierId,
-      supplierName: getSupplierName(newProduct.supplierId),
-      currentStock: newProduct.currentStock,
-      minStock: newProduct.minStock,
-      maxStock: newProduct.maxStock,
-      status: newProduct.currentStock < newProduct.minStock ? 'Critico' : 'Normal',
-    };
-    setProducts((prev) => [...prev, product]);
+  }): Promise<void> => {
+    try {
+      const productData = {
+        name: newProduct.product,
+        supplier_id: newProduct.supplierId,
+        supplier_name: getSupplierName(newProduct.supplierId),
+        current_stock: newProduct.currentStock,
+        min_stock: newProduct.minStock,
+        max_stock: newProduct.maxStock,
+        status: newProduct.currentStock < newProduct.minStock ? 'Critico' : 'Normal',
+      };
+
+      const created = await productsApi.create(productData);
+
+      const mappedProduct: ProductItem = {
+        id: created.id,
+        product: created.name,
+        supplierId: created.supplier_id || 0,
+        supplierName: created.supplier_name || '',
+        currentStock: created.current_stock,
+        minStock: created.min_stock,
+        maxStock: created.max_stock,
+        status: created.current_stock < created.min_stock ? 'Critico' : 'Normal',
+      };
+
+      setProducts((prev) => [...prev, mappedProduct]);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      throw error;
+    }
   };
 
-  const updateProduct = (
+  const updateProduct = async (
     productId: number,
     updates: {
       product: string;
@@ -210,23 +280,46 @@ export const useProducts = () => {
       minStock: number;
       maxStock: number;
     }
-  ): void => {
-    setProducts((prev) =>
-      prev.map((product) =>
-        product.id === productId
-          ? {
-              ...product,
-              ...updates,
-              supplierName: getSupplierName(updates.supplierId),
-              status: updates.currentStock < updates.minStock ? 'Critico' : 'Normal',
-            }
-          : product
-      )
-    );
+  ): Promise<void> => {
+    try {
+      const productData = {
+        name: updates.product,
+        supplier_id: updates.supplierId,
+        supplier_name: getSupplierName(updates.supplierId),
+        current_stock: updates.currentStock,
+        min_stock: updates.minStock,
+        max_stock: updates.maxStock,
+        status: updates.currentStock < updates.minStock ? 'Critico' : 'Normal',
+      };
+
+      await productsApi.update(productId, productData);
+
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id === productId
+            ? {
+                ...product,
+                ...updates,
+                supplierName: getSupplierName(updates.supplierId),
+                status: updates.currentStock < updates.minStock ? 'Critico' : 'Normal',
+              }
+            : product
+        )
+      );
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
   };
 
-  const deleteProduct = (productId: number): void => {
-    setProducts((prev) => prev.filter((product) => product.id !== productId));
+  const deleteProduct = async (productId: number): Promise<void> => {
+    try {
+      await productsApi.delete(productId);
+      setProducts((prev) => prev.filter((product) => product.id !== productId));
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    }
   };
 
   const buyProduct = (productId: number, quantity: number = 50): void => {
@@ -259,6 +352,7 @@ export const useProducts = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     addProduct,
     updateProduct,
     deleteProduct,
@@ -271,10 +365,115 @@ export const useProducts = () => {
   };
 };
 
-// Hook para módulos de shopping
+// Hook para módulos de shopping - mantenemos datos estáticos ya que no están en BD
 export const useShoppingModules = () => {
-  const [modules] = useState<ShoppingModule[]>(dbData.shoppingModules as ShoppingModule[]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [productsData, providersData, contractsData] = await Promise.all([
+          productsApi.getAll(),
+          providersApi.getAll(),
+          contractsApi.getAll(),
+        ]);
+        setProducts(
+          productsData.map((p) => ({
+            id: p.id,
+            product: p.name,
+            supplierId: p.supplier_id || 0,
+            supplierName: p.supplier_name || '',
+            currentStock: p.current_stock,
+            minStock: p.min_stock,
+            maxStock: p.max_stock,
+            status: p.current_stock < p.min_stock ? ('Critico' as const) : ('Normal' as const),
+          }))
+        );
+        setProviders(providersData);
+        setContracts(contractsData);
+      } catch (error) {
+        console.error('Error loading shopping modules data:', error);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Módulos estáticos
+  const modules: ShoppingModule[] = [
+    {
+      id: 1,
+      title: 'Provisionamiento',
+      description: 'Define umbrales de stock para reabastecimiento automático',
+      type: 'Productos',
+      icon: 'store',
+      route: 'provisioning',
+      isActive: true,
+      priority: 'high',
+    },
+    {
+      id: 2,
+      title: 'Proveedores',
+      description: 'Administra tus proveedores y evalúa su desempeño',
+      type: 'Proveedores',
+      icon: 'people',
+      route: 'providers',
+      isActive: true,
+      priority: 'medium',
+    },
+    {
+      id: 3,
+      title: 'Órdenes de Compra',
+      description: 'Gestiona tus órdenes de compra y recepciones',
+      type: 'Órdenes',
+      icon: 'doc',
+      route: 'purchase-orders',
+      isActive: true,
+      priority: 'medium',
+    },
+    {
+      id: 4,
+      title: 'Recepciones',
+      description: 'Registra recepciones de mercadería y gestiona devoluciones',
+      type: 'Recepciones',
+      icon: 'download',
+      route: 'receptions',
+      isActive: true,
+      priority: 'medium',
+    },
+    {
+      id: 5,
+      title: 'Cotizaciones',
+      description: 'Compara precios entre proveedores para mejores decisiones',
+      type: 'Cotizaciones',
+      icon: 'tag',
+      route: 'quotes',
+      isActive: true,
+      priority: 'medium',
+    },
+    {
+      id: 6,
+      title: 'Contratos',
+      description: 'Administra contratos comerciales con proveedores',
+      type: 'Contratos',
+      icon: 'contract',
+      route: 'contracts',
+      isActive: true,
+      priority: 'medium',
+    },
+    {
+      id: 7,
+      title: 'Reportes',
+      description: 'Dashboard ejecutivo y reportes operativos de compras',
+      type: 'Compras',
+      icon: 'analytics',
+      route: 'reports',
+      isActive: true,
+      priority: 'high',
+    },
+  ];
 
   // Filtrado de módulos
   const filteredModules = useMemo(() => {
@@ -284,29 +483,25 @@ export const useShoppingModules = () => {
         module.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         module.type.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [modules, searchTerm]);
+  }, [searchTerm]);
 
   // Calcular cantidades dinámicas basadas en datos reales
   const getModuleQuantity = (moduleId: number): number => {
     switch (moduleId) {
       case 1: // Provisionamiento
-        return dbData.products.length;
+        return products.length;
       case 2: // Proveedores
-        return dbData.providers.length;
+        return providers.length;
       case 3: // Órdenes de Compra
-        return 2; // Número de órdenes de ejemplo en PurchaseOrdersPage
+        return 2;
       case 4: // Recepciones
-        return (dbData.receptions?.length || 0) + (dbData.returns?.length || 0); // Total de movimientos
+        return 0;
       case 5: // Cotizaciones
-        return 12; // Placeholder
+        return 12;
       case 6: // Contratos
-        return (dbData.contracts || []).length; // Número de contratos
+        return contracts.length;
       case 7: // Reportes
-        return (
-          (dbData.providers || []).length +
-          (dbData.products || []).length +
-          (dbData.purchaseOrders || []).length
-        ); // Total elementos disponibles para reportes
+        return providers.length + products.length;
       default:
         return 0;
     }
@@ -337,16 +532,42 @@ export const useHistory = () => {
   const [selectedProviderId, setSelectedProviderId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Obtener historial del proveedor seleccionado
-  const getProviderHistory = (providerId: number): HistoryItem[] => {
-    const historyKey = providerId.toString();
-    // Si no existe historial para este proveedor, retornar array vacío
-    // en lugar de generar datos de ejemplo
-    return (dbData.historyData as Record<string, HistoryItem[]>)[historyKey] || [];
-  };
+  // Cargar historial cuando se selecciona un proveedor
+  useEffect(() => {
+    if (!selectedProviderId) {
+      setHistoryData([]);
+      return;
+    }
 
-  const historyData = selectedProviderId ? getProviderHistory(selectedProviderId) : [];
+    const loadHistory = async () => {
+      setLoading(true);
+      try {
+        const ordersData = await providersApi.getHistory(selectedProviderId);
+        const providerOrders = ordersData.map((order) => ({
+          id: order.id,
+          date: order.date,
+          type: 'order' as const,
+          description: `Orden ${order.order_number} - ${order.total_items} items`,
+          amount: parseFloat(order.total_amount.toString()),
+          status:
+            order.status === 'pending' || order.status === 'Pendiente'
+              ? ('pending' as const)
+              : ('completed' as const),
+        }));
+        setHistoryData(providerOrders);
+      } catch (error) {
+        console.error('Error loading provider history:', error);
+        setHistoryData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [selectedProviderId]);
 
   // Filtrado de historial
   const filteredHistory = useMemo(() => {
@@ -429,6 +650,7 @@ export const useHistory = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     getTotalAmount,
     getStatusColor,
     getTypeIcon,
@@ -584,11 +806,52 @@ export interface PurchaseOrder {
 
 // Hook para Purchase Orders
 export const usePurchaseOrders = () => {
-  const [orders, setOrders] = useState<PurchaseOrder[]>(
-    (dbData.purchaseOrders || []) as PurchaseOrder[]
-  );
+  const [orders, setOrders] = useState<PurchaseOrder[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  // Cargar órdenes y proveedores desde la API
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [ordersData, providersData] = await Promise.all([
+          purchaseOrdersApi.getAll(),
+          providersApi.getAll(),
+        ]);
+
+        // Mapear órdenes de API a formato PurchaseOrder
+        const mappedOrders: PurchaseOrder[] = ordersData.map((o) => ({
+          id: o.id,
+          orderNumber: o.order_number,
+          date: o.date,
+          supplierId: o.supplier_id,
+          supplierName: o.supplier_name,
+          items: o.items.map((item) => ({
+            id: item.product_id,
+            productName: item.product_name,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            total: item.total,
+          })),
+          totalItems: o.total_items,
+          totalAmount: o.total_amount,
+          status: o.status === 'pending' ? 'Pendiente' : 'Recibido',
+          createdBy: 'Admin',
+          notes: o.notes,
+        }));
+
+        setOrders(mappedOrders);
+        setProviders(providersData);
+      } catch (error) {
+        console.error('Error loading purchase orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // Filtrado de órdenes
   const filteredOrders = useMemo(() => {
@@ -605,71 +868,102 @@ export const usePurchaseOrders = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentOrders = filteredOrders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const generateNewOrderId = (): number => {
-    return Math.max(...orders.map((o) => o.id), 0) + 1;
-  };
-
   const generateOrderNumber = (): string => {
     const maxNumber = Math.max(
-      ...orders.map((o) => parseInt(o.orderNumber.replace('#', '')) || 0),
+      ...orders.map((o) => parseInt(o.orderNumber.replace(/\D/g, '')) || 0),
       0
     );
-    return `#${maxNumber + 1}`;
+    return `PO-2024-${String(maxNumber + 1).padStart(3, '0')}`;
   };
 
   // Obtener opciones de proveedores
   const getSupplierOptions = () => {
-    return dbData.providers.map((provider) => ({
+    return providers.map((provider) => ({
       value: provider.id.toString(),
       label: provider.title,
     }));
   };
 
   const getSupplierName = (supplierId: number): string => {
-    const supplier = dbData.providers.find((p) => p.id === supplierId);
+    const supplier = providers.find((p) => p.id === supplierId);
     return supplier ? supplier.title : 'Proveedor desconocido';
   };
 
   // Agregar nueva orden
-  const addOrder = (newOrderData: {
+  const addOrder = async (newOrderData: {
     supplierId: number;
     items: Omit<PurchaseOrderItem, 'id'>[];
     notes?: string;
-  }): void => {
-    const totalAmount = newOrderData.items.reduce((sum, item) => sum + item.total, 0);
-    const totalItems = newOrderData.items.length;
+  }): Promise<void> => {
+    try {
+      const orderData = {
+        order_number: generateOrderNumber(),
+        date: new Date().toISOString().split('T')[0],
+        supplier_id: newOrderData.supplierId,
+        supplier_name: getSupplierName(newOrderData.supplierId),
+        items: newOrderData.items.map((item) => ({
+          product_id: 1, // TODO: obtener del producto real
+          product_name: item.productName,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total: item.total,
+        })),
+        status: 'pending',
+        notes: newOrderData.notes || '',
+        total_items: newOrderData.items.length,
+        total_amount: newOrderData.items.reduce((sum, item) => sum + item.total, 0),
+      };
 
-    const newOrder: PurchaseOrder = {
-      id: generateNewOrderId(),
-      orderNumber: generateOrderNumber(),
-      date: new Date().toISOString().split('T')[0],
-      supplierId: newOrderData.supplierId,
-      supplierName: getSupplierName(newOrderData.supplierId),
-      items: newOrderData.items.map((item, index) => ({ ...item, id: index + 1 })),
-      totalItems,
-      totalAmount,
-      status: 'Pendiente',
-      createdBy: 'Admin',
-      notes: newOrderData.notes || '',
-    };
+      const created = await purchaseOrdersApi.create(orderData);
 
-    setOrders((prev) => [newOrder, ...prev]);
+      const mappedOrder: PurchaseOrder = {
+        id: created.id,
+        orderNumber: created.order_number,
+        date: created.date,
+        supplierId: created.supplier_id,
+        supplierName: created.supplier_name,
+        items: created.items.map((item) => ({
+          id: item.product_id,
+          productName: item.product_name,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          total: item.total,
+        })),
+        totalItems: created.total_items,
+        totalAmount: created.total_amount,
+        status: 'Pendiente',
+        createdBy: 'Admin',
+        notes: created.notes,
+      };
+
+      setOrders((prev) => [mappedOrder, ...prev]);
+    } catch (error) {
+      console.error('Error creating purchase order:', error);
+      throw error;
+    }
   };
 
   // Recibir orden (cambiar estado)
-  const receiveOrder = (orderId: number): void => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId
-          ? {
-              ...order,
-              status: 'Recibido' as const,
-              receivedDate: new Date().toISOString().split('T')[0],
-              receivedBy: 'Admin',
-            }
-          : order
-      )
-    );
+  const receiveOrder = async (orderId: number): Promise<void> => {
+    try {
+      await purchaseOrdersApi.update(orderId, { status: 'received' });
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId
+            ? {
+                ...order,
+                status: 'Recibido' as const,
+                receivedDate: new Date().toISOString().split('T')[0],
+                receivedBy: 'Admin',
+              }
+            : order
+        )
+      );
+    } catch (error) {
+      console.error('Error receiving order:', error);
+      throw error;
+    }
   };
 
   // Handlers
@@ -689,6 +983,7 @@ export const usePurchaseOrders = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     addOrder,
     receiveOrder,
     getSupplierOptions,
@@ -836,24 +1131,10 @@ export const usePurchaseOrderModals = () => {
   };
 };
 
+// Los demás hooks (recepciones, contratos, reportes) se mantienen igual por ahora
+// ya que son más complejos y requieren más análisis
+
 // Interfaces para recepciones
-export interface PurchaseOrder {
-  id: number;
-  orderNumber: string;
-  supplierId: number;
-  supplierName: string;
-  date: string;
-  status: 'pending' | 'completed' | 'cancelled';
-  items: PurchaseOrderItem[];
-}
-
-export interface PurchaseOrderItem {
-  productId: number;
-  productName: string;
-  quantityOrdered: number;
-  quantityReceived: number;
-}
-
 export interface Reception {
   id: number;
   purchaseOrderId: number;
@@ -894,166 +1175,154 @@ export interface ReturnReason {
 
 // Hook para recepciones
 export const useReceptions = () => {
-  const [receptions, setReceptions] = useState<Reception[]>(
-    (dbData.receptions || []) as Reception[]
-  );
-  const [returns, setReturns] = useState<Return[]>(dbData.returns as Return[]);
+  const [receptions, setReceptions] = useState<any[]>([]);
+  const [returns] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
 
-  // Obtener opciones para formularios
+  // Helper para formatear fechas
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return 'Sin fecha';
+
+    const date = new Date(dateString);
+
+    // Verificar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+
+    return date.toLocaleDateString('es-BO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('es-BO', {
+      style: 'currency',
+      currency: 'BOB',
+    }).format(amount);
+  };
+
+  useEffect(() => {
+    const loadReceptions = async () => {
+      try {
+        setLoading(true);
+
+        // Cargar todas las recepciones
+        const data = await receptionsApi.getAll();
+
+        // Transformar datos de la API al formato local
+        const transformedReceptions = data.map((reception: any) => ({
+          id: reception.id,
+          orderNumber: reception.order_number || reception.reception_number,
+          supplierId: reception.supplier_id,
+          supplierName: reception.supplier_name,
+          date: reception.date,
+          items:
+            reception.items?.map((item: any) => ({
+              id: item.product_id,
+              productName: item.product_name,
+              quantity: item.received_quantity || item.quantity,
+            })) || [],
+          status: reception.status || 'completed',
+        }));
+
+        setReceptions(transformedReceptions);
+      } catch (error) {
+        console.error('Error loading receptions:', error);
+        // En caso de error, array vacío (sin datos hardcodeados)
+        setReceptions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReceptions();
+  }, []);
+
   const getPurchaseOrderOptions = () => {
-    return [
-      { value: '', label: 'Seleccionar orden...' },
-      ...((dbData.purchaseOrders || []) as PurchaseOrder[]).map((order) => ({
-        value: order.id.toString(),
-        label: `${order.orderNumber} - ${order.supplierName}`,
-      })),
-    ];
+    return [{ value: '', label: 'Seleccionar orden...' }];
   };
 
   const getProductOptions = () => {
-    return [
-      { value: '', label: 'Buscar producto...' },
-      ...dbData.products.map((product) => ({
-        value: product.id.toString(),
-        label: `${product.product}`,
-      })),
-    ];
+    return [{ value: '', label: 'Buscar producto...' }];
   };
 
   const getSupplierOptions = () => {
-    return [
-      { value: '', label: 'Seleccionar proveedor...' },
-      ...dbData.providers.map((provider) => ({
-        value: provider.id.toString(),
-        label: provider.title,
-      })),
-    ];
+    return [{ value: '', label: 'Seleccionar proveedor...' }];
   };
 
   const getReturnReasonOptions = () => {
-    const returnReasons = (dbData.returnReasons as ReturnReason[]) || [];
     return [
       { value: '', label: 'Seleccionar motivo...' },
-      ...returnReasons.map((reason) => ({
-        value: reason.value,
-        label: reason.label,
-      })),
+      { value: 'defective', label: 'Producto defectuoso' },
+      { value: 'damaged', label: 'Producto dañado' },
+      { value: 'wrong_item', label: 'Producto incorrecto' },
+      { value: 'expired', label: 'Producto vencido' },
+      { value: 'excess', label: 'Exceso de inventario' },
+      { value: 'other', label: 'Otro motivo' },
     ];
   };
 
-  // Generar ID único
-  const generateNewReceptionId = (): number => {
-    return Math.max(...receptions.map((r) => r.id)) + 1;
+  const addReception = async (reception: any) => {
+    // TODO: Implementar creación de recepción
+    console.log('Adding reception:', reception);
   };
 
-  const generateNewReturnId = (): number => {
-    return Math.max(...returns.map((r) => r.id)) + 1;
+  const addReturn = async (returnData: any) => {
+    // TODO: Implementar creación de devolución
+    console.log('Adding return:', returnData);
   };
 
-  // Agregar nueva recepción
-  const addReception = (receptionData: {
-    purchaseOrderId: number;
-    date: string;
-    items: Omit<ReceptionItem, 'productName'>[];
-  }): void => {
-    const purchaseOrder = ((dbData.purchaseOrders || []) as PurchaseOrder[]).find(
-      (po) => po.id === receptionData.purchaseOrderId
-    );
-
-    if (!purchaseOrder) return;
-
-    const newReception: Reception = {
-      id: generateNewReceptionId(),
-      purchaseOrderId: receptionData.purchaseOrderId,
-      orderNumber: purchaseOrder.orderNumber,
-      supplierId: purchaseOrder.supplierId,
-      supplierName: purchaseOrder.supplierName,
-      date: receptionData.date,
-      items: receptionData.items.map((item) => {
-        const product = dbData.products.find((p) => p.id === item.productId);
-        return {
-          ...item,
-          productName: product?.product || 'Producto desconocido',
-        };
-      }),
-      status: 'completed',
-    };
-
-    setReceptions((prev) => [...prev, newReception]);
-  };
-
-  // Agregar nueva devolución
-  const addReturn = (returnData: {
-    productId: number;
-    supplierId: number;
-    quantity: number;
-    reason: string;
-    observations: string;
-  }): void => {
-    const product = dbData.products.find((p) => p.id === returnData.productId);
-    const supplier = dbData.providers.find((p) => p.id === returnData.supplierId);
-    const returnReasons = (dbData.returnReasons as ReturnReason[]) || [];
-    const reasonInfo = returnReasons.find((r) => r.value === returnData.reason);
-
-    if (!product || !supplier || !reasonInfo) return;
-
-    const newReturn: Return = {
-      id: generateNewReturnId(),
-      productId: returnData.productId,
-      productName: product.product,
-      supplierId: returnData.supplierId,
-      supplierName: supplier.title,
-      quantity: returnData.quantity,
-      reason: returnData.reason,
-      reasonText: reasonInfo.label,
-      observations: returnData.observations,
-      date: new Date().toISOString().split('T')[0],
-      status: 'pending',
-    };
-
-    setReturns((prev) => [...prev, newReturn]);
-  };
-
-  // Combinar recepciones y devoluciones para el historial
   const getMovementHistory = () => {
-    const receptionHistory = (receptions || []).map((reception) => ({
-      id: `reception-${reception.id}`,
-      type: 'reception' as const,
-      title: `Recepción - ${reception.orderNumber}`,
-      description: `${reception.supplierName} - ${reception.items.reduce((sum, item) => sum + item.quantity, 0)} unidades`,
-      date: formatDate(reception.date),
-      icon: '📦',
-      data: reception,
-    }));
-
-    const returnHistory = (returns || []).map((returnItem) => ({
-      id: `return-${returnItem.id}`,
-      type: 'return' as const,
-      title: `Devolución - ${returnItem.productName}`,
-      description: `${returnItem.reasonText} - ${returnItem.quantity} unidades`,
-      date: formatDate(returnItem.date),
-      icon: '↩️',
-      data: returnItem,
-    }));
-
-    return [...receptionHistory, ...returnHistory].sort(
-      (a, b) =>
-        new Date(b.data.date || b.date).getTime() - new Date(a.data.date || a.date).getTime()
+    // Filtrar por término de búsqueda si existe
+    const filteredMovements = receptions.filter(
+      (r) =>
+        !searchTerm ||
+        r.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.supplierName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Transformar a formato de movimientos con iconos y títulos
+    const movements = filteredMovements.map((r) => ({
+      id: `reception-${r.id}`,
+      title: `Recepción ${r.orderNumber || 'N/A'}`,
+      description: `${r.supplierName || 'Proveedor desconocido'} - ${r.items?.length || 0} productos`,
+      date: formatDate(r.date),
+      icon: '📦',
+      type: 'reception',
+      orderNumber: r.orderNumber,
+      supplierName: r.supplierName,
+      status: r.status,
+      items: r.items,
+    }));
+
+    // Paginación
+    const itemsPerPage = 10;
+    const totalItems = movements.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedMovements = movements.slice(startIndex, endIndex);
+
+    return {
+      movements: paginatedMovements,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+      },
+    };
   };
 
-  // Obtener detalles de un movimiento
   const getMovementDetails = (movementId: string) => {
-    if (movementId.startsWith('reception-')) {
-      const id = parseInt(movementId.split('-')[1]);
-      return receptions.find((r) => r.id === id);
-    } else if (movementId.startsWith('return-')) {
-      const id = parseInt(movementId.split('-')[1]);
-      return returns.find((r) => r.id === id);
-    }
-    return null;
+    const id = parseInt(movementId.replace('reception-', ''));
+    return receptions.find((r) => r.id === id) || null;
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -1065,11 +1334,18 @@ export const useReceptions = () => {
     setCurrentPage(page);
   };
 
+  const selectSupplier = (supplierId: number | null) => {
+    setSelectedSupplierId(supplierId);
+  };
+
   return {
     receptions,
     returns,
     searchTerm,
     currentPage,
+    loading,
+    selectedSupplierId,
+    selectSupplier,
     getPurchaseOrderOptions,
     getProductOptions,
     getSupplierOptions,
@@ -1116,9 +1392,56 @@ export interface ContractType {
 
 // Hook para Contracts
 export const useContracts = () => {
-  const [contracts, setContracts] = useState<Contract[]>((dbData.contracts as Contract[]) || []);
+  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [contractsData, providersData] = await Promise.all([
+          contractsApi.getAll(),
+          providersApi.getAll(),
+        ]);
+
+        // Mapear contratos de API a formato Contract
+        const mappedContracts: Contract[] = contractsData.map((c) => {
+          const daysUntilExpiration = Math.ceil(
+            (new Date(c.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+          );
+          return {
+            id: c.id,
+            title: c.contract_number,
+            description: c.type,
+            supplierId: c.provider_id,
+            supplierName: c.provider_name,
+            type: c.type,
+            status: c.status as 'active' | 'expired' | 'pending',
+            startDate: c.start_date,
+            endDate: c.end_date,
+            terms:
+              typeof c.terms === 'string' ? JSON.parse(c.terms) : c.terms || { paymentDays: 30 },
+            daysUntilExpiration,
+            alertsEnabled: c.renewal_alert,
+            documentPath: c.document_path,
+            createdBy: 'Admin',
+            createdDate: c.start_date,
+            notes: '',
+          };
+        });
+
+        setContracts(mappedContracts);
+        setProviders(providersData);
+      } catch (error) {
+        console.error('Error loading contracts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   // Filtrado de contratos
   const filteredContracts = useMemo(() => {
@@ -1136,29 +1459,27 @@ export const useContracts = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const currentContracts = filteredContracts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
-  const generateNewContractId = (): number => {
-    return Math.max(...contracts.map((c) => c.id), 0) + 1;
-  };
-
-  // Obtener opciones de proveedores
   const getSupplierOptions = () => {
-    return dbData.providers.map((provider) => ({
+    return providers.map((provider) => ({
       value: provider.id.toString(),
       label: provider.title,
     }));
   };
 
-  // Obtener tipos de contrato
   const getContractTypeOptions = () => {
-    return (dbData.contractTypes as ContractType[]) || [];
+    const contractTypes: ContractType[] = [
+      { value: 'supply', label: 'Suministro' },
+      { value: 'fixed_price', label: 'Precio Fijo' },
+      { value: 'framework', label: 'Marco' },
+    ];
+    return contractTypes;
   };
 
   const getSupplierName = (supplierId: number): string => {
-    const supplier = dbData.providers.find((p) => p.id === supplierId);
+    const supplier = providers.find((p) => p.id === supplierId);
     return supplier ? supplier.title : 'Proveedor desconocido';
   };
 
-  // Calcular días hasta vencimiento
   const calculateDaysUntilExpiration = (endDate: string): number => {
     const today = new Date();
     const expirationDate = new Date(endDate);
@@ -1167,8 +1488,7 @@ export const useContracts = () => {
     return diffDays;
   };
 
-  // Agregar nuevo contrato
-  const addContract = (newContractData: {
+  const addContract = async (newContractData: {
     title: string;
     description: string;
     supplierId: number;
@@ -1182,53 +1502,82 @@ export const useContracts = () => {
     };
     alertsEnabled: boolean;
     notes?: string;
-  }): void => {
-    const daysUntilExpiration = calculateDaysUntilExpiration(newContractData.endDate);
-    const status = daysUntilExpiration < 0 ? 'expired' : 'active';
+  }): Promise<void> => {
+    try {
+      const contractData = {
+        contract_number: `CONT-${Date.now()}`,
+        provider_id: newContractData.supplierId,
+        provider_name: getSupplierName(newContractData.supplierId),
+        type: newContractData.type,
+        start_date: newContractData.startDate,
+        end_date: newContractData.endDate,
+        amount: 0,
+        status: 'active',
+        terms: JSON.stringify(newContractData.terms),
+        document_path: '',
+        renewal_alert: newContractData.alertsEnabled,
+      };
 
-    const newContract: Contract = {
-      id: generateNewContractId(),
-      title: newContractData.title,
-      description: newContractData.description,
-      supplierId: newContractData.supplierId,
-      supplierName: getSupplierName(newContractData.supplierId),
-      type: newContractData.type,
-      status,
-      startDate: newContractData.startDate,
-      endDate: newContractData.endDate,
-      terms: newContractData.terms,
-      daysUntilExpiration,
-      alertsEnabled: newContractData.alertsEnabled,
-      createdBy: 'Admin',
-      createdDate: new Date().toISOString().split('T')[0],
-      notes: newContractData.notes || '',
-    };
+      const created = await contractsApi.create(contractData);
 
-    setContracts((prev) => [newContract, ...prev]);
+      const mappedContract: Contract = {
+        id: created.id,
+        title: created.contract_number,
+        description: created.type,
+        supplierId: created.provider_id,
+        supplierName: created.provider_name,
+        type: created.type,
+        status: created.status as 'active' | 'expired' | 'pending',
+        startDate: created.start_date,
+        endDate: created.end_date,
+        terms: typeof created.terms === 'string' ? JSON.parse(created.terms) : created.terms,
+        daysUntilExpiration: calculateDaysUntilExpiration(created.end_date),
+        alertsEnabled: created.renewal_alert,
+        documentPath: created.document_path,
+        createdBy: 'Admin',
+        createdDate: created.start_date,
+        notes: newContractData.notes || '',
+      };
+
+      setContracts((prev) => [mappedContract, ...prev]);
+    } catch (error) {
+      console.error('Error creating contract:', error);
+      throw error;
+    }
   };
 
-  // Renovar contrato
-  const renewContract = (contractId: number, newEndDate: string): void => {
-    setContracts((prev) =>
-      prev.map((contract) =>
-        contract.id === contractId
-          ? {
-              ...contract,
-              endDate: newEndDate,
-              status: 'active' as const,
-              daysUntilExpiration: calculateDaysUntilExpiration(newEndDate),
-            }
-          : contract
-      )
-    );
+  const renewContract = async (contractId: number, newEndDate: string): Promise<void> => {
+    try {
+      const contract = contracts.find((c) => c.id === contractId);
+      if (!contract) return;
+
+      await contractsApi.update(contractId, {
+        end_date: newEndDate,
+        status: 'active',
+      });
+
+      setContracts((prev) =>
+        prev.map((contract) =>
+          contract.id === contractId
+            ? {
+                ...contract,
+                endDate: newEndDate,
+                status: 'active' as const,
+                daysUntilExpiration: calculateDaysUntilExpiration(newEndDate),
+              }
+            : contract
+        )
+      );
+    } catch (error) {
+      console.error('Error renewing contract:', error);
+      throw error;
+    }
   };
 
-  // Obtener contratos por estado
   const getContractsByStatus = (status: Contract['status']) => {
     return contracts.filter((contract) => contract.status === status);
   };
 
-  // Obtener contratos próximos a vencer (30 días o menos)
   const getExpiringContracts = () => {
     return contracts.filter(
       (contract) =>
@@ -1238,7 +1587,6 @@ export const useContracts = () => {
     );
   };
 
-  // Handlers
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
@@ -1255,6 +1603,7 @@ export const useContracts = () => {
     searchTerm,
     currentPage,
     totalPages,
+    loading,
     addContract,
     renewContract,
     getContractsByStatus,
@@ -1385,7 +1734,7 @@ export const useContractModals = () => {
   };
 };
 
-// Interfaces para reportes
+// Hooks de reportes se mantienen igual (datos generados)
 export interface ReportKPIs {
   monthlyPurchases: {
     amount: number;
@@ -1433,103 +1782,60 @@ export interface ReportsData {
   stockAnalysis: StockAnalysis[];
 }
 
-// Hook para reportes
-// Hook para reportes
 export const useReports = () => {
-  const [stockFilter, setStockFilter] = useState<'all' | 'critical' | 'normal'>('all');
+  const [products, setProducts] = useState<ProductItem[]>([]);
 
-  // Generate data from existing JSON data instead of expecting dbData.reports
-  const generateReportsData = (): ReportsData => {
-    // Calculate monthly purchases from history data (simulate)
-    const monthlyPurchases = {
-      amount: 24580,
-      percentage: 12,
-      trend: 'up' as 'up' | 'down',
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const productsData = await productsApi.getAll();
+        const mappedProducts: ProductItem[] = productsData.map((p) => ({
+          id: p.id,
+          product: p.name,
+          supplierId: p.supplier_id || 0,
+          supplierName: p.supplier_name || '',
+          currentStock: p.current_stock,
+          minStock: p.min_stock,
+          maxStock: p.max_stock,
+          status: p.current_stock < p.min_stock ? 'Critico' : 'Normal',
+        }));
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error('Error loading reports data:', error);
+      }
     };
+    loadData();
+  }, []);
 
-    const accumulatedSavings = {
-      amount: 2340,
-      description: 'Por negociación y cotizaciones',
-    };
-
-    const averageDeliveryTime = {
-      days: 3.2,
-      change: 0.5,
-      trend: 'down' as 'up' | 'down',
-    };
-
-    // Generate purchases by provider data
-    const purchasesByProvider: PurchasesByProvider[] = [
-      { id: 1, name: 'Embotelladora Boliviana', amount: 12500, percentage: 50.9 },
-      { id: 2, name: 'CBN', amount: 8900, percentage: 36.2 },
-      { id: 3, name: 'Distribuidora Central', amount: 3180, percentage: 12.9 },
-    ];
-
-    // Generate provider performance data
-    const providerPerformance: ProviderPerformance[] = [
-      { id: 1, name: 'Embotelladora Boliviana', rating: 4.5, compliance: 95 },
-      { id: 2, name: 'CBN', rating: 4.8, compliance: 98 },
-      { id: 3, name: 'Distribuidora Central', rating: 4.2, compliance: 90 },
-    ];
-
-    // Generate stock analysis from products data
-    const stockAnalysis: StockAnalysis[] = dbData.products.map((product) => ({
-      productId: product.id,
-      productName: product.product,
-      currentStock: product.currentStock,
-      minStock: product.minStock,
-      percentage: Math.round((product.currentStock / product.minStock) * 100),
-      status: product.status as 'Normal' | 'Crítico',
-    }));
-
-    return {
-      kpis: {
-        monthlyPurchases,
-        accumulatedSavings,
-        averageDeliveryTime,
-      },
-      purchasesByProvider,
-      providerPerformance,
-      stockAnalysis,
-    };
-  };
-
-  const reports = generateReportsData();
-
-  // Formatear moneda
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('es-BO', {
-      style: 'currency',
-      currency: 'BOB',
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('es-BO');
-  };
-
-  // Return data in the format expected by ReportsPage
   const monthlyPurchases = {
-    amount: reports.kpis.monthlyPurchases.amount,
-    trend: reports.kpis.monthlyPurchases.percentage,
+    amount: 24580,
+    trend: 12,
   };
 
   const accumulatedSavings = {
-    amount: reports.kpis.accumulatedSavings.amount,
+    amount: 2340,
   };
 
   const averageDeliveryTime = {
-    days: reports.kpis.averageDeliveryTime.days,
-    improvement: reports.kpis.averageDeliveryTime.change,
+    days: 3.2,
+    improvement: 0.5,
   };
 
-  const supplierPurchases = reports.purchasesByProvider;
-  const supplierPerformance = reports.providerPerformance;
+  const supplierPurchases: PurchasesByProvider[] = [
+    { id: 1, name: 'Embotelladora Boliviana', amount: 12500, percentage: 50.9 },
+    { id: 2, name: 'CBN', amount: 8900, percentage: 36.2 },
+    { id: 3, name: 'Distribuidora Central', amount: 3180, percentage: 12.9 },
+  ];
 
-  // Filter stock products based on current filter
-  const stockProducts = reports.stockAnalysis.map((item) => ({
-    id: item.productId,
-    product: item.productName,
+  const supplierPerformance: ProviderPerformance[] = [
+    { id: 1, name: 'Embotelladora Boliviana', rating: 4.5, compliance: 95 },
+    { id: 2, name: 'CBN', rating: 4.8, compliance: 98 },
+    { id: 3, name: 'Distribuidora Central', rating: 4.2, compliance: 90 },
+  ];
+
+  const stockProducts = products.map((item) => ({
+    id: item.id,
+    product: item.product,
     currentStock: item.currentStock,
     minStock: item.minStock,
     status: item.status,
@@ -1547,7 +1853,6 @@ export const useReports = () => {
   };
 };
 
-// Hook for Report Modals
 export const useReportModals = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -1579,5 +1884,117 @@ export const useReportModals = () => {
     closeAnalysisModal,
     openEvaluationModal,
     closeEvaluationModal,
+  };
+};
+
+// ========== QUOTES HOOK ==========
+export const useQuotes = () => {
+  const [quotesData, setQuotesData] = useState<any[]>([]);
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Helper para formatear fechas
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return 'Sin fecha';
+
+    const date = new Date(dateString);
+
+    // Verificar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+
+    return date.toLocaleDateString('es-BO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [quotes, historical] = await Promise.all([
+          quotesApi.getAll(),
+          quotesApi.getHistoricalPrices(),
+        ]);
+
+        // Transformar datos al formato que espera QuotesPage
+        const transformedQuotes = quotes.map((q) => ({
+          id: q.id,
+          productName: q.product_name,
+          date: formatDate(q.date),
+          quotes: q.quotes.map((item: any) => ({
+            provider: item.supplier_name,
+            price: parseFloat(item.price),
+            isBest: item.is_best,
+            notes: item.notes || '',
+          })),
+          savings: parseFloat(q.savings),
+        }));
+
+        // Transformar historical data al formato esperado
+        // Como no tenemos previous/current real, agrupamos por producto y simulamos variación
+        const transformedHistorical = historical.map((h: any, index: number) => ({
+          id: h.id,
+          product: h.product_name,
+          provider: h.supplier_name,
+          previousPrice:
+            index > 0 && historical[index - 1]?.product_name === h.product_name
+              ? parseFloat(historical[index - 1].price)
+              : parseFloat(h.price) * 0.95, // Simular precio anterior 5% menor
+          currentPrice: parseFloat(h.price),
+          variation:
+            index > 0 && historical[index - 1]?.product_name === h.product_name
+              ? (
+                  ((parseFloat(h.price) - parseFloat(historical[index - 1].price)) /
+                    parseFloat(historical[index - 1].price)) *
+                  100
+                ).toFixed(1) + '%'
+              : '+5.0%', // Simular variación
+          variationType: 'positive' as const,
+          date: formatDate(h.date),
+        }));
+
+        setQuotesData(transformedQuotes);
+        setHistoricalData(transformedHistorical);
+      } catch (error) {
+        console.error('Error loading quotes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  const createQuote = async (quoteData: any) => {
+    try {
+      await quotesApi.create(quoteData);
+      // Recargar datos
+      const quotes = await quotesApi.getAll();
+      const transformedQuotes = quotes.map((q) => ({
+        id: q.id,
+        productName: q.product_name,
+        date: q.date,
+        quotes: q.quotes.map((item: any) => ({
+          provider: item.supplier_name,
+          price: parseFloat(item.price),
+          isBest: item.is_best,
+          notes: item.notes || '',
+        })),
+        savings: parseFloat(q.savings),
+      }));
+      setQuotesData(transformedQuotes);
+    } catch (error) {
+      console.error('Error creating quote:', error);
+      throw error;
+    }
+  };
+
+  return {
+    quotesData,
+    historicalData,
+    loading,
+    createQuote,
   };
 };

@@ -151,7 +151,7 @@ const CompanySetupPage: React.FC = () => {
         setTimeout(() => {
           console.log('🚀 Redirigiendo al ERP');
           redirectToERP();
-        }, 2000);
+        }, 3000); // Dar más tiempo para leer el mensaje
       } else {
         setError(result.error || 'Error al configurar la empresa.');
       }
