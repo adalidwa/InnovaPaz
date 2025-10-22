@@ -69,6 +69,7 @@ app.use('/api/subscriptions', require('./routes/subscription'));
 app.use('/api/invitations', require('./routes/invitations'));
 app.use('/api/reports', reportsRoutes);
 app.use('/api/removebg', require('./routes/removebg.routes'));
+app.use('/api/debug', require('./routes/debug.routes')); // Rutas de debug
 
 app.use(taskRoutes);
 app.use('/api', inventoryRoutes);
