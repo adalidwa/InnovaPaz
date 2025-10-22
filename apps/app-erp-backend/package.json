@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon apps/app-erp-backend/index.js",
-    "start": "node apps/app-erp-backend/index.js",
+    "dev": "nodemon index.js",
+    "start": "node index.js",
     "docker:up": "docker start abh_mysql",
     "docker:down": "docker stop abh_mysql",
     "docker:logs": "docker logs abh_mysql",

@@ -1,0 +1,18 @@
+{
+  "framework": "vite",
+  "buildCommand": "pnpm run build",
+  "outputDirectory": "dist",
+  "installCommand": "pnpm install",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://TU-BACKEND-REAL.vercel.app/api/$1"
+    }
+  ],
+  "env": {
+    "VITE_API_URL": "https://TU-BACKEND-REAL.vercel.app",
+    "VITE_BACKEND_API_URL": "https://TU-BACKEND-REAL.vercel.app/api",
+    "VITE_MARKETING_URL": "https://TU-MARKETING-REAL.vercel.app",
+    "VITE_APP_ENV": "production"
+  }
+}
