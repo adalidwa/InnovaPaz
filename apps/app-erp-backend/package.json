@@ -60,6 +60,7 @@
   "homepage": "https://github.com/FreddySoto123/ABH#readme",
   "dependencies": {
     "@svgdotjs/svg.js": "^3.2.4",
+    "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
