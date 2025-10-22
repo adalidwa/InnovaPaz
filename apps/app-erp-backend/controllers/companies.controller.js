@@ -357,45 +357,46 @@ async function uploadCompanyLogo(req, res) {
     // Validación: verificar que la empresa exista
     const empresa = await Company.findById(empresaId);
     if (!empresa) {
-      // Eliminar archivo temporal si la empresa no existe
-      if (req.file.path) {
-        fs.unlink(req.file.path, () => {});
-      }
       return res.status(404).json({ error: 'Empresa no encontrada.' });
     }
 
-    // Validación: tipo de archivo (solo imágenes)
+    // Validación: tipo de archivo (ya se valida en multer, pero por seguridad)
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
     if (!allowedMimeTypes.includes(req.file.mimetype)) {
-      fs.unlink(req.file.path, () => {});
       return res.status(400).json({
         error: 'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP).',
       });
     }
 
-    // Validación: tamaño máximo (5MB)
+    // Validación: tamaño máximo (ya se valida en multer, pero por seguridad)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (req.file.size > maxSize) {
-      fs.unlink(req.file.path, () => {});
       return res.status(400).json({
         error: 'El archivo es demasiado grande. Tamaño máximo: 5MB.',
       });
     }
 
-    // Subir a Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'company_logos',
-      public_id: `empresa_${empresaId}_logo`,
-      overwrite: true,
-      transformation: [
-        { width: 500, height: 500, crop: 'limit' },
-        { quality: 'auto' },
-        { fetch_format: 'auto' },
-      ],
+    // Subir a Cloudinary desde buffer (sin archivo temporal)
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder: 'company_logos',
+            public_id: `empresa_${empresaId}_logo`,
+            overwrite: true,
+            transformation: [
+              { width: 500, height: 500, crop: 'limit' },
+              { quality: 'auto' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        )
+        .end(req.file.buffer);
     });
-
-    // Eliminar archivo temporal
-    fs.unlink(req.file.path, () => {});
 
     // Actualizar base de datos
     let ajustesObj = empresa.ajustes;
@@ -423,10 +424,6 @@ async function uploadCompanyLogo(req, res) {
     });
   } catch (err) {
     console.error('Error al subir logo:', err);
-    // Eliminar archivo temporal en caso de error
-    if (req.file && req.file.path) {
-      fs.unlink(req.file.path, () => {});
-    }
     res.status(500).json({ error: 'Error al subir el logo.', details: err.message });
   }
 }

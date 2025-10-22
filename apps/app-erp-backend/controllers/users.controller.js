@@ -406,45 +406,46 @@ async function uploadUserAvatar(req, res) {
     // Validación: verificar que el usuario exista
     const usuario = await User.findById(uid);
     if (!usuario) {
-      // Eliminar archivo temporal si el usuario no existe
-      if (req.file.path) {
-        fs.unlink(req.file.path, () => {});
-      }
       return res.status(404).json({ error: 'Usuario no encontrado.' });
     }
 
-    // Validación: tipo de archivo (solo imágenes)
+    // Validación: tipo de archivo (ya se valida en multer, pero por seguridad)
     const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
     if (!allowedMimeTypes.includes(req.file.mimetype)) {
-      fs.unlink(req.file.path, () => {});
       return res.status(400).json({
         error: 'Tipo de archivo no permitido. Solo se permiten imágenes (JPEG, PNG, GIF, WebP).',
       });
     }
 
-    // Validación: tamaño máximo (2MB para avatares)
+    // Validación: tamaño máximo (ya se valida en multer, pero por seguridad)
     const maxSize = 2 * 1024 * 1024; // 2MB
     if (req.file.size > maxSize) {
-      fs.unlink(req.file.path, () => {});
       return res.status(400).json({
         error: 'El archivo es demasiado grande. Tamaño máximo: 2MB.',
       });
     }
 
-    // Subir a Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'user_avatars',
-      public_id: `usuario_${uid}_avatar`,
-      overwrite: true,
-      transformation: [
-        { width: 300, height: 300, crop: 'fill', gravity: 'face' },
-        { quality: 'auto' },
-        { fetch_format: 'auto' },
-      ],
+    // Subir a Cloudinary desde buffer (sin archivo temporal)
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder: 'user_avatars',
+            public_id: `usuario_${uid}_avatar`,
+            overwrite: true,
+            transformation: [
+              { width: 300, height: 300, crop: 'fill', gravity: 'face' },
+              { quality: 'auto' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          }
+        )
+        .end(req.file.buffer);
     });
-
-    // Eliminar archivo temporal
-    fs.unlink(req.file.path, () => {});
 
     // Actualizar base de datos
     const usuarioActualizado = await User.findByIdAndUpdate(uid, {
@@ -464,10 +465,6 @@ async function uploadUserAvatar(req, res) {
     });
   } catch (err) {
     console.error('Error al subir avatar:', err);
-    // Eliminar archivo temporal en caso de error
-    if (req.file && req.file.path) {
-      fs.unlink(req.file.path, () => {});
-    }
     res.status(500).json({ error: 'Error al subir el avatar.', details: err.message });
   }
 }

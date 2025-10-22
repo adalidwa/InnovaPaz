@@ -4,7 +4,22 @@ const usersController = require('../controllers/users.controller');
 const { verifyFirebaseToken } = require('../controllers/auth.controller');
 const { checkPlanLimits } = require('../middleware/planValidation');
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' });
+
+// Configurar multer para usar memoria en lugar de disco (para Vercel)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB máximo
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de archivo no permitido. Solo se permiten imágenes.'), false);
+    }
+  },
+});
 
 // Obtener todos los usuarios de una empresa
 router.get('/company/:empresa_id', verifyFirebaseToken, usersController.getUsersByCompany);
