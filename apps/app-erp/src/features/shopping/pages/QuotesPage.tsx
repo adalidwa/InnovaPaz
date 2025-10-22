@@ -13,7 +13,15 @@ import Button from '../../../components/common/Button';
 
 // Helper para formatear fechas
 const formatDate = (dateString: string): string => {
+  if (!dateString) return 'Sin fecha';
+
   const date = new Date(dateString);
+
+  // Verificar si la fecha es válida
+  if (isNaN(date.getTime())) {
+    return 'Sin fecha';
+  }
+
   return date.toLocaleDateString('es-BO', {
     year: 'numeric',
     month: '2-digit',

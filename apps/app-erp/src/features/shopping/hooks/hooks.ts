@@ -1175,52 +1175,74 @@ export interface ReturnReason {
 
 // Hook para recepciones
 export const useReceptions = () => {
-  const [receptions, setReceptions] = useState<Reception[]>([]);
-  const [returns, setReturns] = useState<Return[]>([]);
+  const [receptions, setReceptions] = useState<any[]>([]);
+  const [returns, setReturns] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [selectedSupplierId, setSelectedSupplierId] = useState<number | null>(null);
 
-  // Solo cargar recepciones cuando se selecciona un proveedor
-  useEffect(() => {
-    if (!selectedSupplierId) {
-      setReceptions([]);
-      return;
+  // Helper para formatear fechas
+  const formatDate = (dateString: string): string => {
+    if (!dateString) return 'Sin fecha';
+
+    const date = new Date(dateString);
+
+    // Verificar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      return 'Sin fecha';
     }
 
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        // Usar filtro del backend para traer solo las recepciones del proveedor
-        const receptionsData = await receptionsApi.getAll(selectedSupplierId);
+    return date.toLocaleDateString('es-BO', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
 
-        const mappedReceptions: Reception[] = receptionsData.map((r) => ({
-          id: r.id,
-          purchaseOrderId: 0,
-          orderNumber: r.order_number || '',
-          supplierId: r.supplier_id || 0,
-          supplierName: r.supplier_name || '',
-          date: r.date,
-          items: (r.items || []).map((item: any) => ({
-            productId: item.product_id,
-            productName: item.product_name,
-            quantity: item.received_quantity,
-            lotNumber: '',
-            expiryDate: '',
-          })),
-          status: r.status as 'completed' | 'pending',
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('es-BO', {
+      style: 'currency',
+      currency: 'BOB',
+    }).format(amount);
+  };
+
+  useEffect(() => {
+    const loadReceptions = async () => {
+      try {
+        setLoading(true);
+
+        // Cargar todas las recepciones
+        const data = await receptionsApi.getAll();
+
+        // Transformar datos de la API al formato local
+        const transformedReceptions = data.map((reception: any) => ({
+          id: reception.id,
+          orderNumber: reception.order_number || reception.reception_number,
+          supplierId: reception.supplier_id,
+          supplierName: reception.supplier_name,
+          date: reception.date,
+          items:
+            reception.items?.map((item: any) => ({
+              id: item.product_id,
+              productName: item.product_name,
+              quantity: item.received_quantity || item.quantity,
+            })) || [],
+          status: reception.status || 'completed',
         }));
 
-        setReceptions(mappedReceptions);
+        setReceptions(transformedReceptions);
       } catch (error) {
         console.error('Error loading receptions:', error);
+        // En caso de error, array vacío (sin datos hardcodeados)
+        setReceptions([]);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
-  }, [selectedSupplierId]);
+
+    loadReceptions();
+  }, []);
 
   const getPurchaseOrderOptions = () => {
     return [{ value: '', label: 'Seleccionar orden...' }];
@@ -1235,57 +1257,71 @@ export const useReceptions = () => {
   };
 
   const getReturnReasonOptions = () => {
-    const returnReasons: ReturnReason[] = [
-      { value: 'damaged', label: 'Producto dañado' },
-      { value: 'expired', label: 'Producto vencido' },
-      { value: 'wrong_product', label: 'Producto incorrecto' },
-      { value: 'wrong_quantity', label: 'Cantidad incorrecta' },
-      { value: 'quality_issues', label: 'Problemas de calidad' },
-      { value: 'not_ordered', label: 'No fue pedido' },
-      { value: 'other', label: 'Otro motivo' },
-    ];
-
     return [
       { value: '', label: 'Seleccionar motivo...' },
-      ...returnReasons.map((reason) => ({
-        value: reason.value,
-        label: reason.label,
-      })),
+      { value: 'defective', label: 'Producto defectuoso' },
+      { value: 'damaged', label: 'Producto dañado' },
+      { value: 'wrong_item', label: 'Producto incorrecto' },
+      { value: 'expired', label: 'Producto vencido' },
+      { value: 'excess', label: 'Exceso de inventario' },
+      { value: 'other', label: 'Otro motivo' },
     ];
   };
 
-  const addReception = async (receptionData: {
-    purchaseOrderId: number;
-    date: string;
-    items: Omit<ReceptionItem, 'productName'>[];
-  }): Promise<void> => {
-    // TODO: implement
+  const addReception = async (reception: any) => {
+    // TODO: Implementar creación de recepción
+    console.log('Adding reception:', reception);
   };
 
-  const addReturn = (returnData: {
-    productId: number;
-    supplierId: number;
-    quantity: number;
-    reason: string;
-    observations: string;
-  }): void => {
-    // TODO: implement
+  const addReturn = async (returnData: any) => {
+    // TODO: Implementar creación de devolución
+    console.log('Adding return:', returnData);
   };
 
-  const getMovementHistory = (): any[] => {
-    return receptions.map((r) => ({
-      id: r.id,
-      date: r.date,
+  const getMovementHistory = () => {
+    // Filtrar por término de búsqueda si existe
+    const filteredMovements = receptions.filter(
+      (r) =>
+        !searchTerm ||
+        r.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        r.supplierName?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Transformar a formato de movimientos con iconos y títulos
+    const movements = filteredMovements.map((r) => ({
+      id: `reception-${r.id}`,
+      title: `Recepción ${r.orderNumber || 'N/A'}`,
+      description: `${r.supplierName || 'Proveedor desconocido'} - ${r.items?.length || 0} productos`,
+      date: formatDate(r.date),
+      icon: '📦',
       type: 'reception',
       orderNumber: r.orderNumber,
       supplierName: r.supplierName,
       status: r.status,
       items: r.items,
     }));
+
+    // Paginación
+    const itemsPerPage = 10;
+    const totalItems = movements.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedMovements = movements.slice(startIndex, endIndex);
+
+    return {
+      movements: paginatedMovements,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalItems,
+        itemsPerPage,
+      },
+    };
   };
 
   const getMovementDetails = (movementId: string) => {
-    const id = parseInt(movementId);
+    const id = parseInt(movementId.replace('reception-', ''));
     return receptions.find((r) => r.id === id) || null;
   };
 
@@ -1859,7 +1895,15 @@ export const useQuotes = () => {
 
   // Helper para formatear fechas
   const formatDate = (dateString: string): string => {
+    if (!dateString) return 'Sin fecha';
+
     const date = new Date(dateString);
+
+    // Verificar si la fecha es válida
+    if (isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
+
     return date.toLocaleDateString('es-BO', {
       year: 'numeric',
       month: '2-digit',
