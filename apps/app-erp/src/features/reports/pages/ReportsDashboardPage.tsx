@@ -362,6 +362,27 @@ const ReportsDashboardPage: React.FC = () => {
             </div>
           </SectionCard>
         </Link>
+
+        <Link to='/reportes/avanzados' style={{ textDecoration: 'none', color: 'inherit' }}>
+          <SectionCard
+            title='Reportes Avanzados'
+            description='Sistema completo de reportes: Ventas, Inventario, Movimientos y Alertas.'
+          >
+            <div className='section-card-stats'>
+              <div className='section-card-stat'>
+                <span className='section-card-stat__value'>🚀</span>
+                <span className='section-card-stat__label'>Nuevo</span>
+              </div>
+              <div className='section-card-stat'>
+                <span className='section-card-stat__value'>4</span>
+                <span className='section-card-stat__label'>Tipos</span>
+              </div>
+            </div>
+            <div className='section-card__footer'>
+              <span className='section-card-link'>🎯 Acceder a Reportes Avanzados →</span>
+            </div>
+          </SectionCard>
+        </Link>
       </div>
     </div>
   );

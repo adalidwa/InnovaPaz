@@ -1,0 +1,221 @@
+/**
+ * 📊 ESTILOS PARA BOTONES DE EXPORTACIÓN
+ * Diseño profesional para botones PDF y Excel
+ */
+
+.export-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ============================================
+   TAMAÑOS
+   ============================================ */
+
+.export-buttons--sm {
+  gap: 0.25rem;
+}
+
+.export-buttons--sm .export-buttons__btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.export-buttons--md .export-buttons__btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+}
+
+.export-buttons--lg {
+  gap: 0.75rem;
+}
+
+.export-buttons--lg .export-buttons__btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* ============================================
+   BOTÓN BASE
+   ============================================ */
+
+.export-buttons__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.export-buttons__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.export-buttons__btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.export-buttons__btn:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   VARIANTES
+   ============================================ */
+
+/* Variante Default */
+.export-buttons--default .export-buttons__btn--pdf {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.export-buttons--default .export-buttons__btn--excel {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+}
+
+/* Variante Minimal */
+.export-buttons--minimal .export-buttons__btn {
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.export-buttons--minimal .export-buttons__btn--pdf {
+  color: #dc2626;
+}
+
+.export-buttons--minimal .export-buttons__btn--pdf:not(:disabled):hover {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: #dc2626;
+}
+
+.export-buttons--minimal .export-buttons__btn--excel {
+  color: #059669;
+}
+
+.export-buttons--minimal .export-buttons__btn--excel:not(:disabled):hover {
+  background: rgba(5, 150, 105, 0.1);
+  border-color: #059669;
+}
+
+/* Variante Outlined */
+.export-buttons--outlined .export-buttons__btn {
+  background: white;
+  border: 1.5px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.export-buttons--outlined .export-buttons__btn--pdf {
+  border-color: #dc2626;
+  color: #dc2626;
+}
+
+.export-buttons--outlined .export-buttons__btn--pdf:not(:disabled):hover {
+  background: #dc2626;
+  color: white;
+}
+
+.export-buttons--outlined .export-buttons__btn--excel {
+  border-color: #059669;
+  color: #059669;
+}
+
+.export-buttons--outlined .export-buttons__btn--excel:not(:disabled):hover {
+  background: #059669;
+  color: white;
+}
+
+/* ============================================
+   ICONOS Y CONTENIDO
+   ============================================ */
+
+.export-buttons__icon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.export-buttons__spinner {
+  font-size: 1.1em;
+  line-height: 1;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 640px) {
+  .export-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .export-buttons__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   TEMA OSCURO
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .export-buttons--outlined .export-buttons__btn {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .export-buttons--minimal .export-buttons__btn--pdf:not(:disabled):hover {
+    background: rgba(239, 68, 68, 0.2);
+  }
+
+  .export-buttons--minimal .export-buttons__btn--excel:not(:disabled):hover {
+    background: rgba(16, 185, 129, 0.2);
+  }
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+
+.export-buttons--center {
+  justify-content: center;
+}
+
+.export-buttons--end {
+  justify-content: flex-end;
+}
+
+.export-buttons--full {
+  width: 100%;
+}
+
+.export-buttons--full .export-buttons__btn {
+  flex: 1;
+  justify-content: center;
+}
