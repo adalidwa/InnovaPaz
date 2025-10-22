@@ -6,12 +6,12 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://TU-BACKEND-REAL.vercel.app/api/$1"
+      "destination": "https://innovapaz-app-erp-backend-elc8835bi-edison-checas-projects.vercel.app/api/$1"
     }
   ],
   "env": {
-    "VITE_API_URL": "https://TU-BACKEND-REAL.vercel.app",
-    "VITE_BACKEND_API_URL": "https://TU-BACKEND-REAL.vercel.app/api",
+    "VITE_API_URL": "https://innovapaz-app-erp-backend-elc8835bi-edison-checas-projects.vercel.app",
+    "VITE_BACKEND_API_URL": "https://innovapaz-app-erp-backend-elc8835bi-edison-checas-projects.vercel.app/api",
     "VITE_MARKETING_URL": "https://TU-MARKETING-REAL.vercel.app",
     "VITE_APP_ENV": "production"
   }

@@ -22,6 +22,26 @@ const app = express();
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+
+// Health check route
+app.get('/', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'INNOVAPAZ ERP Backend API is running',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'development',
+  });
+});
+
+app.get('/api', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'INNOVAPAZ ERP API is running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+  });
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/companies', require('./routes/companies'));
@@ -51,8 +71,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(4000);
-console.log('Server on port 4000');
+const PORT = process.env.PORT || 4000;
+app.listen(PORT);
+console.log(`Server on port ${PORT}`);
 
 // Configurar cron jobs para verificar suscripciones
 setupCronJobs();
