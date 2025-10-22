@@ -91,6 +91,173 @@ export interface ProductosReport {
   }>;
 }
 
+// ============================================
+// NUEVAS INTERFACES PARA REPORTES AVANZADOS
+// ============================================
+
+export interface VentasReport {
+  estadisticas: {
+    total_ventas: number;
+    ingresos_totales: number;
+    venta_promedio: number;
+    venta_minima: number;
+    venta_maxima: number;
+    descuentos_totales: number;
+    clientes_unicos: number;
+    vendedores_activos: number;
+  };
+  ventas: Array<{
+    numero_venta: string;
+    fecha_venta: string;
+    cliente_nombre?: string;
+    nombre_cliente_directo?: string;
+    vendedor_nombre?: string;
+    subtotal: number;
+    descuento: number;
+    impuesto: number;
+    total: number;
+    metodo_pago?: string;
+    estado_venta?: string;
+  }>;
+  top_productos: Array<{
+    codigo: string;
+    nombre_producto: string;
+    cantidad_vendida: number;
+    ingresos_producto: number;
+    precio_promedio: number;
+  }>;
+  por_metodo_pago: Array<{
+    metodo_pago: string;
+    cantidad_ventas: number;
+    ingresos_totales: number;
+    porcentaje: string;
+  }>;
+  por_vendedor: Array<{
+    vendedor_nombre: string;
+    cantidad_ventas: number;
+    ingresos_totales: number;
+    venta_promedio: number;
+  }>;
+}
+
+export interface InventarioReport {
+  estadisticas: {
+    total_productos: number;
+    productos_stock_bajo: number;
+    productos_sin_stock: number;
+    total_unidades: number;
+    valor_total_inventario: number;
+    precio_promedio_venta: number;
+    stock_promedio: number;
+  };
+  productos: Array<{
+    codigo: string;
+    nombre_producto: string;
+    stock: number;
+    precio_venta: number;
+    precio_costo: number;
+    valor_stock: number;
+    nombre_categoria: string;
+    marca_nombre: string;
+    estado_nombre: string;
+    almacenes: string;
+    total_lotes: number;
+  }>;
+  por_categoria: Array<{
+    nombre_categoria: string;
+    cantidad_productos: number;
+    valor_categoria: number;
+    stock_total: number;
+  }>;
+  proximos_vencer: Array<{
+    nombre_producto: string;
+    codigo: string;
+    codigo_lote: string;
+    fecha_vencimiento: string;
+    dias_restantes: number;
+    cantidad: number;
+    almacen_nombre?: string;
+  }>;
+}
+
+export interface MovimientosInventarioReport {
+  estadisticas: {
+    total_movimientos: number;
+    total_entradas: number;
+    total_salidas: number;
+    cantidad_total_entradas: number;
+    cantidad_total_salidas: number;
+    usuarios_activos: number;
+    productos_afectados: number;
+  };
+  movimientos: Array<{
+    fecha_movimiento: string;
+    tipo_movimiento: string;
+    nombre_producto: string;
+    codigo_producto: string;
+    cantidad: number;
+    precio_unitario: number;
+    valor_total: number;
+    usuario_nombre?: string;
+    almacen_nombre?: string;
+    motivo?: string;
+    observaciones?: string;
+  }>;
+  por_tipo: Array<{
+    tipo_movimiento: string;
+    cantidad_movimientos: number;
+    cantidad_total: number;
+  }>;
+  productos_mas_movimientos: Array<{
+    codigo_producto: string;
+    nombre_producto: string;
+    total_movimientos: number;
+    entradas: number;
+    salidas: number;
+    cantidad_total: number;
+  }>;
+  por_usuario: Array<{
+    usuario_nombre: string;
+    cantidad_movimientos: number;
+  }>;
+}
+
+export interface AlertasReport {
+  estadisticas: {
+    total_alertas: number;
+    alertas_stock_bajo: number;
+    alertas_sin_stock: number;
+    alertas_vencimiento: number;
+    alertas_vencidos: number;
+    productos_criticos: number;
+  };
+  productos_sin_stock: Array<{
+    codigo: string;
+    nombre_producto: string;
+    nombre_categoria: string;
+    stock_actual: number;
+    stock_minimo: number;
+    precio_venta: number;
+  }>;
+  productos_stock_bajo: Array<{
+    codigo: string;
+    nombre_producto: string;
+    nombre_categoria: string;
+    stock_actual: number;
+    stock_minimo: number;
+    precio_venta: number;
+  }>;
+  productos_proximos_vencer: Array<{
+    nombre_producto: string;
+    codigo: string;
+    codigo_lote: string;
+    fecha_vencimiento: string;
+    dias_restantes: number;
+    cantidad: number;
+    almacen_nombre?: string;
+  }>;
+}
+
 export interface Invitacion {
   invitacion_id: number;
   email: string;
@@ -253,7 +420,6 @@ class ReportsService {
     filters?: {
       estado?: string;
       rol_id?: number;
-      plantilla_rol_id?: number;
       fecha_desde?: string;
       fecha_hasta?: string;
     }
@@ -265,8 +431,6 @@ class ReportsService {
     if (filters) {
       if (filters.estado) params.append('estado', filters.estado);
       if (filters.rol_id) params.append('rol_id', String(filters.rol_id));
-      if (filters.plantilla_rol_id)
-        params.append('plantilla_rol_id', String(filters.plantilla_rol_id));
       if (filters.fecha_desde) params.append('fecha_desde', filters.fecha_desde);
       if (filters.fecha_hasta) params.append('fecha_hasta', filters.fecha_hasta);
     }
@@ -367,6 +531,126 @@ class ReportsService {
   }> {
     const response = await axios.get(
       `${API_URL}/api/reports/generate/roles?empresa_id=${empresaId}`
+    );
+    return response.data;
+  }
+
+  // ============================================
+  // NUEVOS REPORTES AVANZADOS
+  // ============================================
+
+  /**
+   * Obtener Reporte Completo de Ventas
+   */
+  async getReporteVentas(
+    empresaId: string,
+    filters?: {
+      fecha_desde?: string;
+      fecha_hasta?: string;
+      cliente_id?: number;
+      vendedor_id?: number;
+      metodo_pago_id?: number;
+      estado_venta_id?: number;
+      monto_minimo?: number;
+      monto_maximo?: number;
+    }
+  ): Promise<
+    { success: boolean; tipo_reporte: string } & VentasReport & { tiempo_ejecucion_ms: number }
+  > {
+    const params = new URLSearchParams({ empresa_id: empresaId });
+
+    if (filters) {
+      if (filters.fecha_desde) params.append('fecha_desde', filters.fecha_desde);
+      if (filters.fecha_hasta) params.append('fecha_hasta', filters.fecha_hasta);
+      if (filters.cliente_id) params.append('cliente_id', String(filters.cliente_id));
+      if (filters.vendedor_id) params.append('vendedor_id', String(filters.vendedor_id));
+      if (filters.metodo_pago_id) params.append('metodo_pago_id', String(filters.metodo_pago_id));
+      if (filters.estado_venta_id)
+        params.append('estado_venta_id', String(filters.estado_venta_id));
+      if (filters.monto_minimo) params.append('monto_minimo', String(filters.monto_minimo));
+      if (filters.monto_maximo) params.append('monto_maximo', String(filters.monto_maximo));
+    }
+
+    const response = await axios.get(`${API_URL}/api/reports/generate/ventas?${params}`);
+    return response.data;
+  }
+
+  /**
+   * Obtener Reporte Completo de Inventario
+   */
+  async getReporteInventario(
+    empresaId: string,
+    filters?: {
+      categoria_id?: number;
+      marca_id?: number;
+      estado_id?: number;
+      stock_minimo?: number;
+      almacen_id?: number;
+    }
+  ): Promise<
+    { success: boolean; tipo_reporte: string } & InventarioReport & { tiempo_ejecucion_ms: number }
+  > {
+    const params = new URLSearchParams({ empresa_id: empresaId });
+
+    if (filters) {
+      if (filters.categoria_id) params.append('categoria_id', String(filters.categoria_id));
+      if (filters.marca_id) params.append('marca_id', String(filters.marca_id));
+      if (filters.estado_id) params.append('estado_id', String(filters.estado_id));
+      if (filters.stock_minimo) params.append('stock_minimo', String(filters.stock_minimo));
+      if (filters.almacen_id) params.append('almacen_id', String(filters.almacen_id));
+    }
+
+    const response = await axios.get(`${API_URL}/api/reports/generate/inventario?${params}`);
+    return response.data;
+  }
+
+  /**
+   * Obtener Reporte de Movimientos de Inventario
+   */
+  async getReporteMovimientosInventario(
+    empresaId: string,
+    filters?: {
+      fecha_desde?: string;
+      fecha_hasta?: string;
+      producto_id?: number;
+      tipo_movimiento_id?: number;
+      almacen_id?: number;
+      entidad_tipo?: string;
+    }
+  ): Promise<
+    { success: boolean; tipo_reporte: string } & MovimientosInventarioReport & {
+        tiempo_ejecucion_ms: number;
+      }
+  > {
+    const params = new URLSearchParams({ empresa_id: empresaId });
+
+    if (filters) {
+      if (filters.fecha_desde) params.append('fecha_desde', filters.fecha_desde);
+      if (filters.fecha_hasta) params.append('fecha_hasta', filters.fecha_hasta);
+      if (filters.producto_id) params.append('producto_id', String(filters.producto_id));
+      if (filters.tipo_movimiento_id)
+        params.append('tipo_movimiento_id', String(filters.tipo_movimiento_id));
+      if (filters.almacen_id) params.append('almacen_id', String(filters.almacen_id));
+      if (filters.entidad_tipo) params.append('entidad_tipo', filters.entidad_tipo);
+    }
+
+    const response = await axios.get(
+      `${API_URL}/api/reports/generate/movimientos-inventario?${params}`
+    );
+    return response.data;
+  }
+
+  /**
+   * Obtener Reporte de Alertas
+   */
+  async getReporteAlertas(
+    empresaId: string,
+    stockMinimo: number = 10
+  ): Promise<
+    { success: boolean; tipo_reporte: string } & AlertasReport & { tiempo_ejecucion_ms: number }
+  > {
+    const response = await axios.get(
+      `${API_URL}/api/reports/generate/alertas?empresa_id=${empresaId}&stock_minimo=${stockMinimo}`
     );
     return response.data;
   }
@@ -489,6 +773,164 @@ class ReportsService {
     const link = document.createElement('a');
     link.href = url;
     link.download = `usuarios-${Date.now()}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  // ============================================
+  // EXPORTACIÓN AVANZADA - NUEVOS REPORTES
+  // ============================================
+
+  /**
+   * Exportar Ventas a PDF
+   */
+  async exportVentasPDF(empresaId: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams({ empresa_id: empresaId, ...filters });
+    const response = await axios.get(`${API_URL}/api/reports/export/ventas/pdf?${params}`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ventas-innovapaz-${Date.now()}.pdf`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Ventas a Excel
+   */
+  async exportVentasExcel(empresaId: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams({ empresa_id: empresaId, ...filters });
+    const response = await axios.get(`${API_URL}/api/reports/export/ventas/excel?${params}`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ventas-innovapaz-${Date.now()}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Inventario a PDF
+   */
+  async exportInventarioPDF(empresaId: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams({ empresa_id: empresaId, ...filters });
+    const response = await axios.get(`${API_URL}/api/reports/export/inventario/pdf?${params}`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `inventario-innovapaz-${Date.now()}.pdf`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Inventario a Excel
+   */
+  async exportInventarioExcel(empresaId: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams({ empresa_id: empresaId, ...filters });
+    const response = await axios.get(`${API_URL}/api/reports/export/inventario/excel?${params}`, {
+      responseType: 'blob',
+    });
+
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `inventario-innovapaz-${Date.now()}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Movimientos de Inventario a PDF
+   */
+  async exportMovimientosPDF(empresaId: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams({ empresa_id: empresaId, ...filters });
+    const response = await axios.get(
+      `${API_URL}/api/reports/export/movimientos-inventario/pdf?${params}`,
+      { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `movimientos-inventario-innovapaz-${Date.now()}.pdf`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Movimientos de Inventario a Excel
+   */
+  async exportMovimientosExcel(empresaId: string, filters?: Record<string, any>): Promise<void> {
+    const params = new URLSearchParams({ empresa_id: empresaId, ...filters });
+    const response = await axios.get(
+      `${API_URL}/api/reports/export/movimientos-inventario/excel?${params}`,
+      { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `movimientos-inventario-innovapaz-${Date.now()}.xlsx`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Alertas a PDF
+   */
+  async exportAlertasPDF(empresaId: string, stockMinimo: number = 10): Promise<void> {
+    const response = await axios.get(
+      `${API_URL}/api/reports/export/alertas/pdf?empresa_id=${empresaId}&stock_minimo=${stockMinimo}`,
+      { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `alertas-sistema-innovapaz-${Date.now()}.pdf`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * Exportar Alertas a Excel
+   */
+  async exportAlertasExcel(empresaId: string, stockMinimo: number = 10): Promise<void> {
+    const response = await axios.get(
+      `${API_URL}/api/reports/export/alertas/excel?empresa_id=${empresaId}&stock_minimo=${stockMinimo}`,
+      { responseType: 'blob' }
+    );
+
+    const blob = new Blob([response.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `alertas-sistema-innovapaz-${Date.now()}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(url);
   }

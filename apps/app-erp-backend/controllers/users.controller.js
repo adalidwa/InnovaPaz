@@ -199,8 +199,20 @@ async function updatePreferences(req, res) {
 
 async function completeCompanySetup(req, res) {
   try {
-    const { empresa_data } = req.body;
-    const firebase_uid = req.user.uid; // Obtener del token verificado
+    const { empresa_data, firebase_uid, user_email, user_name } = req.body;
+
+    // Obtener firebase_uid del token si está disponible, o del body para registro inicial
+    let uid = firebase_uid;
+    if (!uid && req.user) {
+      uid = req.user.uid;
+    }
+
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        error: 'UID de Firebase es requerido.',
+      });
+    }
 
     if (!empresa_data) {
       return res.status(400).json({
@@ -217,13 +229,49 @@ async function completeCompanySetup(req, res) {
       });
     }
 
-    // Verificar que el usuario existe y no tiene empresa
-    const existingUser = await User.findOne({ uid: firebase_uid });
+    // Verificar si el usuario existe en PostgreSQL
+    let existingUser = await User.findOne({ uid });
+
     if (!existingUser) {
-      return res.status(404).json({
-        success: false,
-        error: 'Usuario no encontrado.',
+      // Usuario NO existe en PostgreSQL (explorador de Firebase)
+      // Lo creamos usando la información del token JWT o de Firebase
+      console.log(`📝 Creando usuario en PostgreSQL para UID: ${uid}`);
+
+      let userEmail = user_email; // Usar el email enviado desde el frontend
+      let userName = user_name || 'Usuario'; // Usar el nombre enviado desde el frontend
+
+      // Si no vienen los datos del frontend, intentar obtenerlos de Firebase
+      if (!userEmail) {
+        try {
+          const firebaseUserInfo = await firebaseAuth.getUser(uid);
+
+          if (firebaseUserInfo.success) {
+            userEmail = firebaseUserInfo.email;
+            userName = firebaseUserInfo.displayName || userName;
+          }
+        } catch (firebaseError) {
+          console.warn('⚠️ No se pudo obtener info de Firebase');
+        }
+      }
+
+      if (!userEmail) {
+        return res.status(400).json({
+          success: false,
+          error: 'No se pudo obtener el email del usuario. Por favor, intente nuevamente.',
+        });
+      }
+
+      // Crear usuario en PostgreSQL SIN empresa (por ahora)
+      existingUser = await User.create({
+        uid,
+        empresa_id: null,
+        rol_id: null,
+        nombre_completo: userName,
+        email: userEmail,
+        estado: 'activo',
       });
+
+      console.log(`✅ Usuario creado en PostgreSQL: ${uid} (${userEmail})`);
     }
 
     if (existingUser.empresa_id) {
@@ -294,32 +342,47 @@ async function completeCompanySetup(req, res) {
       await RolePlantilla.findByTipoEmpresa(tipo_empresa_id)
     );
 
-    // Actualizar usuario - reemplazar plantilla_rol_id con rol_id
-    // El constraint requiere: rol_id O plantilla_rol_id, no ambos
-    const usuarioActualizado = await User.findByIdAndUpdate(firebase_uid, {
+    // Actualizar usuario - asignar rol_id
+    const updatedUser = await User.findByIdAndUpdate(uid, {
       empresa_id: nuevaEmpresa.empresa_id,
       rol_id,
-      plantilla_rol_id: null, // Limpiar plantilla cuando asignamos rol real
       estado: 'activo',
     });
 
     // Obtener plantillas disponibles para mostrar en el frontend
     const plantillasDisponibles = await RolePlantilla.findByTipoEmpresa(tipo_empresa_id);
 
+    // Generar nuevo token JWT con información actualizada del usuario
+    const jwt = require('jsonwebtoken');
+    const { JWT_SECRET } = process.env;
+
+    const updatedToken = jwt.sign(
+      {
+        uid: updatedUser.uid,
+        email: updatedUser.email,
+        empresa_id: updatedUser.empresa_id,
+        rol_id: updatedUser.rol_id,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
     res.status(200).json({
       success: true,
       mensaje: 'Configuración de empresa completada exitosamente.',
+      token: updatedToken, // Nuevo token con información actualizada
       empresa: nuevaEmpresa,
-      usuario: usuarioActualizado,
+      usuario: {
+        uid: updatedUser.uid,
+        email: updatedUser.email,
+        nombre_completo: updatedUser.nombre_completo,
+        empresa_id: updatedUser.empresa_id,
+        rol_id: updatedUser.rol_id,
+        rol: rolAdministrador.nombre_rol, // Incluir el nombre del rol
+        estado: updatedUser.estado,
+      },
       rol: rolAdministrador,
       suscripcion: subscriptionResult,
-      plantillas_disponibles: plantillasDisponibles,
-      sistema_roles: {
-        tipo: 'plantillas',
-        descripcion: 'Sistema optimizado de roles con plantillas predefinidas',
-        total_plantillas: plantillasDisponibles.length,
-        limite_plan: plan.limites?.roles || 'Ilimitado',
-      },
     });
   } catch (err) {
     console.error('Error en completeCompanySetup:', err);
@@ -409,6 +472,59 @@ async function uploadUserAvatar(req, res) {
   }
 }
 
+async function checkCompanySetup(req, res) {
+  try {
+    const { uid } = req.params;
+
+    if (!uid) {
+      return res.status(400).json({
+        success: false,
+        error: 'UID de Firebase es requerido.',
+      });
+    }
+
+    // Buscar el usuario por firebase_uid en PostgreSQL
+    const user = await User.findOne({ uid: uid });
+
+    if (!user) {
+      // Usuario NO existe en PostgreSQL (es un explorador solo de Firebase)
+      // Esto es NORMAL - no es un error
+      return res.status(200).json({
+        success: true,
+        data: {
+          tiene_empresa: false,
+          usuario: null, // No existe en PostgreSQL aún
+          needs_creation: true, // Flag para indicar que necesita ser creado
+        },
+      });
+    }
+
+    // Usuario existe en PostgreSQL - verificar si tiene empresa
+    const hasCompany = !!user.empresa_id;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        tiene_empresa: hasCompany,
+        usuario: {
+          uid: user.uid,
+          nombre_completo: user.nombre_completo,
+          email: user.email,
+          empresa_id: user.empresa_id,
+        },
+        needs_creation: false,
+      },
+    });
+  } catch (err) {
+    console.error('Error en checkCompanySetup:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Error al verificar configuración de empresa.',
+      details: err.message,
+    });
+  }
+}
+
 module.exports = {
   getUsersByCompany,
   getUserById,
@@ -418,5 +534,6 @@ module.exports = {
   changeUserRole,
   updatePreferences,
   completeCompanySetup,
+  checkCompanySetup,
   uploadUserAvatar,
 };

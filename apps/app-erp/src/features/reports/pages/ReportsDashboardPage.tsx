@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import SectionCard from '../components/SectionCard.tsx';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './ReportsDashboardPage.css';
-import MetricCard from '../components/MetricCard';
+import { BsFilePdfFill, BsFileEarmarkExcelFill } from 'react-icons/bs';
 import { StatsCard, type StatItem } from '../../../components/common';
 import { useReports } from '../hooks/useReports';
 import { useUser } from '../../users/hooks/useContextBase';
@@ -21,7 +19,8 @@ import {
   HiStar,
   HiSparkles,
 } from 'react-icons/hi';
-import { BsFilePdfFill, BsFileEarmarkExcelFill } from 'react-icons/bs';
+import MetricCard from '../components/MetricCard';
+import SectionCard from '../components/SectionCard';
 
 const ReportsDashboardPage: React.FC = () => {
   const { user, loading: userLoading } = useUser();
@@ -359,6 +358,27 @@ const ReportsDashboardPage: React.FC = () => {
             </div>
             <div className='section-card__footer'>
               <span className='section-card-link'>Ver detalles completos →</span>
+            </div>
+          </SectionCard>
+        </Link>
+
+        <Link to='/reportes/avanzados' style={{ textDecoration: 'none', color: 'inherit' }}>
+          <SectionCard
+            title='Reportes Avanzados'
+            description='Sistema completo de reportes: Ventas, Inventario, Movimientos y Alertas.'
+          >
+            <div className='section-card-stats'>
+              <div className='section-card-stat'>
+                <span className='section-card-stat__value'>🚀</span>
+                <span className='section-card-stat__label'>Nuevo</span>
+              </div>
+              <div className='section-card-stat'>
+                <span className='section-card-stat__value'>4</span>
+                <span className='section-card-stat__label'>Tipos</span>
+              </div>
+            </div>
+            <div className='section-card__footer'>
+              <span className='section-card-link'>🎯 Acceder a Reportes Avanzados →</span>
             </div>
           </SectionCard>
         </Link>

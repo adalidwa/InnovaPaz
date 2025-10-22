@@ -248,7 +248,6 @@ const getReporteUsuarios = async (req, res, next) => {
     const filtros = {
       estado: req.query.estado,
       rol_id: req.query.rol_id,
-      plantilla_rol_id: req.query.plantilla_rol_id,
       fecha_desde: req.query.fecha_desde,
       fecha_hasta: req.query.fecha_hasta,
     };
@@ -449,7 +448,7 @@ const getReporteRoles = async (req, res, next) => {
         usuario_id: req.query.usuario_id,
         parametros_utilizados: { empresa_id },
         tiempo_ejecucion_ms: tiempoEjecucion,
-        numero_registros: reporte.roles_personalizados.length + reporte.plantillas_usadas.length,
+        numero_registros: reporte.roles_personalizados.length,
         estado_ejecucion: 'exitoso',
       });
     }
@@ -462,6 +461,229 @@ const getReporteRoles = async (req, res, next) => {
     });
   } catch (error) {
     console.error('Error al generar reporte de roles:', error);
+    next(error);
+  }
+};
+
+/**
+ * Reporte de Ventas
+ */
+const getReporteVentas = async (req, res, next) => {
+  try {
+    const { empresa_id } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'El parámetro empresa_id es requerido',
+      });
+    }
+
+    const filtros = {
+      fecha_desde: req.query.fecha_desde,
+      fecha_hasta: req.query.fecha_hasta,
+      cliente_id: req.query.cliente_id,
+      vendedor_id: req.query.vendedor_id,
+      metodo_pago_id: req.query.metodo_pago_id,
+      estado_venta_id: req.query.estado_venta_id,
+      monto_minimo: req.query.monto_minimo,
+      monto_maximo: req.query.monto_maximo,
+    };
+
+    const startTime = Date.now();
+
+    const reporte = await Report.getVentasReport(empresa_id, filtros);
+
+    const tiempoEjecucion = Date.now() - startTime;
+
+    // Registrar ejecución si hay un reporte_id asociado
+    if (req.query.reporte_id && req.query.usuario_id) {
+      await Report.registrarEjecucion({
+        reporte_id: req.query.reporte_id,
+        usuario_id: req.query.usuario_id,
+        parametros_utilizados: { empresa_id, ...filtros },
+        tiempo_ejecucion_ms: tiempoEjecucion,
+        numero_registros: reporte.ventas.length,
+        estado_ejecucion: 'exitoso',
+      });
+    }
+
+    res.json({
+      success: true,
+      tipo_reporte: 'ventas',
+      ...reporte,
+      tiempo_ejecucion_ms: tiempoEjecucion,
+    });
+  } catch (error) {
+    console.error('Error al generar reporte de ventas:', error);
+    next(error);
+  }
+};
+
+/**
+ * Reporte de Inventario
+ */
+const getReporteInventario = async (req, res, next) => {
+  try {
+    const { empresa_id } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'El parámetro empresa_id es requerido',
+      });
+    }
+
+    const filtros = {
+      categoria_id: req.query.categoria_id,
+      marca_id: req.query.marca_id,
+      estado_id: req.query.estado_id,
+      stock_minimo: req.query.stock_minimo,
+      almacen_id: req.query.almacen_id,
+    };
+
+    const startTime = Date.now();
+
+    const reporte = await Report.getInventarioReport(empresa_id, filtros);
+
+    const tiempoEjecucion = Date.now() - startTime;
+
+    // Registrar ejecución si hay un reporte_id asociado
+    if (req.query.reporte_id && req.query.usuario_id) {
+      await Report.registrarEjecucion({
+        reporte_id: req.query.reporte_id,
+        usuario_id: req.query.usuario_id,
+        parametros_utilizados: { empresa_id, ...filtros },
+        tiempo_ejecucion_ms: tiempoEjecucion,
+        numero_registros: reporte.productos.length,
+        estado_ejecucion: 'exitoso',
+      });
+    }
+
+    res.json({
+      success: true,
+      tipo_reporte: 'inventario',
+      ...reporte,
+      tiempo_ejecucion_ms: tiempoEjecucion,
+    });
+  } catch (error) {
+    console.error('Error al generar reporte de inventario:', error);
+    next(error);
+  }
+};
+
+/**
+ * Reporte de Movimientos de Inventario
+ */
+const getReporteMovimientosInventario = async (req, res, next) => {
+  try {
+    const { empresa_id } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'El parámetro empresa_id es requerido',
+      });
+    }
+
+    const filtros = {
+      fecha_desde: req.query.fecha_desde,
+      fecha_hasta: req.query.fecha_hasta,
+      producto_id: req.query.producto_id,
+      tipo_movimiento_id: req.query.tipo_movimiento_id,
+      almacen_id: req.query.almacen_id,
+      entidad_tipo: req.query.entidad_tipo,
+    };
+
+    const startTime = Date.now();
+
+    const reporte = await Report.getMovimientosInventarioReport(empresa_id, filtros);
+
+    const tiempoEjecucion = Date.now() - startTime;
+
+    // Registrar ejecución si hay un reporte_id asociado
+    if (req.query.reporte_id && req.query.usuario_id) {
+      await Report.registrarEjecucion({
+        reporte_id: req.query.reporte_id,
+        usuario_id: req.query.usuario_id,
+        parametros_utilizados: { empresa_id, ...filtros },
+        tiempo_ejecucion_ms: tiempoEjecucion,
+        numero_registros: reporte.movimientos.length,
+        estado_ejecucion: 'exitoso',
+      });
+    }
+
+    res.json({
+      success: true,
+      tipo_reporte: 'movimientos_inventario',
+      ...reporte,
+      tiempo_ejecucion_ms: tiempoEjecucion,
+    });
+  } catch (error) {
+    console.error('Error al generar reporte de movimientos de inventario:', error);
+    next(error);
+  }
+};
+
+/**
+ * Reporte de Alertas - Stock bajo y productos próximos a vencer
+ */
+const getReporteAlertas = async (req, res, next) => {
+  try {
+    const { empresa_id, stock_minimo = 10 } = req.query;
+
+    if (!empresa_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'El parámetro empresa_id es requerido',
+      });
+    }
+
+    const startTime = Date.now();
+
+    // Obtener productos con stock bajo
+    const stockBajo = await Report.getInventarioReport(empresa_id, {
+      stock_minimo: parseInt(stock_minimo),
+    });
+
+    // Productos próximos a vencer (ya incluido en el reporte de inventario)
+    const proximosVencer = stockBajo.proximos_vencer;
+
+    const tiempoEjecucion = Date.now() - startTime;
+
+    // Calcular niveles de alerta
+    const alertas = {
+      stock_critico: stockBajo.productos.filter((p) => p.stock === 0),
+      stock_bajo: stockBajo.productos.filter(
+        (p) => p.stock > 0 && p.stock < parseInt(stock_minimo)
+      ),
+      proximos_vencer: proximosVencer.filter((p) => p.dias_restantes <= 7),
+      vencimiento_medio: proximosVencer.filter(
+        (p) => p.dias_restantes > 7 && p.dias_restantes <= 30
+      ),
+    };
+
+    const resumenAlertas = {
+      total_alertas:
+        alertas.stock_critico.length +
+        alertas.stock_bajo.length +
+        alertas.proximos_vencer.length +
+        alertas.vencimiento_medio.length,
+      stock_critico_count: alertas.stock_critico.length,
+      stock_bajo_count: alertas.stock_bajo.length,
+      proximos_vencer_count: alertas.proximos_vencer.length,
+      vencimiento_medio_count: alertas.vencimiento_medio.length,
+    };
+
+    res.json({
+      success: true,
+      tipo_reporte: 'alertas',
+      resumen: resumenAlertas,
+      alertas,
+      tiempo_ejecucion_ms: tiempoEjecucion,
+    });
+  } catch (error) {
+    console.error('Error al generar reporte de alertas:', error);
     next(error);
   }
 };
@@ -534,6 +756,12 @@ module.exports = {
   getReporteStockBajo,
   getReporteInvitaciones,
   getReporteRoles,
+
+  // Nuevos reportes actualizados
+  getReporteVentas,
+  getReporteInventario,
+  getReporteMovimientosInventario,
+  getReporteAlertas,
 
   // Historial y exportación
   getHistorialReporte,

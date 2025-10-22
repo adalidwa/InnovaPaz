@@ -45,74 +45,23 @@ class User {
   }
 
   static async create(data) {
-    const {
+    const { uid, empresa_id, rol_id, nombre_completo, email, estado, preferencias } = data;
+
+    const result = await pool.query(
+      'INSERT INTO usuarios (uid, empresa_id, rol_id, nombre_completo, email, estado, preferencias, fecha_creacion) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
+      [uid, empresa_id, rol_id, nombre_completo, email, estado, JSON.stringify(preferencias || {})]
+    );
+    return result.rows[0];
+  }
+
+  /**
+   * Asignar rol a usuario existente
+   */
+  static async assignRole(uid, rol_id) {
+    const result = await pool.query('UPDATE usuarios SET rol_id = $2 WHERE uid = $1 RETURNING *', [
       uid,
-      empresa_id,
       rol_id,
-      plantilla_rol_id,
-      nombre_completo,
-      email,
-      estado,
-      preferencias,
-    } = data;
-
-    const result = await pool.query(
-      'INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *',
-      [
-        uid,
-        empresa_id,
-        rol_id,
-        plantilla_rol_id,
-        nombre_completo,
-        email,
-        estado,
-        JSON.stringify(preferencias || {}),
-      ]
-    );
-    return result.rows[0];
-  }
-
-  /**
-   * Crear usuario con rol de plantilla directamente
-   */
-  static async createWithPlantillaRole(data) {
-    const { uid, empresa_id, plantilla_rol_id, nombre_completo, email, estado, preferencias } =
-      data;
-
-    const result = await pool.query(
-      'INSERT INTO usuarios (uid, empresa_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
-      [
-        uid,
-        empresa_id,
-        plantilla_rol_id,
-        nombre_completo,
-        email,
-        estado,
-        JSON.stringify(preferencias || {}),
-      ]
-    );
-    return result.rows[0];
-  }
-
-  /**
-   * Asignar rol de plantilla a usuario existente
-   */
-  static async assignPlantillaRole(uid, plantilla_rol_id) {
-    const result = await pool.query(
-      'UPDATE usuarios SET rol_id = NULL, plantilla_rol_id = $2 WHERE uid = $1 RETURNING *',
-      [uid, plantilla_rol_id]
-    );
-    return result.rows[0];
-  }
-
-  /**
-   * Asignar rol personalizado a usuario existente
-   */
-  static async assignCustomRole(uid, rol_id) {
-    const result = await pool.query(
-      'UPDATE usuarios SET plantilla_rol_id = NULL, rol_id = $2 WHERE uid = $1 RETURNING *',
-      [uid, rol_id]
-    );
+    ]);
     return result.rows[0];
   }
 
@@ -132,11 +81,6 @@ class User {
     if (filter.rol_id) {
       conditions.push('rol_id = $' + (params.length + 1));
       params.push(filter.rol_id);
-    }
-
-    if (filter.plantilla_rol_id) {
-      conditions.push('plantilla_rol_id = $' + (params.length + 1));
-      params.push(filter.plantilla_rol_id);
     }
 
     if (conditions.length > 0) {

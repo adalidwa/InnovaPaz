@@ -112,6 +112,38 @@ router.get('/generate/invitaciones', reportsController.getReporteInvitaciones);
  */
 router.get('/generate/roles', reportsController.getReporteRoles);
 
+/**
+ * @route   GET /api/reports/generate/ventas
+ * @desc    Generar reporte completo de ventas
+ * @access  Private
+ * @query   empresa_id (required), fecha_desde, fecha_hasta, cliente_id, vendedor_id, metodo_pago_id, estado_venta_id, monto_minimo, monto_maximo
+ */
+router.get('/generate/ventas', reportsController.getReporteVentas);
+
+/**
+ * @route   GET /api/reports/generate/inventario
+ * @desc    Generar reporte completo de inventario
+ * @access  Private
+ * @query   empresa_id (required), categoria_id, marca_id, estado_id, stock_minimo, almacen_id
+ */
+router.get('/generate/inventario', reportsController.getReporteInventario);
+
+/**
+ * @route   GET /api/reports/generate/movimientos-inventario
+ * @desc    Generar reporte de movimientos de inventario
+ * @access  Private
+ * @query   empresa_id (required), fecha_desde, fecha_hasta, producto_id, tipo_movimiento_id, almacen_id, entidad_tipo
+ */
+router.get('/generate/movimientos-inventario', reportsController.getReporteMovimientosInventario);
+
+/**
+ * @route   GET /api/reports/generate/alertas
+ * @desc    Generar reporte de alertas (stock bajo y productos próximos a vencer)
+ * @access  Private
+ * @query   empresa_id (required), stock_minimo (default: 10)
+ */
+router.get('/generate/alertas', reportsController.getReporteAlertas);
+
 // ============================================
 // EXPORTACIÓN DE REPORTES
 // ============================================
@@ -155,6 +187,70 @@ router.get('/export/productos/excel', exportController.exportProductosExcel);
  * @query   empresa_id (required)
  */
 router.get('/export/usuarios/excel', exportController.exportUsuariosExcel);
+
+/**
+ * @route   GET /api/reports/export/ventas/pdf
+ * @desc    Exportar ventas a PDF
+ * @access  Private
+ * @query   empresa_id (required), fecha_desde, fecha_hasta, cliente_id, vendedor_id, metodo_pago_id
+ */
+router.get('/export/ventas/pdf', exportController.exportVentasPDF);
+
+/**
+ * @route   GET /api/reports/export/ventas/excel
+ * @desc    Exportar ventas a Excel
+ * @access  Private
+ * @query   empresa_id (required), fecha_desde, fecha_hasta, cliente_id, vendedor_id, metodo_pago_id
+ */
+router.get('/export/ventas/excel', exportController.exportVentasExcel);
+
+/**
+ * @route   GET /api/reports/export/inventario/pdf
+ * @desc    Exportar inventario a PDF
+ * @access  Private
+ * @query   empresa_id (required), categoria_id, marca_id, estado_id, stock_minimo, almacen_id
+ */
+router.get('/export/inventario/pdf', exportController.exportInventarioPDF);
+
+/**
+ * @route   GET /api/reports/export/inventario/excel
+ * @desc    Exportar inventario a Excel
+ * @access  Private
+ * @query   empresa_id (required), categoria_id, marca_id, estado_id, stock_minimo, almacen_id
+ */
+router.get('/export/inventario/excel', exportController.exportInventarioExcel);
+
+/**
+ * @route   GET /api/reports/export/movimientos-inventario/pdf
+ * @desc    Exportar movimientos de inventario a PDF
+ * @access  Private
+ * @query   empresa_id (required), fecha_desde, fecha_hasta, producto_id, tipo_movimiento_id, almacen_id
+ */
+router.get('/export/movimientos-inventario/pdf', exportController.exportMovimientosPDF);
+
+/**
+ * @route   GET /api/reports/export/movimientos-inventario/excel
+ * @desc    Exportar movimientos de inventario a Excel
+ * @access  Private
+ * @query   empresa_id (required), fecha_desde, fecha_hasta, producto_id, tipo_movimiento_id, almacen_id
+ */
+router.get('/export/movimientos-inventario/excel', exportController.exportMovimientosExcel);
+
+/**
+ * @route   GET /api/reports/export/alertas/pdf
+ * @desc    Exportar alertas del sistema a PDF
+ * @access  Private
+ * @query   empresa_id (required), stock_minimo (default: 10)
+ */
+router.get('/export/alertas/pdf', exportController.exportAlertasPDF);
+
+/**
+ * @route   GET /api/reports/export/alertas/excel
+ * @desc    Exportar alertas del sistema a Excel
+ * @access  Private
+ * @query   empresa_id (required), stock_minimo (default: 10)
+ */
+router.get('/export/alertas/excel', exportController.exportAlertasExcel);
 
 /**
  * @route   POST /api/reports/export

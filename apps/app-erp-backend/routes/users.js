@@ -27,8 +27,11 @@ router.put('/:uid/role', verifyFirebaseToken, usersController.changeUserRole);
 // Actualizar preferencias de usuario
 router.patch('/:uid/preferences', verifyFirebaseToken, usersController.updatePreferences);
 
-// Nuevo: Completar configuración de empresa para un usuario de Firebase existente
-router.post('/complete-company-setup', verifyFirebaseToken, usersController.completeCompanySetup);
+// Verificar si el usuario tiene empresa configurada (sin autenticación estricta)
+router.get('/check-company/:uid', usersController.checkCompanySetup);
+
+// Completar configuración de empresa (sin autenticación estricta para registro inicial)
+router.post('/complete-company-setup', usersController.completeCompanySetup);
 
 // Subir avatar de usuario (protegida)
 router.post(

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { IoSunny, IoMoon, IoDesktop } from 'react-icons/io5';
 import Select from '../../../components/common/Select';
+import Modal from '../../../components/common/Modal';
 import { useTheme } from '../../../contexts/ThemeContext';
 import './PreferencesSection.css';
 
@@ -19,6 +20,8 @@ const fontSizeOptions = [
 function PreferencesSection() {
   const { currentTheme, preferences, setTheme, setFontSize, loading: themeLoading } = useTheme();
   const [saving, setSaving] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'auto') => {
     try {
@@ -26,7 +29,8 @@ function PreferencesSection() {
       await setTheme(newTheme);
     } catch (error) {
       console.error('Error cambiando tema:', error);
-      alert('Error al cambiar el tema');
+      setErrorMessage('Error al cambiar el tema');
+      setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
@@ -38,7 +42,8 @@ function PreferencesSection() {
       await setFontSize(newFontSize);
     } catch (error) {
       console.error('Error cambiando tamaño de fuente:', error);
-      alert('Error al cambiar el tamaño de fuente');
+      setErrorMessage('Error al cambiar el tamaño de fuente');
+      setShowErrorModal(true);
     } finally {
       setSaving(false);
     }
@@ -122,6 +127,16 @@ function PreferencesSection() {
           </div>
         </div>
       </div>
+
+      {/* Modal para errores */}
+      <Modal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title='Error'
+        message={errorMessage}
+        modalType='error'
+        confirmButtonText='Entendido'
+      />
     </div>
   );
 }

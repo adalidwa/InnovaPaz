@@ -137,15 +137,16 @@ const CompanySetupPage: React.FC = () => {
 
       if (result.success && result.empresa && result.usuario) {
         console.log('✅ Configuración completada exitosamente');
-        console.log('🆕 Sistema de roles:', result.sistema_roles);
-        console.log('📋 Plantillas disponibles:', result.plantillas_disponibles?.length || 0);
+        console.log('🆕 Usuario actualizado:', result.usuario);
 
-        setSuccess(
-          `¡Empresa configurada exitosamente! ` +
-            `Se ha configurado el ${result.sistema_roles?.descripcion || 'sistema de roles'} ` +
-            `con ${result.plantillas_disponibles?.length || 0} plantillas disponibles. ` +
-            `Redirigiendo al sistema ERP...`
-        );
+        // Actualizar token y información del usuario en localStorage si viene en la respuesta
+        if (result.token && result.usuario) {
+          console.log('🔄 Actualizando sesión con nueva información del usuario');
+          localStorage.setItem('token', result.token);
+          localStorage.setItem('user', JSON.stringify(result.usuario));
+        }
+
+        setSuccess('¡Empresa configurada exitosamente! Redirigiendo al sistema ERP...');
 
         setTimeout(() => {
           console.log('🚀 Redirigiendo al ERP');

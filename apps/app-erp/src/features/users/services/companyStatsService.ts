@@ -27,6 +27,11 @@ export interface CompanyUsageStats {
     total: number;
     percentage: number;
   };
+  transacciones: {
+    used: number;
+    total: number;
+    percentage: number;
+  };
   storage?: {
     used: number; // En MB
     total: number; // En MB
@@ -281,6 +286,7 @@ export const getCompanyUsageStats = async (): Promise<CompanyUsageStats> => {
       miembros,
       productos,
       roles,
+      transacciones: { used: 0, total: 250, percentage: 0 }, // Por implementar endpoint específico
     };
   } catch (error) {
     console.error('Error al obtener estadísticas de uso:', error);
@@ -289,6 +295,7 @@ export const getCompanyUsageStats = async (): Promise<CompanyUsageStats> => {
       miembros: { used: 1, total: 2, percentage: 50 },
       productos: { used: 0, total: 150, percentage: 0 },
       roles: { used: 0, total: 2, percentage: 0 },
+      transacciones: { used: 0, total: 250, percentage: 0 },
     };
   }
 };
@@ -306,12 +313,14 @@ export const getStatsFromSubscription = (subscriptionData: any): CompanyUsageSta
   // Datos de usuarios del middleware
   const usuarios = usage.usuarios || { current: 1, limit: 2, percentage: 50 };
 
-  // Productos (se puede mejorar cuando se implemente en el backend)
+  // Productos - usar datos reales del backend si están disponibles
   const productosLimit = limites.productos || 150;
+  const productosUsage = usage.productos || {};
+
   const productos = {
-    used: 0, // Por implementar en backend
+    used: productosUsage.current || 0,
     total: productosLimit,
-    percentage: 0,
+    percentage: productosUsage.percentage || 0,
   };
 
   // Roles - usar datos reales del backend si están disponibles
@@ -324,10 +333,32 @@ export const getStatsFromSubscription = (subscriptionData: any): CompanyUsageSta
     percentage: rolesUsage.percentage || 0,
   };
 
+  // Si no hay datos de uso de productos, intentar obtenerlos asíncronamente
+  if (!productosUsage.current && empresa.empresa_id) {
+    // Esta llamada asíncrona actualizará el estado cuando se complete
+    updateProductosUsageAsync(empresa.empresa_id, limites.productos);
+  }
+
   // Si no hay datos de uso de roles, intentar obtenerlos asíncronamente
   if (!rolesUsage.current && empresa.empresa_id) {
     // Esta llamada asíncrona actualizará el estado cuando se complete
     updateRolesUsageAsync(empresa.empresa_id, limites.roles);
+  }
+
+  // Transacciones - usar datos reales del backend si están disponibles
+  const transaccionesLimit = limites.transacciones || 250;
+  const transaccionesUsage = usage.transacciones || {};
+
+  const transacciones = {
+    used: transaccionesUsage.current || 0,
+    total: transaccionesLimit,
+    percentage: transaccionesUsage.percentage || 0,
+  };
+
+  // Si no hay datos de uso de transacciones, intentar obtenerlos asíncronamente
+  if (!transaccionesUsage.current && empresa.empresa_id) {
+    // Esta llamada asíncrona actualizará el estado cuando se complete
+    updateTransaccionesUsageAsync(empresa.empresa_id, limites.transacciones);
   }
 
   return {
@@ -346,7 +377,88 @@ export const getStatsFromSubscription = (subscriptionData: any): CompanyUsageSta
       total: roles.total === -1 ? 999 : roles.total,
       percentage: roles.percentage,
     },
+    transacciones: {
+      used: transacciones.used,
+      total: transacciones.total === -1 ? 999 : transacciones.total,
+      percentage: transacciones.percentage,
+    },
   };
+};
+
+/**
+ * Actualización asíncrona de uso de productos (no bloquea la UI)
+ */
+const updateProductosUsageAsync = async (_empresaId: string, limite: number) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${API_BASE_URL}/inventories/products`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const productos = Array.isArray(data) ? data : data.productos || [];
+      const used = productos.length;
+      const percentage = limite > 0 ? (used / limite) * 100 : 0;
+
+      // Emitir evento para actualizar la UI con datos reales
+      window.dispatchEvent(
+        new CustomEvent('productosStatsUpdated', {
+          detail: {
+            used: used,
+            total: limite === -1 ? 999 : limite,
+            percentage: percentage,
+          },
+        })
+      );
+    }
+  } catch (error) {
+    console.warn('No se pudieron obtener estadísticas de productos en tiempo real:', error);
+  }
+};
+
+/**
+ * Actualización asíncrona de uso de transacciones/ventas (no bloquea la UI)
+ */
+const updateTransaccionesUsageAsync = async (_empresaId: string, limite: number) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const response = await fetch(`${API_BASE_URL}/sales`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const ventas = Array.isArray(data) ? data : data.ventas || [];
+      const used = ventas.length;
+      const percentage = limite > 0 ? (used / limite) * 100 : 0;
+
+      // Emitir evento para actualizar la UI con datos reales
+      window.dispatchEvent(
+        new CustomEvent('transaccionesStatsUpdated', {
+          detail: {
+            used: used,
+            total: limite === -1 ? 999 : limite,
+            percentage: percentage,
+          },
+        })
+      );
+    }
+  } catch (error) {
+    console.warn('No se pudieron obtener estadísticas de transacciones en tiempo real:', error);
+  }
 };
 
 /**

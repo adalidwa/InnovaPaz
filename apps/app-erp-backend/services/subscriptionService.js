@@ -215,6 +215,54 @@ class SubscriptionService {
   }
 
   /**
+   * Obtener estadísticas de uso de recursos de la empresa
+   */
+  static async getUsageStats(empresaId) {
+    try {
+      const pool = require('../db');
+
+      // Contar productos (tabla: producto, no productos)
+      const productosQuery = await pool.query(
+        'SELECT COUNT(*) as total FROM producto WHERE empresa_id = $1',
+        [empresaId]
+      );
+
+      // Contar transacciones (ventas + pedidos + cotizaciones)
+      const transaccionesQuery = await pool.query(
+        `
+        SELECT 
+          (SELECT COUNT(*) FROM ventas WHERE empresa_id = $1) +
+          (SELECT COUNT(*) FROM pedidos WHERE empresa_id = $1) +
+          (SELECT COUNT(*) FROM cotizaciones WHERE empresa_id = $1) as total
+      `,
+        [empresaId]
+      );
+
+      // Contar usuarios/miembros
+      const miembrosQuery = await pool.query(
+        'SELECT COUNT(*) as total FROM usuarios WHERE empresa_id = $1',
+        [empresaId]
+      );
+
+      // Contar roles
+      const rolesQuery = await pool.query(
+        'SELECT COUNT(*) as total FROM roles WHERE empresa_id = $1',
+        [empresaId]
+      );
+
+      return {
+        productos: parseInt(productosQuery.rows[0].total) || 0,
+        transacciones: parseInt(transaccionesQuery.rows[0].total) || 0,
+        miembros: parseInt(miembrosQuery.rows[0].total) || 0,
+        roles: parseInt(rolesQuery.rows[0].total) || 0,
+      };
+    } catch (error) {
+      console.error('❌ Error en getUsageStats:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Obtener información detallada de la suscripción con JOINS
    */
   static async getSubscriptionInfo(empresaId) {
@@ -233,7 +281,6 @@ class SubscriptionService {
           e.fecha_fin_prueba,
           e.fecha_fin_periodo_actual,
           e.fecha_creacion,
-          e.tamano_empresa,
           e.logo_url,
           p.nombre_plan,
           p.precio_mensual,
@@ -303,7 +350,6 @@ class SubscriptionService {
           tipo_empresa_id: empresaCompleta.tipo_empresa_id,
           tipo_empresa_nombre: empresaCompleta.tipo_empresa,
           plan_id: empresaCompleta.plan_id,
-          tamano_empresa: empresaCompleta.tamano_empresa,
           email: empresaCompleta.email,
           logo_url: empresaCompleta.logo_url,
         },
@@ -345,6 +391,98 @@ class SubscriptionService {
       };
     } catch (error) {
       console.error('Error en changePlan:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtener información completa de suscripción con estadísticas de uso
+   */
+  static async getUsageInfo(empresaId) {
+    try {
+      console.log('📊 getUsageInfo - Obteniendo datos de uso para empresa:', empresaId);
+
+      // Obtener estadísticas de uso y información de empresa/plan en paralelo
+      const [usageStats, empresa] = await Promise.all([
+        this.getUsageStats(empresaId),
+        this.getSubscriptionInfo(empresaId),
+      ]);
+
+      console.log('👥 Usuarios encontrados:', usageStats.miembros);
+      console.log('🏢 Empresa encontrada:', {
+        empresa_id: empresa.empresa.id,
+        nombre: empresa.empresa.nombre,
+        plan_id: empresa.empresa.plan_id,
+      });
+
+      const planLimites = empresa.plan.limites || {};
+
+      console.log('💼 Plan encontrado para uso:', {
+        plan_id: empresa.empresa.plan_id,
+        nombre_plan: empresa.plan.nombre,
+        precio_mensual: empresa.plan.precio,
+        limites: planLimites,
+      });
+
+      // Calcular porcentajes de uso
+      const calcularPorcentaje = (usado, limite) => {
+        if (!limite || limite === null) return 0; // Ilimitado
+        return Math.min(100, Math.round((usado / limite) * 100));
+      };
+
+      const usageData = {
+        usuarios: {
+          current: usageStats.miembros,
+          limit: planLimites.miembros || 2,
+          percentage: calcularPorcentaje(usageStats.miembros, planLimites.miembros),
+        },
+        productos: {
+          current: usageStats.productos,
+          limit: planLimites.productos || 150,
+          percentage: calcularPorcentaje(usageStats.productos, planLimites.productos),
+        },
+        roles: {
+          current: usageStats.roles,
+          limit: planLimites.roles || 2,
+          percentage: calcularPorcentaje(usageStats.roles, planLimites.roles),
+          total_roles: usageStats.roles,
+          roles_predeterminados: 1, // Este dato vendría de otra consulta si es necesario
+        },
+        transacciones: {
+          current: usageStats.transacciones,
+          limit: planLimites.transacciones || 250,
+          percentage: calcularPorcentaje(usageStats.transacciones, planLimites.transacciones),
+        },
+        plan: {
+          nombre: empresa.plan.nombre,
+          precio: empresa.plan.precio,
+          features: {
+            exportacion: planLimites.exportacion || false,
+            reportes_estandar: planLimites.reportes_estandar || false,
+            reportes_avanzados: planLimites.reportes_avanzados || false,
+            soporte_dedicado_chat: planLimites.soporte_dedicado_chat || false,
+            dashboard_reportes_basicos: planLimites.dashboard_reportes_basicos || false,
+          },
+          modulos: [],
+          soporte: {
+            email: planLimites.soporte_email || false,
+            prioritario: planLimites.soporte_prioritario || false,
+          },
+        },
+        subscription: {
+          isActive: empresa.suscripcion.activa,
+          status: empresa.suscripcion.estado,
+          message: empresa.suscripcion.enPeriodoPrueba ? 'En período de prueba' : 'Activa',
+          expiresAt: empresa.suscripcion.fechaExpiracion,
+        },
+      };
+
+      console.log('🎭 Roles encontrados:', usageData.roles);
+      console.log('📤 Datos de uso finales:', JSON.stringify(usageData, null, 2));
+
+      return usageData;
+    } catch (error) {
+      console.error('❌ Error en getUsageInfo:', error);
       throw error;
     }
   }

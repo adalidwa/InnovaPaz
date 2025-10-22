@@ -173,39 +173,58 @@ async function registerUser(req, res) {
     // Crear usuario según si tiene o no empresa
     let nuevoUsuario;
     if (empresa_id && rol_id) {
-      // Usuario con empresa y rol de Administrador
+      // Usuario con empresa y rol de Administrador - CREAR EN POSTGRESQL
       nuevoUsuario = await User.create({
         uid: firebaseUser.uid,
         empresa_id,
         rol_id,
-        plantilla_rol_id: null, // Explícitamente NULL cuando hay rol_id
         nombre_completo,
         email,
         estado: 'activo',
       });
     } else {
-      // Usuario sin empresa - usar plantilla_rol_id para satisfacer constraint
-      const insertResult = await pool.query(
-        `INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-         RETURNING *`,
-        [
-          firebaseUser.uid,
-          null, // sin empresa
-          null, // sin rol específico
-          1, // plantilla_rol_id = 1 (satisface constraint)
-          nombre_completo,
-          email,
-          'activo',
-          JSON.stringify({}),
-        ]
-      );
-      nuevoUsuario = insertResult.rows[0];
+      // Usuario sin empresa (explorador) - SOLO EN FIREBASE, NO EN POSTGRESQL
+      // Se creará en PostgreSQL cuando configure su empresa en CompanySetup
+      nuevoUsuario = {
+        uid: firebaseUser.uid,
+        nombre_completo,
+        email,
+        empresa_id: null,
+        rol_id: null,
+        estado: 'activo',
+      };
+    }
+
+    // Generar token JWT con la información del usuario
+    const token = jwt.sign(
+      {
+        uid: nuevoUsuario.uid,
+        email: nuevoUsuario.email,
+        empresa_id: nuevoUsuario.empresa_id,
+        rol_id: nuevoUsuario.rol_id,
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Si tiene empresa, incluir nombre del rol
+    let rolNombre = null;
+    if (rol_id) {
+      rolNombre = 'Administrador'; // El rol creado siempre es Administrador
     }
 
     res.status(201).json({
       mensaje: 'Usuario registrado exitosamente.',
-      usuario: nuevoUsuario,
+      token, // Incluir token
+      usuario: {
+        uid: nuevoUsuario.uid,
+        email: nuevoUsuario.email,
+        nombre_completo: nuevoUsuario.nombre_completo,
+        empresa_id: nuevoUsuario.empresa_id,
+        rol_id: nuevoUsuario.rol_id,
+        rol: rolNombre, // Incluir nombre del rol
+        estado: nuevoUsuario.estado,
+      },
       firebase_uid: firebaseUser.uid,
     });
   } catch (err) {
@@ -459,34 +478,26 @@ async function googleAuth(req, res) {
       // Crear usuario según si tiene o no empresa
       let nuevoUsuario;
       if (empresa_id && rol_id) {
-        // Usuario con empresa y rol de Administrador
+        // Usuario con empresa y rol de Administrador - CREAR EN POSTGRESQL
         nuevoUsuario = await User.create({
           uid,
           empresa_id,
           rol_id,
-          plantilla_rol_id: null, // Explícitamente NULL cuando hay rol_id
           nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
           email,
           estado: 'activo',
         });
       } else {
-        // Usuario sin empresa - usar plantilla_rol_id para satisfacer constraint
-        const insertResult = await pool.query(
-          `INSERT INTO usuarios (uid, empresa_id, rol_id, plantilla_rol_id, nombre_completo, email, estado, preferencias, fecha_creacion)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
-           RETURNING *`,
-          [
-            uid,
-            null, // sin empresa
-            null, // sin rol específico
-            1, // plantilla_rol_id = 1 (satisface constraint)
-            firebaseUserInfo.displayName || 'Usuario Google',
-            email,
-            'activo',
-            JSON.stringify({}),
-          ]
-        );
-        nuevoUsuario = insertResult.rows[0];
+        // Usuario sin empresa (explorador) - SOLO EN FIREBASE, NO EN POSTGRESQL
+        // Se creará en PostgreSQL cuando configure su empresa en CompanySetup
+        nuevoUsuario = {
+          uid,
+          nombre_completo: firebaseUserInfo.displayName || 'Usuario Google',
+          email,
+          empresa_id: null,
+          rol_id: null,
+          estado: 'activo',
+        };
       }
 
       usuario = nuevoUsuario;
@@ -515,6 +526,7 @@ async function googleAuth(req, res) {
 
     res.json({
       success: true,
+      mensaje: 'Autenticación con Google exitosa.',
       token: localToken,
       usuario: {
         uid: usuario.uid,
@@ -523,9 +535,6 @@ async function googleAuth(req, res) {
         empresa_id: usuario.empresa_id,
         rol_id: usuario.rol_id,
         rol: usuario.nombre_rol || 'Sin rol',
-        estado: usuario.estado,
-        preferencias: usuario.preferencias,
-        avatar_url: usuario.avatar_url || null,
       },
       needsCompanySetup,
     });
@@ -616,7 +625,6 @@ async function getMe(req, res) {
         nombre_completo: usuarioCompleto.nombre_completo,
         email: usuarioCompleto.email,
         rol_id: usuarioCompleto.rol_id,
-        plantilla_rol_id: usuarioCompleto.plantilla_rol_id,
         rol: usuarioCompleto.nombre_rol || 'Sin rol', // Nombre del rol (plantilla o personalizado)
         tipo_rol: usuarioCompleto.tipo_rol, // 'plantilla', 'personalizado' o 'sin_rol'
         permisos: usuarioCompleto.permisos, // Permisos del rol

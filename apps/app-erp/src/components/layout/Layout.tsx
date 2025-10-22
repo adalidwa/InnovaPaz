@@ -11,7 +11,6 @@ interface SidebarItem {
 
 interface LayoutProps {
   children: React.ReactNode;
-  subtitle?: string;
   sidebarTitle: string;
   sidebarTitleIcon: React.ComponentType<{ className?: string }>;
   sidebarMenuItems: SidebarItem[];
@@ -19,7 +18,6 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({
   children,
-  subtitle = 'Sistema',
   sidebarTitle,
   sidebarTitleIcon,
   sidebarMenuItems,
@@ -28,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({
     <div className='layout'>
       <Sidebar title={sidebarTitle} titleIcon={sidebarTitleIcon} menuItems={sidebarMenuItems} />
       <div className='layout__main'>
-        <Header subtitle={subtitle} />
+        <Header />
         <main className='layout__content'>{children}</main>
       </div>
     </div>
