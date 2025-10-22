@@ -7,6 +7,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://innovapaz-app-erp-backend.vercel.app/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
